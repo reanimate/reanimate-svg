@@ -2,17 +2,16 @@ name:                reanimate-svg
 version:             0.7.0.0
 synopsis:            SVG file loader and serializer
 description:
-  svg-tree provides types representing a SVG document,
+  reanimate-svg provides types representing a SVG document,
   and allows to load and save it.
   .
   The types definition are aimed at rendering,
   so they are rather comple. For simpler SVG document building,
   look after `lucid-svg`.
-  .
-  To render an svg document you can use the `rasterific-svg` package
 
 
 license:             BSD3
+license-file:        LICENSE
 author:              Vincent Berthoux, David Himmelstrup
 maintainer:          David Himmelstrup <lemmih@gmail.com>
 -- copyright:
@@ -61,6 +60,7 @@ library
                , lens       >= 4.6 && < 5
 
 test-suite test
+  default-language: Haskell2010
   hs-source-dirs: test
   main-is: Spec.hs
   type: exitcode-stdio-1.0
