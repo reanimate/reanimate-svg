@@ -1,36 +1,36 @@
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE CPP #-}
 -- | Define the types used to describes CSS elements
-module Graphics.Svg.CssTypes
-    ( CssSelector( .. )
-    , CssSelectorRule
-    , CssRule( .. )
-    , CssDescriptor( .. )
-    , CssDeclaration( .. )
-    , CssElement( .. )
+module Graphics.SvgTree.CssTypes
+  ( CssSelector( .. )
+  , CssSelectorRule
+  , CssRule( .. )
+  , CssDescriptor( .. )
+  , CssDeclaration( .. )
+  , CssElement( .. )
 
-    , CssMatcheable( .. )
-    , CssContext
-    , Dpi
-    , Number( .. )
-    , serializeNumber
-    , findMatchingDeclarations
-    , toUserUnit
-    , mapNumber
-    , tserialize
-    ) where
+  , CssMatcheable( .. )
+  , CssContext
+  , Dpi
+  , Number( .. )
+  , serializeNumber
+  , findMatchingDeclarations
+  , toUserUnit
+  , mapNumber
+  , tserialize
+  ) where
 
 #if !MIN_VERSION_base(4,8,0)
-import Data.Monoid( mconcat )
+import           Data.Monoid            (mconcat)
 #endif
 
-import Data.Monoid( (<>) )
-import Data.List( intersperse )
-import qualified Data.Text as T
+import           Data.List              (intersperse)
+import           Data.Monoid            ((<>))
+import qualified Data.Text              as T
 import qualified Data.Text.Lazy.Builder as TB
-import Text.Printf
+import           Text.Printf
 
-import Codec.Picture( PixelRGBA8( .. ) )
+import           Codec.Picture          (PixelRGBA8 (..))
 
 -- | Alias describing a "dot per inch" information
 -- used for size calculation (see toUserUnit).
@@ -54,12 +54,12 @@ data CssDescriptor
 
 instance TextBuildable CssDescriptor where
   tserialize d = case d of
-      OfClass c -> si '.' <> ft c
-      OfName  n -> ft n
-      OfId    i -> si '#' <> ft i
+      OfClass c       -> si '.' <> ft c
+      OfName  n       -> ft n
+      OfId    i       -> si '#' <> ft i
       OfPseudoClass c -> si '#' <> ft c
-      AnyElem -> si '*'
-      WithAttrib a b -> mconcat [si '[', ft a, si '=', ft b, si ']']
+      AnyElem         -> si '*'
+      WithAttrib a b  -> mconcat [si '[', ft a, si '=', ft b, si ']']
      where
       ft = TB.fromText
       si = TB.singleton
@@ -74,9 +74,9 @@ data CssSelector
 
 instance TextBuildable CssSelector where
   tserialize s = case s of
-      Nearby -> si '+'
+      Nearby         -> si '+'
       DirectChildren -> si '>'
-      AllOf lst -> mconcat $ map tserialize lst
+      AllOf lst      -> mconcat $ map tserialize lst
     where
       si = TB.singleton
 
@@ -107,7 +107,7 @@ instance TextBuildable CssRule where
       tserializeDecl d = ft "  " <> tserialize d <> ft ";\n"
       tselector =
           mconcat . intersperse (ft " ") . fmap tserialize
-      tselectors = 
+      tselectors =
           intersperse (ft ",\n") $ fmap tselector selectors
 
 -- | Interface for elements to be matched against
@@ -131,12 +131,12 @@ isDescribedBy :: CssMatcheable a
               => a -> [CssDescriptor] -> Bool
 isDescribedBy e = all tryMatch
   where
-    tryMatch (OfClass t) = t `elem` cssClassOf e
-    tryMatch (OfId    i) = cssIdOf e == Just i
-    tryMatch (OfName  n) = cssNameOf e == n
+    tryMatch (OfClass t)       = t `elem` cssClassOf e
+    tryMatch (OfId    i)       = cssIdOf e == Just i
+    tryMatch (OfName  n)       = cssNameOf e == n
     tryMatch (OfPseudoClass _) = False
-    tryMatch (WithAttrib a v) = cssAttribOf e a == Just v
-    tryMatch AnyElem = True
+    tryMatch (WithAttrib a v)  = cssAttribOf e a == Just v
+    tryMatch AnyElem           = True
 
 isMatching :: CssMatcheable a
            => CssContext a -> [CssSelector] -> Bool
@@ -198,29 +198,29 @@ data Number
 -- | Helper function to modify inner value of a number
 mapNumber :: (Double -> Double) -> Number -> Number
 mapNumber f nu = case nu of
-  Num n -> Num $ f n
-  Px n -> Px $ f n
-  Em n -> Em $ f n
+  Num n     -> Num $ f n
+  Px n      -> Px $ f n
+  Em n      -> Em $ f n
   Percent n -> Percent $ f n
-  Pc n -> Pc $ f n
-  Mm n -> Mm $ f n
-  Cm n -> Cm $ f n
-  Point n -> Point $ f n
-  Inches n -> Inches $ f n
+  Pc n      -> Pc $ f n
+  Mm n      -> Mm $ f n
+  Cm n      -> Cm $ f n
+  Point n   -> Point $ f n
+  Inches n  -> Inches $ f n
 
 -- | Encode the number to string which can be used in a
 -- CSS or a svg attributes.
 serializeNumber :: Number -> String
 serializeNumber n = case n of
-    Num c -> printf "%g" c
-    Px c -> printf "%gpx" c
-    Em cc -> printf "%gem" cc
+    Num c     -> printf "%g" c
+    Px c      -> printf "%gpx" c
+    Em cc     -> printf "%gem" cc
     Percent p -> printf "%d%%" (floor $ 100 * p :: Int)
-    Pc p -> printf "%gpc" p
-    Mm m -> printf "%gmm" m
-    Cm c -> printf "%gcm" c
-    Point p -> printf "%gpt" p
-    Inches i -> printf "%gin" i
+    Pc p      -> printf "%gpc" p
+    Mm m      -> printf "%gmm" m
+    Cm c      -> printf "%gcm" c
+    Point p   -> printf "%gpt" p
+    Inches i  -> printf "%gin" i
 
 instance TextBuildable Number where
    tserialize = TB.fromText . T.pack . serializeNumber
@@ -259,13 +259,12 @@ instance TextBuildable CssElement where
 toUserUnit :: Dpi -> Number -> Number
 toUserUnit dpi = go where
   go nu = case nu of
-    Num _ -> nu
-    Px p -> go $ Num p
-    Em _ -> nu
+    Num _     -> nu
+    Px p      -> go $ Num p
+    Em _      -> nu
     Percent _ -> nu
-    Pc n -> go . Inches $ (12 * n) / 72
-    Inches n -> Num $ n * fromIntegral dpi
-    Mm n -> go . Inches $ n / 25.4
-    Cm n -> go . Inches $ n / 2.54
-    Point n -> go . Inches $ n / 72
-
+    Pc n      -> go . Inches $ (12 * n) / 72
+    Inches n  -> Num $ n * fromIntegral dpi
+    Mm n      -> go . Inches $ n / 25.4
+    Cm n      -> go . Inches $ n / 2.54
+    Point n   -> go . Inches $ n / 72

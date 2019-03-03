@@ -1,40 +1,30 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Graphics.Svg.ColorParser( colorParser
-                               , colorSerializer
-                               , textureParser
-                               , textureSerializer
-                               , urlRef
-                               ) where
+module Graphics.SvgTree.ColorParser
+  ( colorParser
+  , colorSerializer
+  , textureParser
+  , textureSerializer
+  , urlRef
+  ) where
 
 #if !MIN_VERSION_base(4,8,0)
-import Control.Applicative( (<*>), (<*), (*>), (<$>), (<$)  )
+import           Control.Applicative      ((*>), (<$), (<$>), (<*), (<*>))
 #endif
 
-import Data.Bits( (.|.), unsafeShiftL )
-import Control.Applicative( (<|>) )
-import Data.Attoparsec.Text
-    ( Parser
-    , string
-    , skipSpace
-    , satisfy
-    , inClass
-    , takeWhile1
-    , option
-    , char
-    , digit
-    , letter
-    , many1
-    , scientific
-    )
+import           Control.Applicative      ((<|>))
+import           Data.Attoparsec.Text     (Parser, char, digit, inClass, letter,
+                                           many1, option, satisfy, scientific,
+                                           skipSpace, string, takeWhile1)
+import           Data.Bits                (unsafeShiftL, (.|.))
 
-import Text.Printf( printf )
-import Data.Scientific( toRealFloat )
-import Codec.Picture( PixelRGBA8( .. ) )
-import Data.Word( Word8 )
-import Graphics.Svg.NamedColors
-import Graphics.Svg.Types
-import qualified Data.Map as M
+import           Codec.Picture            (PixelRGBA8 (..))
+import qualified Data.Map                 as M
+import           Data.Scientific          (toRealFloat)
+import           Data.Word                (Word8)
+import           Graphics.SvgTree.NamedColors
+import           Graphics.SvgTree.Types
+import           Text.Printf              (printf)
 
 commaWsp :: Parser ()
 commaWsp = skipSpace *> option () (string "," *> return ())
@@ -92,9 +82,9 @@ colorParser = rgbColor
 
 
 textureSerializer :: Texture -> String
-textureSerializer (ColorRef px) = colorSerializer px
+textureSerializer (ColorRef px)    = colorSerializer px
 textureSerializer (TextureRef str) = printf "url(#%s)" str
-textureSerializer FillNone = "none"
+textureSerializer FillNone         = "none"
 
 urlRef :: Parser String
 urlRef = string "url(" *> skipSpace *>
@@ -108,4 +98,3 @@ textureParser =
        <|> (ColorRef <$> colorParser)
   where
     none = FillNone <$ string "none"
-

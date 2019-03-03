@@ -1,67 +1,64 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FlexibleContexts #-}
-module Graphics.Svg.XmlParser( xmlOfDocument
-                             , unparseDocument
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE ViewPatterns      #-}
+module Graphics.SvgTree.XmlParser
+  ( xmlOfDocument
+  , unparseDocument
 
-                             , SvgAttributeLens( .. )
-                             , drawAttributesList
-                             ) where
+  , SvgAttributeLens( .. )
+  , drawAttributesList
+  ) where
 
 
 #if !MIN_VERSION_base(4,6,0)
-import Text.Read( reads )
+import           Text.Read                    (reads)
 #else
-import Text.Read( readMaybe )
+import           Text.Read                    (readMaybe)
 #endif
 
 #if !MIN_VERSION_base(4,8,0)
-import Control.Applicative( pure, (<$>), (<$), (<*>) )
-import Data.Foldable( foldMap )
-import Data.Monoid( mempty )
+import           Control.Applicative          (pure, (<$), (<$>), (<*>))
+import           Data.Foldable                (foldMap)
+import           Data.Monoid                  (mempty)
 #endif
 
-import Control.Applicative( (<|>), many )
+import           Control.Applicative          (many, (<|>))
 
-import Control.Lens hiding( transform, children, elements, element )
-import Control.Monad.State.Strict( State, runState, modify, gets )
-import Data.Maybe( fromMaybe, catMaybes )
-import Data.Monoid( Last( Last ), getLast, (<>) )
-import Data.List( foldl', intercalate )
-import Text.XML.Light.Proc( findAttrBy, elChildren, strContent )
-import qualified Text.XML.Light as X
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Builder as TB
-import qualified Data.Map as M
-import Data.Attoparsec.Text( Parser, string, parseOnly, many1 )
-import Codec.Picture( PixelRGBA8( .. ) )
-import Graphics.Svg.Types
-import Graphics.Svg.PathParser
-import Graphics.Svg.ColorParser
-import Graphics.Svg.CssTypes( CssDeclaration( .. )
-                            , CssElement( .. )
-                            , CssRule
-                            , tserialize
-                            )
-import Graphics.Svg.CssParser( complexNumber
-                             , num
-                             , ruleSet
-                             , dashArray
-                             , styleString
-                             , numberList )
+import           Codec.Picture                (PixelRGBA8 (..))
+import           Control.Lens                 hiding (children, element,
+                                               elements, transform)
+import           Control.Monad.State.Strict   (State, gets, modify, runState)
+import           Data.Attoparsec.Text         (Parser, many1, parseOnly, string)
+import           Data.List                    (foldl', intercalate)
+import qualified Data.Map                     as M
+import           Data.Maybe                   (catMaybes, fromMaybe)
+import           Data.Monoid                  (Last (Last), getLast, (<>))
+import qualified Data.Text                    as T
+import qualified Data.Text.Lazy               as TL
+import qualified Data.Text.Lazy.Builder       as TB
+import           Graphics.SvgTree.ColorParser
+import           Graphics.SvgTree.CssParser   (complexNumber, dashArray, num,
+                                               numberList, ruleSet, styleString)
+import           Graphics.SvgTree.CssTypes    (CssDeclaration (..),
+                                               CssElement (..), CssRule,
+                                               tserialize)
+import           Graphics.SvgTree.PathParser
+import           Graphics.SvgTree.Types
+import qualified Text.XML.Light               as X
+import           Text.XML.Light.Proc          (elChildren, findAttrBy,
+                                               strContent)
 
-import Text.Printf( printf )
+import           Text.Printf                  (printf)
 
 {-import Debug.Trace-}
 
 #if !MIN_VERSION_base(4,6,0)
 readMaybe :: Read a => String -> Maybe a
 readMaybe str = case reads str of
-  [] -> Nothing
+  []       -> Nothing
   (x, _):_ -> Just x
 #endif
 
@@ -128,7 +125,7 @@ instance ParseableAttribute [Transformation] where
 
 instance ParseableAttribute Alignment where
   aparse s = Just $ case s of
-    "none" -> AlignNone
+    "none"     -> AlignNone
     "xMinYMin" -> AlignxMinYMin
     "xMidYMin" -> AlignxMidYMin
     "xMaxYMin" -> AlignxMaxYMin
@@ -138,10 +135,10 @@ instance ParseableAttribute Alignment where
     "xMinYMax" -> AlignxMinYMax
     "xMidYMax" -> AlignxMidYMax
     "xMaxYMax" -> AlignxMaxYMax
-    _ -> _aspectRatioAlign defaultSvg
+    _          -> _aspectRatioAlign defaultSvg
 
   aserialize v = Just $ case v of
-    AlignNone -> "none"
+    AlignNone     -> "none"
     AlignxMinYMin -> "xMinYMin"
     AlignxMidYMin -> "xMidYMin"
     AlignxMaxYMin -> "xMaxYMin"
@@ -155,21 +152,21 @@ instance ParseableAttribute Alignment where
 instance ParseableAttribute MeshGradientType where
   aparse s = Just $ case s of
     "bilinear" -> GradientBilinear
-    "bicubic" -> GradientBicubic
-    _ -> GradientBilinear
+    "bicubic"  -> GradientBicubic
+    _          -> GradientBilinear
 
   aserialize v = Just $ case v of
     GradientBilinear -> "bilinear"
-    GradientBicubic -> "bicubic"
+    GradientBicubic  -> "bicubic"
 
 instance ParseableAttribute MeetSlice where
   aparse s = case s of
-    "meet" -> Just Meet
+    "meet"  -> Just Meet
     "slice" -> Just Slice
-    _ -> Nothing
+    _       -> Nothing
 
   aserialize v = Just $ case v of
-    Meet -> "meet"
+    Meet  -> "meet"
     Slice -> "slice"
 
 instance ParseableAttribute PreserveAspectRatio where
@@ -203,38 +200,38 @@ instance ParseableAttribute PreserveAspectRatio where
 
 instance ParseableAttribute Cap where
   aparse s = case s of
-    "butt" -> Just CapButt
-    "round" -> Just CapRound
+    "butt"   -> Just CapButt
+    "round"  -> Just CapRound
     "square" -> Just CapSquare
-    _ -> Nothing
+    _        -> Nothing
 
   aserialize c = Just $ case c of
-    CapButt -> "butt"
-    CapRound -> "round"
+    CapButt   -> "butt"
+    CapRound  -> "round"
     CapSquare -> "square"
 
 instance ParseableAttribute TextAnchor where
   aparse s = case s of
     "middle" -> Just TextAnchorMiddle
-    "start" -> Just TextAnchorStart
-    "end" -> Just TextAnchorEnd
-    _ -> Nothing
+    "start"  -> Just TextAnchorStart
+    "end"    -> Just TextAnchorEnd
+    _        -> Nothing
 
   aserialize t = Just $ case t of
     TextAnchorMiddle -> "middle"
-    TextAnchorStart -> "start"
-    TextAnchorEnd -> "end"
+    TextAnchorStart  -> "start"
+    TextAnchorEnd    -> "end"
 
 instance ParseableAttribute ElementRef where
   aparse s = case parseOnly pa $ T.pack s of
-     Left _ -> Nothing
+     Left _  -> Nothing
      Right v -> Just v
     where
       pa = (RefNone <$ string "none")
         <|> (Ref <$> urlRef)
 
   aserialize c = Just $ case c of
-    Ref r -> "url(#" <> r <> ")"
+    Ref r   -> "url(#" <> r <> ")"
     RefNone -> "none"
 
 instance ParseableAttribute LineJoin where
@@ -242,7 +239,7 @@ instance ParseableAttribute LineJoin where
     "miter" -> Just JoinMiter
     "round" -> Just JoinRound
     "bevel" -> Just JoinBevel
-    _ -> Nothing
+    _       -> Nothing
 
   aserialize j = Just $ case j of
     JoinMiter -> "miter"
@@ -251,31 +248,31 @@ instance ParseableAttribute LineJoin where
 
 instance ParseableAttribute CoordinateUnits where
   aparse s = case s of
-    "userSpaceOnUse" -> Just CoordUserSpace
+    "userSpaceOnUse"    -> Just CoordUserSpace
     "objectBoundingBox" -> Just CoordBoundingBox
-    _ -> Just CoordBoundingBox
+    _                   -> Just CoordBoundingBox
 
   aserialize uni = Just $ case uni of
-    CoordUserSpace -> "userSpaceOnUse"
+    CoordUserSpace   -> "userSpaceOnUse"
     CoordBoundingBox -> "objectBoundingBox"
 
 instance ParseableAttribute Spread where
   aparse s = case s of
-    "pad" -> Just SpreadPad
+    "pad"     -> Just SpreadPad
     "reflect" -> Just SpreadReflect
-    "repeat" -> Just SpreadRepeat
-    _ -> Nothing
+    "repeat"  -> Just SpreadRepeat
+    _         -> Nothing
 
   aserialize s = Just $ case s of
-    SpreadPad -> "pad"
+    SpreadPad     -> "pad"
     SpreadReflect -> "reflect"
-    SpreadRepeat -> "repeat"
+    SpreadRepeat  -> "repeat"
 
 instance ParseableAttribute FillRule where
   aparse s = case s of
     "nonzero" -> Just FillNonZero
     "evenodd" -> Just FillEvenOdd
-    _ -> Nothing
+    _         -> Nothing
 
   aserialize f = Just $ case f of
     FillNonZero -> "nonzero"
@@ -283,42 +280,42 @@ instance ParseableAttribute FillRule where
 
 instance ParseableAttribute TextAdjust where
   aparse s = Just $ case s of
-    "spacing" -> TextAdjustSpacing
+    "spacing"          -> TextAdjustSpacing
     "spacingAndGlyphs" -> TextAdjustSpacingAndGlyphs
-    _ -> TextAdjustSpacing
+    _                  -> TextAdjustSpacing
 
   aserialize a = Just $ case a of
-    TextAdjustSpacing -> "spacing"
+    TextAdjustSpacing          -> "spacing"
     TextAdjustSpacingAndGlyphs -> "spacingAndGlyphs"
 
 instance ParseableAttribute MarkerUnit where
   aparse s = case s of
-    "strokeWidth" -> Just MarkerUnitStrokeWidth
+    "strokeWidth"    -> Just MarkerUnitStrokeWidth
     "userSpaceOnUse" -> Just MarkerUnitUserSpaceOnUse
-    _ -> Nothing
+    _                -> Nothing
 
   aserialize u = Just $ case u of
-    MarkerUnitStrokeWidth -> "strokeWidth"
+    MarkerUnitStrokeWidth    -> "strokeWidth"
     MarkerUnitUserSpaceOnUse -> "userSpaceOnUse"
 
 instance ParseableAttribute Overflow where
   aparse s = case s of
     "visible" -> Just OverflowVisible
-    "hidden" -> Just OverflowHidden
-    _ -> Nothing
+    "hidden"  -> Just OverflowHidden
+    _         -> Nothing
 
   aserialize u = Just $ case u of
     OverflowVisible -> "visible"
-    OverflowHidden -> "hidden"
+    OverflowHidden  -> "hidden"
 
 instance ParseableAttribute MarkerOrientation where
   aparse s = case (s, readMaybe s) of
     ("auto", _) -> Just OrientationAuto
     (_, Just f) -> Just $ OrientationAngle f
-    _ -> Nothing
+    _           -> Nothing
 
   aserialize s = Just $ case s of
-    OrientationAuto -> "auto"
+    OrientationAuto    -> "auto"
     OrientationAngle f -> show f
 
 instance ParseableAttribute (Double, Double, Double, Double) where
@@ -327,31 +324,31 @@ instance ParseableAttribute (Double, Double, Double, Double) where
 
 instance ParseableAttribute TextPathMethod where
   aparse s = case s of
-    "align" -> Just TextPathAlign
+    "align"   -> Just TextPathAlign
     "stretch" -> Just TextPathStretch
-    _ -> Nothing
+    _         -> Nothing
   aserialize m = Just $ case m of
-    TextPathAlign -> "align"
+    TextPathAlign   -> "align"
     TextPathStretch -> "stretch"
 
 instance ParseableAttribute TextPathSpacing where
   aparse s = case s of
-    "auto" -> Just TextPathSpacingAuto
+    "auto"  -> Just TextPathSpacingAuto
     "exact" -> Just TextPathSpacingExact
-    _ -> Nothing
+    _       -> Nothing
 
   aserialize s = Just $ case s of
-    TextPathSpacingAuto -> "auto"
+    TextPathSpacingAuto  -> "auto"
     TextPathSpacingExact -> "exact"
 
 parse :: Parser a -> String -> Maybe a
 parse p str = case parseOnly p (T.pack str) of
-  Left _ -> Nothing
+  Left _  -> Nothing
   Right r -> Just r
 
 parseMayStartDot :: Parser a -> String -> Maybe a
 parseMayStartDot p l@('.':_) = parse p ('0':l)
-parseMayStartDot p l = parse p l
+parseMayStartDot p l         = parse p l
 
 xmlUpdate :: (XMLUpdatable a) => a -> X.Element -> a
 xmlUpdate initial el = foldl' grab initial attributes
@@ -359,7 +356,7 @@ xmlUpdate initial el = foldl' grab initial attributes
     grab value updater =
         case attributeFinder (_attributeName updater) el of
           Nothing -> value
-          Just v -> _attributeUpdater updater value v
+          Just v  -> _attributeUpdater updater value v
 
 xmlUnparse :: (XMLUpdatable a) => X.Element -> a
 xmlUnparse = xmlUpdate defaultSvg
@@ -428,7 +425,7 @@ opacitySetter attribute elLens =
     serializer a = printf "%g" <$> a ^. elLens
     updater el str = case parseMayStartDot num str of
         Nothing -> el
-        Just v -> el & elLens .~ Just (realToFrac v)
+        Just v  -> el & elLens .~ Just (realToFrac v)
 
 type Serializer e = e -> Maybe String
 
@@ -439,7 +436,7 @@ parserSetter attribute elLens parser serialize =
   where
     updater el str = case parser str of
         Nothing -> el
-        Just v -> el & elLens .~ v
+        Just v  -> el & elLens .~ v
 
     serializer  a = serialize $ a ^. elLens
 
@@ -450,7 +447,7 @@ parseIn attribute elLens =
   where
     updater el str = case aparse str of
         Nothing -> el
-        Just v -> el & elLens .~ v
+        Just v  -> el & elLens .~ v
 
     serializer a
       | v /= defaultVal = aserialize v
@@ -466,7 +463,7 @@ parserLastSetter attribute elLens parser serialize =
   where
     updater el str = case parser str of
         Nothing -> el
-        Just v -> el & elLens .~ Last (Just v)
+        Just v  -> el & elLens .~ Last (Just v)
 
     serializer a = getLast (a ^. elLens) >>= serialize
 
@@ -477,7 +474,7 @@ classSetter = SvgAttributeLens "class" updater serializer
       el & attrClass .~ (T.split (== ' ') $ T.pack str)
 
     serializer a = case a ^. attrClass of
-      [] -> Nothing
+      []  -> Nothing
       lst -> Just . T.unpack $ T.intercalate " " lst
 
 cssUniqueNumber :: ASetter el el
@@ -503,7 +500,7 @@ cssUniqueMayFloat _ attr _ = attr
 cssIdentAttr :: ParseableAttribute a => Lens' el a -> CssUpdater el
 cssIdentAttr setter attr ((CssIdent i:_):_) = case aparse $ T.unpack i of
     Nothing -> attr
-    Just v -> attr & setter .~ v
+    Just v  -> attr & setter .~ v
 cssIdentAttr _ attr _ = attr
 
 fontFamilyParser :: CssUpdater DrawAttributes
@@ -511,10 +508,10 @@ fontFamilyParser attr (lst:_) = attr & fontFamily .~ fontNames
   where
     fontNames = Last . Just $ T.unpack <$> extractString lst
 
-    extractString [] = []
-    extractString (CssIdent n:rest) = n : extractString rest
+    extractString []                 = []
+    extractString (CssIdent n:rest)  = n : extractString rest
     extractString (CssString n:rest) = n : extractString rest
-    extractString (_:rest) = extractString rest
+    extractString (_:rest)           = extractString rest
 fontFamilyParser attr _ = attr
 
 
@@ -531,7 +528,7 @@ cssUniqueTexture setter attr css = case css of
 cssUniqueColor :: ASetter el el a PixelRGBA8 -> CssUpdater el
 cssUniqueColor setter attr css = case css of
   ((CssColor c:_):_) -> attr & setter .~ c
-  _ -> attr
+  _                  -> attr
 
 cssElementRefSetter :: Lens' el (Last ElementRef) -> CssUpdater el
 cssElementRefSetter setter attr ((CssFunction "url" [CssReference c]:_):_) =
@@ -554,7 +551,7 @@ cssDashArray :: ASetter el el a (Last [Number]) -> CssUpdater el
 cssDashArray setter attr (lst:_) =
   case [n | CssNumber n <- lst ] of
     [] -> attr
-    v -> attr & setter .~ Last (Just v)
+    v  -> attr & setter .~ Last (Just v)
 cssDashArray _ attr _ = attr
 
 
@@ -612,14 +609,14 @@ styleAttribute styleAttrs = SvgAttributeLens
   }
   where
     updater attrs style = case parse styleString style of
-        Nothing -> attrs
+        Nothing    -> attrs
         Just decls -> foldl' applyer attrs decls
 
     cssUpdaters = [(T.pack $ _attributeName n, u) | (n, u) <- styleAttrs]
     applyer value (CssDeclaration txt elems) =
         case lookup txt cssUpdaters of
           Nothing -> value
-          Just f -> f value elems
+          Just f  -> f value elems
 
 instance XMLUpdatable Rectangle where
   xmlTagName _ = "rect"
@@ -786,7 +783,7 @@ instance XMLUpdatable Tree where
 
 isNotNone :: Tree -> Bool
 isNotNone None = False
-isNotNone _ = True
+isNotNone _    = True
 
 instance XMLUpdatable (Group Tree) where
   xmlTagName _ = "g"
@@ -844,7 +841,7 @@ instance XMLUpdatable Use where
 
 dropSharp :: String -> String
 dropSharp ('#':rest) = rest
-dropSharp a = a
+dropSharp a          = a
 
 instance XMLUpdatable TextInfo where
   xmlTagName _ = "tspan"
@@ -860,7 +857,7 @@ instance XMLUpdatable TextInfo where
     ,"textLength" `parseIn` textInfoLength
     ]
     where
-      dashNotEmpty [] = Nothing
+      dashNotEmpty []  = Nothing
       dashNotEmpty lst = Just $ serializeDashArray lst
 
       rotateNotEmpty [] = Nothing
@@ -1001,16 +998,16 @@ gradientOffsetSetter = SvgAttributeLens "offset" setter serialize
     setter el str = el & gradientOffset .~ val
       where
         val = realToFrac $ case parseMayStartDot complexNumber str of
-            Nothing -> 0
-            Just (Num n) -> n
-            Just (Px n) -> n
+            Nothing          -> 0
+            Just (Num n)     -> n
+            Just (Px n)      -> n
             Just (Percent n) -> n
-            Just (Em n) -> n
-            Just (Pc n) -> n
-            Just (Mm n) -> n
-            Just (Cm n) -> n
-            Just (Point n) -> n
-            Just (Inches n) -> n
+            Just (Em n)      -> n
+            Just (Pc n)      -> n
+            Just (Mm n)      -> n
+            Just (Cm n)      -> n
+            Just (Point n)   -> n
+            Just (Inches n)  -> n
 
 instance XMLUpdatable GradientStop where
     xmlTagName _ = "stop"
@@ -1029,8 +1026,8 @@ instance XMLUpdatable GradientStop where
 
 
 data Symbols = Symbols
-  { symbols :: !(M.Map String Element)
-  , cssStyle   :: [CssRule]
+  { symbols  :: !(M.Map String Element)
+  , cssStyle :: [CssRule]
   }
 
 emptyState :: Symbols
@@ -1040,7 +1037,7 @@ parseGradientStops :: X.Element -> [GradientStop]
 parseGradientStops = concatMap unStop . elChildren
   where
     unStop e@(nodeName -> "stop") = [xmlUnparse e]
-    unStop _ = []
+    unStop _                      = []
 
 parseMeshGradientPatches :: X.Element -> [MeshGradientPatch]
 parseMeshGradientPatches = foldMap unparsePatch . elChildren where
@@ -1169,7 +1166,7 @@ unparseDocument rootLocation e@(nodeName -> "svg") = Just Document
     defs = foldl' (foldTree worker) M.empty parsedElements
     worker m t =
       case t ^.drawAttr.attrId of
-        Nothing -> m
+        Nothing  -> m
         Just tid -> M.insert tid t m
     lengthFind n =
         attributeFinder n e >>= parse complexNumber
@@ -1185,10 +1182,10 @@ xmlOfDocument doc =
 
     docViewBox = case _viewBox doc of
         Nothing -> []
-        Just b -> [attr "viewBox" $ serializeViewBox b]
+        Just b  -> [attr "viewBox" $ serializeViewBox b]
 
     descTag = case _description doc of
-        "" -> []
+        ""  -> []
         txt -> [X.node (X.unqual "desc") txt]
 
     styleTag = case _styleRules doc of
