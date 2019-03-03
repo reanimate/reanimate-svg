@@ -9,6 +9,7 @@ v0.7.0.0 March 2019
 v0.6.2.3 October 2018
 
  * GHC 8.6 fixes
+ * Adding: Allow definitions to appear anywhere in an svg document.
 
 v0.6.2.2 December 2017
 
