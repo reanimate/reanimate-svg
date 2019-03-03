@@ -112,6 +112,10 @@ module Graphics.SvgTree.Types
     , Definitions( .. )
     , groupOfDefinitions
 
+    -- ** Filter
+    , Filter( .. )
+    , groupOfFilter
+
       -- * Text related types
       -- ** Text
     , Text( .. )
@@ -877,6 +881,21 @@ instance WithDrawAttributes (Definitions a) where
 instance WithDefaultSvg (Definitions a) where
   defaultSvg = Definitions defaultSvg
 
+-- | Define the `<filter>` tag.
+newtype Filter a =
+    Filter { _groupOfFilter :: Group a }
+  deriving (Eq, Show)
+
+-- | Lenses associated with the Definitions type.
+groupOfFilter :: Lens (Filter s) (Filter t) (Group s) (Group t)
+groupOfFilter f = fmap Filter . f . _groupOfFilter
+
+instance WithDrawAttributes (Filter a) where
+  drawAttr = groupOfFilter . drawAttr
+
+instance WithDefaultSvg (Filter a) where
+  defaultSvg = Filter defaultSvg
+
 -- | Define a `<circle>`.
 data Circle = Circle
   { -- | Drawing attributes of the circle.
@@ -1580,6 +1599,7 @@ data Tree
     | GroupTree     !(Group Tree)
     | SymbolTree    !(Symbol Tree)
     | DefinitionTree !(Definitions Tree)
+    | FilterTree    !(Filter Tree)
     | PathTree      !Path
     | CircleTree    !Circle
     | PolyLineTree  !PolyLine
@@ -1752,6 +1772,12 @@ zipTree f = dig [] where
   dig prev e@(SymbolTree g) =
       f . appNode prev . SymbolTree . Symbol .
             zipGroup (appNode prev e) $ _groupOfSymbol g
+  dig prev e@(DefinitionTree g) =
+      f . appNode prev . DefinitionTree . Definitions .
+            zipGroup (appNode prev e) $ _groupOfDefinitions g
+  dig prev e@(FilterTree g) =
+      f . appNode prev . FilterTree . Filter .
+            zipGroup (appNode prev e) $ _groupOfFilter g
   dig prev e@(PathTree _) = f $ appNode prev e
   dig prev e@(CircleTree _) = f $ appNode prev e
   dig prev e@(PolyLineTree _) = f $ appNode prev e
@@ -1762,7 +1788,6 @@ zipTree f = dig [] where
   dig prev e@(TextTree _ _) = f $ appNode prev e
   dig prev e@(ImageTree _) = f $ appNode prev e
   dig prev e@(MeshGradientTree _) = f $ appNode prev e
-  dig prev e@(DefinitionTree _) = f $ appNode prev e
   dig prev e@(LinearGradientTree _) = f $ appNode prev e
   dig prev e@(RadialGradientTree _) = f $ appNode prev e
   dig prev e@(PatternTree _) = f $ appNode prev e
@@ -1800,17 +1825,14 @@ foldTree f = go where
     MarkerTree _    -> f acc e
     MaskTree _      -> f acc e
     ClipPathTree _  -> f acc e
-    DefinitionTree d ->
-      let subAcc =
-            F.foldl' go acc . _groupChildren $ _groupOfDefinitions d in
-      f subAcc e
-    GroupTree g     ->
-      let subAcc = F.foldl' go acc $ _groupChildren g in
-      f subAcc e
-    SymbolTree s    ->
-      let subAcc =
-            F.foldl' go acc . _groupChildren $ _groupOfSymbol s in
-      f subAcc e
+    DefinitionTree g -> foldGroup (_groupOfDefinitions g)
+    FilterTree g    -> foldGroup (_groupOfFilter g)
+    GroupTree g     -> foldGroup g
+    SymbolTree s    -> foldGroup (_groupOfSymbol s)
+    where
+      foldGroup g =
+        let subAcc = F.foldl' go acc $ _groupChildren g in
+        f subAcc e
 
 -- | Helper function mapping every tree element.
 mapTree :: (Tree -> Tree) -> Tree -> Tree
@@ -1822,6 +1844,8 @@ mapTree f = go where
       f . SymbolTree . Symbol . mapGroup $ _groupOfSymbol g
   go (DefinitionTree defs) =
     f . DefinitionTree . Definitions . mapGroup $ _groupOfDefinitions defs
+  go (FilterTree g) =
+    f . FilterTree . Filter . mapGroup $ _groupOfFilter g
   go e@(PathTree _) = f e
   go e@(CircleTree _) = f e
   go e@(PolyLineTree _) = f e
@@ -1852,6 +1876,7 @@ nameOfTree v =
    GroupTree _          -> "g"
    SymbolTree _         -> "symbol"
    DefinitionTree _     -> "defs"
+   FilterTree _         -> "filter"
    PathTree _           -> "path"
    CircleTree _         -> "circle"
    PolyLineTree _       -> "polyline"
@@ -1876,6 +1901,7 @@ drawAttrOfTree v = case v of
   GroupTree e          -> e ^. drawAttr
   SymbolTree e         -> e ^. drawAttr
   DefinitionTree e     -> e ^. drawAttr
+  FilterTree e         -> e ^. drawAttr
   PathTree e           -> e ^. drawAttr
   CircleTree e         -> e ^. drawAttr
   PolyLineTree e       -> e ^. drawAttr
@@ -1899,7 +1925,8 @@ setDrawAttrOfTree v attr = case v of
   UseTree e m          -> UseTree (e & drawAttr .~ attr) m
   GroupTree e          -> GroupTree $ e & drawAttr .~ attr
   SymbolTree e         -> SymbolTree $ e & drawAttr .~ attr
-  DefinitionTree e     -> DefinitionTree e
+  DefinitionTree e     -> DefinitionTree e & drawAttr .~ attr
+  FilterTree e         -> FilterTree $ e & drawAttr .~ attr
   PathTree e           -> PathTree $ e & drawAttr .~ attr
   CircleTree e         -> CircleTree $ e & drawAttr .~ attr
   PolyLineTree e       -> PolyLineTree $ e & drawAttr .~ attr

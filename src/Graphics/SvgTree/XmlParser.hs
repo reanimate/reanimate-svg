@@ -758,6 +758,7 @@ instance XMLUpdatable Tree where
     GroupTree g -> serializeTreeNode g
     SymbolTree s -> serializeTreeNode s
     DefinitionTree d -> serializeTreeNode d
+    FilterTree g -> serializeTreeNode g
     PathTree p -> serializeTreeNode p
     CircleTree c -> serializeTreeNode c
     PolyLineTree p -> serializeTreeNode p
@@ -812,6 +813,12 @@ instance XMLUpdatable (Definitions Tree) where
      ,"preserveAspectRatio" `parseIn` (groupOfDefinitions . groupAspectRatio)
      ]
 
+instance XMLUpdatable (Filter Tree) where
+  xmlTagName _ = "filter"
+  serializeTreeNode node =
+     updateWithAccessor (filter isNotNone . _groupChildren . _groupOfFilter) node $
+        genericSerializeWithDrawAttr node
+  attributes = []
 
 instance XMLUpdatable RadialGradient where
   xmlTagName _ = "radialGradient"
@@ -1080,6 +1087,13 @@ unparse e@(nodeName -> "defs") = do
   defsChildren <- mapM unparse $ elChildren e
   let realChildren = filter isNotNone defsChildren
   pure . DefinitionTree . Definitions $ groupNode & groupChildren .~ realChildren
+  where
+    groupNode :: Group Tree
+    groupNode = _groupOfSymbol $ xmlUnparseWithDrawAttr e
+unparse e@(nodeName -> "filter") = do
+  defsChildren <- mapM unparse $ elChildren e
+  let realChildren = filter isNotNone defsChildren
+  pure . FilterTree . Filter $ groupNode & groupChildren .~ realChildren
   where
     groupNode :: Group Tree
     groupNode = _groupOfSymbol $ xmlUnparseWithDrawAttr e
