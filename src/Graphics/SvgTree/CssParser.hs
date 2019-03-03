@@ -1,62 +1,37 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternGuards #-}
-module Graphics.Svg.CssParser
-    ( CssElement( .. )
-    , complexNumber
-    , declaration
-    , ruleSet
-    , styleString
-    , dashArray
-    , numberList
-    , num
-    , cssRulesOfText
-    )
-    where
+{-# LANGUAGE PatternGuards     #-}
+module Graphics.SvgTree.CssParser
+  ( CssElement( .. )
+  , complexNumber
+  , declaration
+  , ruleSet
+  , styleString
+  , dashArray
+  , numberList
+  , num
+  , cssRulesOfText
+  ) where
 
 #if !MIN_VERSION_base(4,8,0)
-import Control.Applicative( (<*>), (<*), (*>)
-                          , (<$>), (<$)
-                          , pure
-                          )
+import           Control.Applicative        (pure, (*>), (<$), (<$>), (<*),
+                                             (<*>))
 #endif
 
-import Control.Applicative( (<|>)
-                          , many
-                          )
-import Data.Attoparsec.Text
-    ( Parser
-    , double
-    , string
-    , skipSpace
-    , letter
-    , char
-    , digit
-    {-, skip-}
-    , sepBy1
-    , (<?>)
-    , skipMany
-    , notChar
-    , parseOnly
-    )
-import qualified Data.Attoparsec.Text as AT
+import           Control.Applicative        (many, (<|>))
+import           Data.Attoparsec.Text       (Parser, char, digit, double,
+                                             letter, notChar, parseOnly, sepBy1,
+                                             skipMany, skipSpace, string, (<?>))
+import qualified Data.Attoparsec.Text       as AT
 
-import Data.Attoparsec.Combinator
-    ( option
-    , sepBy
-    {-, sepBy1-}
-    , many1
-    )
+import           Data.Attoparsec.Combinator (many1, option, sepBy)
 
-import Codec.Picture( PixelRGBA8( .. ) )
-import Graphics.Svg.Types
-import Graphics.Svg.NamedColors( svgNamedColors )
-import Graphics.Svg.ColorParser( colorParser )
-import Graphics.Svg.CssTypes
-import qualified Data.Text as T
-import qualified Data.Map as M
-{-import Graphics.Rasterific.Linear( V2( V2 ) )-}
-{-import Graphics.Rasterific.Transformations-}
+import           Codec.Picture              (PixelRGBA8 (..))
+import qualified Data.Map                   as M
+import qualified Data.Text                  as T
+import           Graphics.SvgTree.ColorParser   (colorParser)
+import           Graphics.SvgTree.CssTypes
+import           Graphics.SvgTree.NamedColors   (svgNamedColors)
 
 num :: Parser Double
 num = realToFrac <$> (skipSpace *> plusMinus <* skipSpace)
@@ -232,15 +207,15 @@ term = checkRgb <$> function
                 [CssNumber r, CssNumber g, CssNumber b]) =
         CssColor $ PixelRGBA8 (to r) (to g) (to b) 255
        where clamp = max 0 . min 255
-             to (Num n) = floor $ clamp n
-             to (Px n) = floor $ clamp n
+             to (Num n)     = floor $ clamp n
+             to (Px n)      = floor $ clamp n
              to (Percent p) = floor . clamp $ p * 255
-             to (Em c) = floor $ clamp c
-             to (Pc n) = floor $ clamp n
-             to (Mm n) = floor $ clamp n
-             to (Cm n) = floor $ clamp n
-             to (Point n) = floor $ clamp n
-             to (Inches n) = floor $ clamp n
+             to (Em c)      = floor $ clamp c
+             to (Pc n)      = floor $ clamp n
+             to (Mm n)      = floor $ clamp n
+             to (Cm n)      = floor $ clamp n
+             to (Point n)   = floor $ clamp n
+             to (Inches n)  = floor $ clamp n
 
     checkRgb a = a
     functionParam = (CssReference <$> ref) <|> term
@@ -252,6 +227,5 @@ term = checkRgb <$> function
 -- | Parse CSS text into rules.
 cssRulesOfText :: T.Text -> [CssRule]
 cssRulesOfText txt = case parseOnly (many1 ruleSet) $ txt of
-    Left _ -> []
+    Left _      -> []
     Right rules -> rules
-

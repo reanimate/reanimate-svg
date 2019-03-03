@@ -1,38 +1,39 @@
 {-# LANGUAGE CPP #-}
 -- | Module providing basic input/output for the SVG document,
 -- for document building, please refer to Graphics.Svg.Types.
-module Graphics.Svg ( -- * Saving/Loading functions
-                      loadSvgFile
-                    , parseSvgFile
-                    , xmlOfDocument
-                    , saveXmlFile
+module Graphics.SvgTree
+  ( -- * Saving/Loading functions
+    loadSvgFile
+  , parseSvgFile
+  , xmlOfDocument
+  , saveXmlFile
 
-                      -- * Manipulation functions
-                    , cssApply
-                    , cssRulesOfText
-                    , applyCSSRules
-                    , resolveUses
+    -- * Manipulation functions
+  , cssApply
+  , cssRulesOfText
+  , applyCSSRules
+  , resolveUses
 
-                      -- * Type definitions
-                    , module Graphics.Svg.Types
-                    ) where
+    -- * Type definitions
+  , module Graphics.SvgTree.Types
+  ) where
 
 #if !MIN_VERSION_base(4,8,0)
-import Control.Applicative( (<$>) )
+import           Control.Applicative        ((<$>))
 #endif
 
-import Data.List( foldl' )
-import qualified Data.ByteString as B
-import qualified Data.Map as M
-import qualified Data.Text as T
-import Text.XML.Light.Input( parseXMLDoc )
-import Text.XML.Light.Output( ppcTopElement, prettyConfigPP )
-import Control.Lens
+import           Control.Lens
+import qualified Data.ByteString            as B
+import           Data.List                  (foldl')
+import qualified Data.Map                   as M
+import qualified Data.Text                  as T
+import           Text.XML.Light.Input       (parseXMLDoc)
+import           Text.XML.Light.Output      (ppcTopElement, prettyConfigPP)
 
-import Graphics.Svg.Types
-import Graphics.Svg.CssTypes
-import Graphics.Svg.CssParser( cssRulesOfText )
-import Graphics.Svg.XmlParser
+import           Graphics.SvgTree.CssParser (cssRulesOfText)
+import           Graphics.SvgTree.CssTypes
+import           Graphics.SvgTree.Types
+import           Graphics.SvgTree.XmlParser
 
 {-import Graphics.Svg.CssParser-}
 
@@ -60,7 +61,7 @@ cssDeclApplyer :: DrawAttributes -> CssDeclaration
 cssDeclApplyer value (CssDeclaration txt elems) =
    case lookup txt cssUpdaters of
      Nothing -> value
-     Just f -> f value elems
+     Just f  -> f value elems
   where
     cssUpdaters = [(T.pack $ _attributeName n, u) |
                             (n, u) <- drawAttributesList]
@@ -89,7 +90,7 @@ resolveUses doc =
   doc { _elements = mapTree fetchUses <$> _elements doc }
   where
     fetchUses (UseTree useInfo _) = UseTree useInfo $ search useInfo
-    fetchUses a = a
+    fetchUses a                   = a
 
     search nfo = M.lookup (_useName nfo) $ _definitions doc
 

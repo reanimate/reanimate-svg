@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Graphics.Svg.NamedColors( svgNamedColors ) where
+module Graphics.SvgTree.NamedColors( svgNamedColors ) where
 
-import qualified Data.Map as M
-import Codec.Picture( PixelRGBA8( .. ) )
-import Data.Text( Text )
+import           Codec.Picture (PixelRGBA8 (..))
+import qualified Data.Map      as M
+import           Data.Text     (Text)
 
 svgNamedColors :: M.Map Text PixelRGBA8
 svgNamedColors = M.fromList
@@ -155,4 +155,3 @@ svgNamedColors = M.fromList
   , ("yellow"              , PixelRGBA8 255 255   0 255)
   , ("yellowgreen"         , PixelRGBA8 154 205  50 255)
   ]
-

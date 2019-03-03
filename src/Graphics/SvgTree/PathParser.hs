@@ -1,42 +1,34 @@
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE CPP #-}
-module Graphics.Svg.PathParser( transformParser
-                              , command
-                              , pathParser
-                              , viewBoxParser
-                              , pointData
-                              , gradientCommand
-                              , serializePoints
-                              , serializeCommand
-                              , serializeGradientCommand
-                              , serializeCommands
-                              , serializeViewBox
-                              ) where
+module Graphics.SvgTree.PathParser
+  ( transformParser
+  , command
+  , pathParser
+  , viewBoxParser
+  , pointData
+  , gradientCommand
+  , serializePoints
+  , serializeCommand
+  , serializeGradientCommand
+  , serializeCommands
+  , serializeViewBox
+  ) where
 
 #if !MIN_VERSION_base(4,8,0)
-import Control.Applicative( (<*>), (<*), (*>), (<$>), (<$) )
+import           Control.Applicative        ((*>), (<$), (<$>), (<*), (<*>))
 #endif
 
-import Control.Applicative( (<|>) )
-import Data.Scientific( toRealFloat )
-import Data.Attoparsec.Text
-    ( Parser
-    , scientific
-    , string
-    , skipSpace
-    , char
-    , many1
-    , digit
-    , parseOnly
-    )
-import Data.Attoparsec.Combinator( option
-                                 , sepBy
-                                 , sepBy1 )
+import           Control.Applicative        ((<|>))
+import           Data.Attoparsec.Combinator (option, sepBy, sepBy1)
+import           Data.Attoparsec.Text       (Parser, char, digit, many1,
+                                             parseOnly, scientific, skipSpace,
+                                             string)
+import           Data.Scientific            (toRealFloat)
 
-import Linear hiding ( angle, point )
-import Graphics.Svg.Types
-import qualified Data.Text as T
-import Text.Printf( printf )
+import qualified Data.Text                  as T
+import           Graphics.SvgTree.Types
+import           Linear                     hiding (angle, point)
+import           Text.Printf                (printf)
 
 num :: Parser Double
 num = realToFrac <$> (skipSpace *> plusMinus <* skipSpace)
@@ -183,32 +175,32 @@ translationParser :: Parser Transformation
 translationParser = do
   args <- functionParser "translate"
   return $ case args of
-    [x] -> Translate x 0
+    [x]    -> Translate x 0
     [x, y] -> Translate x y
-    _ -> TransformUnknown
+    _      -> TransformUnknown
 
 skewXParser :: Parser Transformation
 skewXParser = do
   args <- functionParser "skewX"
   return $ case args of
     [x] -> SkewX x
-    _ -> TransformUnknown
+    _   -> TransformUnknown
 
 skewYParser :: Parser Transformation
 skewYParser = do
   args <- functionParser "skewY"
   return $ case args of
     [x] -> SkewY x
-    _ -> TransformUnknown
+    _   -> TransformUnknown
 
 
 scaleParser :: Parser Transformation
 scaleParser = do
   args <- functionParser "scale"
   return $ case args of
-    [x] -> Scale x Nothing
+    [x]    -> Scale x Nothing
     [x, y] -> Scale x (Just y)
-    _ -> TransformUnknown
+    _      -> TransformUnknown
 
 matrixParser :: Parser Transformation
 matrixParser = do
@@ -222,9 +214,9 @@ rotateParser :: Parser Transformation
 rotateParser = do
   args <- functionParser "rotate"
   return $ case args of
-    [angle] -> Rotate angle Nothing
+    [angle]       -> Rotate angle Nothing
     [angle, x, y] -> Rotate angle $ Just (x, y)
-    _ -> TransformUnknown
+    _             -> TransformUnknown
 {-
 rotate(<rotate-angle> [<cx> <cy>]), which specifies a rotation by <rotate-angle> degrees about a given point.
 
@@ -254,11 +246,11 @@ serializeGradientCommand :: GradientPathCommand -> String
 serializeGradientCommand p = case p of
   GLine OriginAbsolute points -> "L" ++ smp points
   GLine OriginRelative points -> "l" ++ smp points
-  GClose -> "Z"
+  GClose                      -> "Z"
 
   GCurve OriginAbsolute a b c -> "C" ++ sp a ++ sp b ++ smp c
   GCurve OriginRelative a b c -> "c" ++ sp a ++ sp b ++ smp c
   where
     sp = serializePoint
-    smp Nothing = ""
+    smp Nothing   = ""
     smp (Just pp) = serializePoint pp

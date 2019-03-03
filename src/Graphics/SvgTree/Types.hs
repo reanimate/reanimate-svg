@@ -1,14 +1,14 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE CPP                    #-}
+{-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE RankNTypes             #-}
 -- | This module define all the types used in the definition
 -- of a svg scene.
 --
 -- Most of the types are lensified.
-module Graphics.Svg.Types
+module Graphics.SvgTree.Types
     ( -- * Basic building types
       Coord
     , Origin( .. )
@@ -186,30 +186,24 @@ module Graphics.Svg.Types
     ) where
 
 #if !MIN_VERSION_base(4,8,0)
-import Data.Monoid( Monoid( .. ) )
-import Data.Foldable( Foldable )
+import           Data.Foldable             (Foldable)
+import           Data.Monoid               (Monoid (..))
 #endif
 
-import Data.Function( on )
-import Data.List( inits )
-import qualified Data.Map as M
-import Data.Semigroup( Semigroup( .. ) )
-import Data.Monoid( Last( .. ) )
-import qualified Data.Foldable as F
-import qualified Data.Text as T
-import Codec.Picture( PixelRGBA8( .. ) )
-import Control.Lens( Lens'
-                   , Lens
-                   , lens
-                   , view
-                   , (^.)
-                   , (&)
-                   , (.~)
-                   )
-import Graphics.Svg.CssTypes
-import Linear hiding ( angle )
+import           Codec.Picture             (PixelRGBA8 (..))
+import           Control.Lens              (Lens, Lens', lens, view, (&), (.~),
+                                            (^.))
+import qualified Data.Foldable             as F
+import           Data.Function             (on)
+import           Data.List                 (inits)
+import qualified Data.Map                  as M
+import           Data.Monoid               (Last (..))
+import           Data.Semigroup            (Semigroup (..))
+import qualified Data.Text                 as T
+import           Graphics.SvgTree.CssTypes
+import           Linear                    hiding (angle)
 
-import Text.Printf
+import           Text.Printf
 
 -- | Basic coordinate type.
 type Coord = Double
@@ -276,7 +270,7 @@ toPoint = (,)
 -- | Tell if the path command is an EllipticalArc.
 isPathArc :: PathCommand -> Bool
 isPathArc (EllipticalArc _ _) = True
-isPathArc _ = False
+isPathArc _                   = False
 
 -- | Tell if a full path contain an EllipticalArc.
 isPathWithArc :: Foldable f => f PathCommand -> Bool
@@ -541,7 +535,7 @@ data PolyLine = PolyLine
 
     -- | Geometry definition of the polyline.
     -- correspond to the `points` attribute
-  , _polyLinePoints :: ![RPoint]
+  , _polyLinePoints         :: ![RPoint]
   }
   deriving (Eq, Show)
 
@@ -584,7 +578,7 @@ data Polygon = Polygon
     _polygonDrawAttributes :: !DrawAttributes
     -- | Points of the polygon. Correspond to
     -- the `points` attributes.
-  , _polygonPoints :: ![RPoint]
+  , _polygonPoints         :: ![RPoint]
   }
   deriving (Eq, Show)
 
@@ -624,10 +618,10 @@ data Line = Line
     _lineDrawAttributes :: !DrawAttributes
     -- | First point of the the line, correspond
     -- to the `x1` and `y1` attributes.
-  , _linePoint1 :: !Point
+  , _linePoint1         :: !Point
     -- | Second point of the the line, correspond
     -- to the `x2` and `y2` attributes.
-  , _linePoint2 :: !Point
+  , _linePoint2         :: !Point
   }
   deriving (Eq, Show)
 
@@ -749,7 +743,7 @@ data Path = Path
     _pathDrawAttributes :: !DrawAttributes
     -- | Definition of the path, correspond to the
     -- `d` attributes.
-  , _pathDefinition :: ![PathCommand]
+  , _pathDefinition     :: ![PathCommand]
   }
   deriving (Eq, Show)
 
@@ -790,11 +784,11 @@ data Group a = Group
     _groupDrawAttributes :: !DrawAttributes
     -- | Content of the group, corresponding to all the tags
     -- inside the `<g>` tag.
-  , _groupChildren  :: ![a]
+  , _groupChildren       :: ![a]
     -- | Mapped to the attribute `viewBox`
-  , _groupViewBox   :: !(Maybe (Double, Double, Double, Double))
+  , _groupViewBox        :: !(Maybe (Double, Double, Double, Double))
     -- | used for symbols only
-  , _groupAspectRatio :: !PreserveAspectRatio
+  , _groupAspectRatio    :: !PreserveAspectRatio
   }
   deriving (Eq, Show)
 
@@ -889,10 +883,10 @@ data Circle = Circle
     _circleDrawAttributes :: !DrawAttributes
     -- | Define the center of the circle, describe
     -- the `cx` and `cy` attributes.
-  , _circleCenter   :: !Point
+  , _circleCenter         :: !Point
     -- | Radius of the circle, equivalent to the `r`
     -- attribute.
-  , _circleRadius   :: !Number
+  , _circleRadius         :: !Number
   }
   deriving (Eq, Show)
 
@@ -940,13 +934,13 @@ data Ellipse = Ellipse
     _ellipseDrawAttributes :: !DrawAttributes
     -- | Center of the ellipse, map to the `cx`
     -- and `cy` attributes.
-  , _ellipseCenter :: !Point
+  , _ellipseCenter         :: !Point
     -- | Radius along the X axis, map the
     -- `rx` attribute.
-  , _ellipseXRadius :: !Number
+  , _ellipseXRadius        :: !Number
     -- | Radius along the Y axis, map the
     -- `ry` attribute.
-  , _ellipseYRadius :: !Number
+  , _ellipseYRadius        :: !Number
   }
   deriving (Eq, Show)
 
@@ -998,12 +992,12 @@ instance WithDefaultSvg Ellipse where
 data GradientStop = GradientStop
     { -- | Gradient offset between 0 and 1, correspond
       -- to the `offset` attribute.
-      _gradientOffset :: !Float
+      _gradientOffset  :: !Float
       -- | Color of the gradient stop. Correspond
       -- to the `stop-color` attribute.
-    , _gradientColor  :: !PixelRGBA8
+    , _gradientColor   :: !PixelRGBA8
       -- | Path command used in mesh patch
-    , _gradientPath   :: !(Maybe GradientPathCommand)
+    , _gradientPath    :: !(Maybe GradientPathCommand)
       -- | Stop color opacity
     , _gradientOpacity :: !(Maybe Float)
     }
@@ -1182,18 +1176,18 @@ instance WithDefaultSvg MeshGradient where
 -- | Define an `<image>` tag.
 data Image = Image
   { -- | Drawing attributes of the image
-    _imageDrawAttributes :: !DrawAttributes
+    _imageDrawAttributes  :: !DrawAttributes
     -- | Position of the image referenced by its
     -- upper left corner.
   , _imageCornerUpperLeft :: !Point
     -- | Image width
-  , _imageWidth :: !Number
+  , _imageWidth           :: !Number
     -- | Image Height
-  , _imageHeight :: !Number
+  , _imageHeight          :: !Number
     -- | Image href, pointing to the real image.
-  , _imageHref :: !String
+  , _imageHref            :: !String
     -- | preserveAspectRatio attribute
-  , _imageAspectRatio :: !PreserveAspectRatio
+  , _imageAspectRatio     :: !PreserveAspectRatio
   }
   deriving (Eq, Show)
 
@@ -1259,18 +1253,18 @@ instance WithDefaultSvg Image where
 data Use = Use
   { -- | Position where to draw the "used" element.
     -- Correspond to the `x` and `y` attributes.
-    _useBase   :: Point
+    _useBase           :: Point
     -- | Referenced name, correspond to `xlink:href`
     -- attribute.
-  , _useName   :: String
+  , _useName           :: String
     -- | Define the width of the region where
     -- to place the element. Map to the `width`
     -- attribute.
-  , _useWidth  :: Maybe Number
+  , _useWidth          :: Maybe Number
     -- | Define the height of the region where
     -- to place the element. Map to the `height`
     -- attribute.
-  , _useHeight :: Maybe Number
+  , _useHeight         :: Maybe Number
     -- | Use draw attributes.
   , _useDrawAttributes :: DrawAttributes
   }
@@ -1531,9 +1525,9 @@ data TextAdjust
 -- | Define the global `<tag>` SVG tag.
 data Text = Text
   { -- | Define the `lengthAdjust` attribute.
-    _textAdjust   :: !TextAdjust
+    _textAdjust :: !TextAdjust
     -- | Root of the text content.
-  , _textRoot     :: !TextSpan
+  , _textRoot   :: !TextSpan
   }
   deriving (Eq, Show)
 
@@ -1631,25 +1625,25 @@ data Marker = Marker
     _markerDrawAttributes :: DrawAttributes
     -- | Define the reference point of the marker.
     -- correspond to the `refX` and `refY` attributes.
-  , _markerRefPoint    :: !(Number, Number)
+  , _markerRefPoint       :: !(Number, Number)
     -- | Define the width of the marker. Correspond to
     -- the `markerWidth` attribute.
-  , _markerWidth       :: !(Maybe Number)
+  , _markerWidth          :: !(Maybe Number)
     -- | Define the height of the marker. Correspond to
     -- the `markerHeight` attribute.
-  , _markerHeight      :: !(Maybe Number)
+  , _markerHeight         :: !(Maybe Number)
     -- | Correspond to the `orient` attribute.
-  , _markerOrient      :: !(Maybe MarkerOrientation)
+  , _markerOrient         :: !(Maybe MarkerOrientation)
     -- | Map the `markerUnits` attribute.
-  , _markerUnits       :: !(Maybe MarkerUnit)
+  , _markerUnits          :: !(Maybe MarkerUnit)
     -- | Optional viewbox
-  , _markerViewBox     :: !(Maybe (Double, Double, Double, Double))
+  , _markerViewBox        :: !(Maybe (Double, Double, Double, Double))
     -- | Elements defining the marker.
-  , _markerOverflow    :: !(Maybe Overflow)
+  , _markerOverflow       :: !(Maybe Overflow)
     -- | preserveAspectRatio attribute
-  , _markerAspectRatio :: !PreserveAspectRatio
+  , _markerAspectRatio    :: !PreserveAspectRatio
     -- | Elements defining the marker.
-  , _markerElements :: [Tree]
+  , _markerElements       :: [Tree]
   }
   deriving (Eq, Show)
 
@@ -1740,7 +1734,7 @@ instance WithDefaultSvg Marker where
 
 -- | Insert element in the first sublist in the list of list.
 appNode :: [[a]] -> a -> [[a]]
-appNode [] e = [[e]]
+appNode [] e           = [[e]]
 appNode (curr:above) e = (e:curr) : above
 
 -- | Map a tree while propagating context information.
@@ -1853,75 +1847,75 @@ mapTree f = go where
 nameOfTree :: Tree -> T.Text
 nameOfTree v =
   case v of
-   None     -> ""
-   UseTree _ _     -> "use"
-   GroupTree _     -> "g"
-   SymbolTree _    -> "symbol"
-   DefinitionTree _ -> "defs"
-   PathTree _      -> "path"
-   CircleTree _    -> "circle"
-   PolyLineTree _  -> "polyline"
-   PolygonTree _   -> "polygon"
-   EllipseTree _   -> "ellipse"
-   LineTree _      -> "line"
-   RectangleTree _ -> "rectangle"
-   TextTree    _ _ -> "text"
-   ImageTree _     -> "image"
+   None                 -> ""
+   UseTree _ _          -> "use"
+   GroupTree _          -> "g"
+   SymbolTree _         -> "symbol"
+   DefinitionTree _     -> "defs"
+   PathTree _           -> "path"
+   CircleTree _         -> "circle"
+   PolyLineTree _       -> "polyline"
+   PolygonTree _        -> "polygon"
+   EllipseTree _        -> "ellipse"
+   LineTree _           -> "line"
+   RectangleTree _      -> "rectangle"
+   TextTree    _ _      -> "text"
+   ImageTree _          -> "image"
    LinearGradientTree _ -> "lineargradient"
    RadialGradientTree _ -> "radialgradient"
-   MeshGradientTree _ -> "meshgradient"
-   PatternTree _   -> "pattern"
-   MarkerTree _    -> "marker"
-   MaskTree _      -> "mask"
-   ClipPathTree _  -> "clipPath"
+   MeshGradientTree _   -> "meshgradient"
+   PatternTree _        -> "pattern"
+   MarkerTree _         -> "marker"
+   MaskTree _           -> "mask"
+   ClipPathTree _       -> "clipPath"
 
 drawAttrOfTree :: Tree -> DrawAttributes
 drawAttrOfTree v = case v of
-  None -> mempty
-  UseTree e _ -> e ^. drawAttr
-  GroupTree e -> e ^. drawAttr
-  SymbolTree e -> e ^. drawAttr
-  DefinitionTree e -> e ^. drawAttr
-  PathTree e -> e ^. drawAttr
-  CircleTree e -> e ^. drawAttr
-  PolyLineTree e -> e ^. drawAttr
-  PolygonTree e -> e ^. drawAttr
-  EllipseTree e -> e ^. drawAttr
-  LineTree e -> e ^. drawAttr
-  RectangleTree e -> e ^. drawAttr
-  TextTree _ e -> e ^. drawAttr
-  ImageTree e -> e ^. drawAttr
+  None                 -> mempty
+  UseTree e _          -> e ^. drawAttr
+  GroupTree e          -> e ^. drawAttr
+  SymbolTree e         -> e ^. drawAttr
+  DefinitionTree e     -> e ^. drawAttr
+  PathTree e           -> e ^. drawAttr
+  CircleTree e         -> e ^. drawAttr
+  PolyLineTree e       -> e ^. drawAttr
+  PolygonTree e        -> e ^. drawAttr
+  EllipseTree e        -> e ^. drawAttr
+  LineTree e           -> e ^. drawAttr
+  RectangleTree e      -> e ^. drawAttr
+  TextTree _ e         -> e ^. drawAttr
+  ImageTree e          -> e ^. drawAttr
   LinearGradientTree e -> e ^. drawAttr
   RadialGradientTree e -> e ^. drawAttr
-  MeshGradientTree e -> e ^. drawAttr
-  PatternTree e -> e ^. drawAttr
-  MarkerTree e -> e ^. drawAttr
-  MaskTree e -> e ^. drawAttr
-  ClipPathTree e -> e ^. drawAttr
+  MeshGradientTree e   -> e ^. drawAttr
+  PatternTree e        -> e ^. drawAttr
+  MarkerTree e         -> e ^. drawAttr
+  MaskTree e           -> e ^. drawAttr
+  ClipPathTree e       -> e ^. drawAttr
 
 setDrawAttrOfTree :: Tree -> DrawAttributes -> Tree
 setDrawAttrOfTree v attr = case v of
-  None -> None
-  UseTree e m -> UseTree (e & drawAttr .~ attr) m
-  GroupTree e -> GroupTree $ e & drawAttr .~ attr
-  SymbolTree e -> SymbolTree $ e & drawAttr .~ attr
-  DefinitionTree e -> DefinitionTree e
-  PathTree e -> PathTree $ e & drawAttr .~ attr
-  CircleTree e -> CircleTree $ e & drawAttr .~ attr
-  PolyLineTree e -> PolyLineTree $ e & drawAttr .~ attr
-  PolygonTree e -> PolygonTree $ e & drawAttr .~ attr
-  EllipseTree e -> EllipseTree $ e & drawAttr .~ attr
-  LineTree e -> LineTree $ e & drawAttr .~ attr
-  RectangleTree e -> RectangleTree $ e & drawAttr .~ attr
-  TextTree a e -> TextTree a $ e & drawAttr .~ attr
-  ImageTree e -> ImageTree $ e & drawAttr .~ attr
+  None                 -> None
+  UseTree e m          -> UseTree (e & drawAttr .~ attr) m
+  GroupTree e          -> GroupTree $ e & drawAttr .~ attr
+  SymbolTree e         -> SymbolTree $ e & drawAttr .~ attr
+  DefinitionTree e     -> DefinitionTree e
+  PathTree e           -> PathTree $ e & drawAttr .~ attr
+  CircleTree e         -> CircleTree $ e & drawAttr .~ attr
+  PolyLineTree e       -> PolyLineTree $ e & drawAttr .~ attr
+  PolygonTree e        -> PolygonTree $ e & drawAttr .~ attr
+  EllipseTree e        -> EllipseTree $ e & drawAttr .~ attr
+  LineTree e           -> LineTree $ e & drawAttr .~ attr
+  RectangleTree e      -> RectangleTree $ e & drawAttr .~ attr
+  TextTree a e         -> TextTree a $ e & drawAttr .~ attr
+  ImageTree e          -> ImageTree $ e & drawAttr .~ attr
   LinearGradientTree e -> LinearGradientTree $ e & drawAttr .~ attr
   RadialGradientTree e -> RadialGradientTree $ e & drawAttr .~ attr
-  MeshGradientTree e -> MeshGradientTree $ e & drawAttr .~ attr
-  PatternTree e -> PatternTree $ e & drawAttr .~ attr
-  MarkerTree e -> MarkerTree $ e & drawAttr .~ attr
-  MaskTree e -> MaskTree $ e & drawAttr .~ attr
-  ClipPathTree e -> ClipPathTree $ e & drawAttr .~ attr
+  MeshGradientTree e   -> MeshGradientTree $ e & drawAttr .~ attr
+  PatternTree e        -> PatternTree $ e & drawAttr .~ attr
+  MarkerTree e         -> MarkerTree $ e & drawAttr .~ attr
+  MaskTree e           -> MaskTree $ e & drawAttr .~ attr
+  ClipPathTree e       -> ClipPathTree $ e & drawAttr .~ attr
 
 instance WithDrawAttributes Tree where
     drawAttr = lens drawAttrOfTree setDrawAttrOfTree
@@ -1943,23 +1937,23 @@ data LinearGradient = LinearGradient
       _linearGradientDrawAttributes :: DrawAttributes
       -- | Define coordinate system of the gradient,
       -- associated to the `gradientUnits` attribute.
-    , _linearGradientUnits  :: CoordinateUnits
+    , _linearGradientUnits          :: CoordinateUnits
       -- | Point defining the beginning of the line gradient.
       -- Associated to the `x1` and `y1` attribute.
-    , _linearGradientStart  :: Point
+    , _linearGradientStart          :: Point
       -- | Point defining the end of the line gradient.
       -- Associated to the `x2` and `y2` attribute.
-    , _linearGradientStop   :: Point
+    , _linearGradientStop           :: Point
       -- | Define how to handle the values outside
       -- the gradient start and stop. Associated to the
       -- `spreadMethod` attribute.
-    , _linearGradientSpread :: Spread
+    , _linearGradientSpread         :: Spread
       -- | Define the transformation to apply to the
       -- gradient points. Associated to the `gradientTransform`
       -- attribute.
-    , _linearGradientTransform :: [Transformation]
+    , _linearGradientTransform      :: [Transformation]
       -- | List of color stops of the linear gradient.
-    , _linearGradientStops  :: [GradientStop]
+    , _linearGradientStops          :: [GradientStop]
     }
     deriving (Eq, Show)
 
@@ -2030,29 +2024,29 @@ data RadialGradient = RadialGradient
     _radialGradientDrawAttributes :: DrawAttributes
     -- | Define coordinate system of the gradient,
     -- associated to the `gradientUnits` attribute.
-  , _radialGradientUnits   :: CoordinateUnits
+  , _radialGradientUnits          :: CoordinateUnits
     -- | Center of the radial gradient. Associated to
     -- the `cx` and `cy` attributes.
-  , _radialGradientCenter  :: Point
+  , _radialGradientCenter         :: Point
     -- | Radius of the radial gradient. Associated to
     -- the `r` attribute.
-  , _radialGradientRadius  :: Number
+  , _radialGradientRadius         :: Number
     -- | X coordinate of the focus point of the radial
     -- gradient. Associated to the `fx` attribute.
-  , _radialGradientFocusX  :: Maybe Number
+  , _radialGradientFocusX         :: Maybe Number
     -- | Y coordinate of the focus point of the radial
     -- gradient. Associated to the `fy` attribute.
-  , _radialGradientFocusY  :: Maybe Number
+  , _radialGradientFocusY         :: Maybe Number
     -- | Define how to handle the values outside
     -- the gradient start and stop. Associated to the
     -- `spreadMethod` attribute.
-  , _radialGradientSpread  :: Spread
+  , _radialGradientSpread         :: Spread
     -- | Define the transformation to apply to the
     -- gradient points. Associated to the `gradientTransform`
     -- attribute.
-  , _radialGradientTransform :: [Transformation]
+  , _radialGradientTransform      :: [Transformation]
     -- | List of color stops of the radial gradient.
-  , _radialGradientStops   :: [GradientStop]
+  , _radialGradientStops          :: [GradientStop]
   }
   deriving (Eq, Show)
 
@@ -2137,17 +2131,17 @@ data Mask = Mask
   { -- | Drawing attributes of the Mask
     _maskDrawAttributes :: DrawAttributes
     -- | Correspond to the `maskContentUnits` attributes.
-  , _maskContentUnits :: CoordinateUnits
+  , _maskContentUnits   :: CoordinateUnits
     -- | Mapping to the `maskUnits` attribute.
-  , _maskUnits        :: CoordinateUnits
+  , _maskUnits          :: CoordinateUnits
     -- | Map to the `x` and `y` attributes.
-  , _maskPosition     :: Point
+  , _maskPosition       :: Point
     -- | Map to the `width` attribute
-  , _maskWidth        :: Number
+  , _maskWidth          :: Number
     -- | Map to the `height` attribute.
-  , _maskHeight       :: Number
+  , _maskHeight         :: Number
     -- | Children of the `<mask>` tag.
-  , _maskContent      :: [Tree]
+  , _maskContent        :: [Tree]
   }
   deriving (Eq, Show)
 
@@ -2265,29 +2259,29 @@ data Pattern = Pattern
     { -- | Pattern drawing attributes.
       _patternDrawAttributes :: !DrawAttributes
       -- | Possible `viewBox`.
-    , _patternViewBox  :: !(Maybe (Double, Double, Double, Double))
+    , _patternViewBox        :: !(Maybe (Double, Double, Double, Double))
       -- | Width of the pattern tile, mapped to the
       -- `width` attribute
-    , _patternWidth    :: !Number
+    , _patternWidth          :: !Number
       -- | Height of the pattern tile, mapped to the
       -- `height` attribute
-    , _patternHeight   :: !Number
+    , _patternHeight         :: !Number
       -- | Pattern tile base, mapped to the `x` and
       -- `y` attributes.
-    , _patternPos      :: !Point
+    , _patternPos            :: !Point
       -- | Patterns can be chained, so this is a potential
       -- reference to another pattern
-    , _patternHref     :: !String
+    , _patternHref           :: !String
       -- | Elements used in the pattern.
-    , _patternElements :: ![Tree]
+    , _patternElements       :: ![Tree]
       -- | Define the cordinate system to use for
       -- the pattern. Mapped to the `patternUnits`
       -- attribute.
-    , _patternUnit        :: !CoordinateUnits
+    , _patternUnit           :: !CoordinateUnits
       -- | Value of the "preserveAspectRatio" attribute
-    , _patternAspectRatio :: !PreserveAspectRatio
+    , _patternAspectRatio    :: !PreserveAspectRatio
       -- | Value of "patternTransform" attribute
-    , _patternTransform   :: !(Maybe [Transformation])
+    , _patternTransform      :: !(Maybe [Transformation])
     }
     deriving (Eq, Show)
 
@@ -2498,8 +2492,8 @@ documentSize _ _ = (1, 1)
 
 mayMerge :: Monoid a => Maybe a -> Maybe a -> Maybe a
 mayMerge (Just a) (Just b) = Just $ mappend a b
-mayMerge _ b@(Just _) = b
-mayMerge a Nothing = a
+mayMerge _ b@(Just _)      = b
+mayMerge a Nothing         = a
 
 instance Semigroup DrawAttributes where
   (<>) a b = DrawAttributes
@@ -2530,9 +2524,9 @@ instance Semigroup DrawAttributes where
         , _markerEnd = (mappend `on` _markerEnd) a b
         }
       where
-        opacityMappend Nothing Nothing = Nothing
-        opacityMappend (Just v) Nothing = Just v
-        opacityMappend Nothing (Just v) = Just v
+        opacityMappend Nothing Nothing    = Nothing
+        opacityMappend (Just v) Nothing   = Just v
+        opacityMappend Nothing (Just v)   = Just v
         opacityMappend (Just v) (Just v2) = Just $ v * v2
 
 instance Monoid DrawAttributes where
