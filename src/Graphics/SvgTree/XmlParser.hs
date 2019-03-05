@@ -30,6 +30,7 @@ import           Control.Applicative          (many, (<|>))
 import           Codec.Picture                (PixelRGBA8 (..))
 import           Control.Lens                 hiding (children, element,
                                                elements, transform)
+import           Control.Lens.Unsound
 import           Control.Monad.State.Strict   (State, gets, modify, runState)
 import           Data.Attoparsec.Text         (Parser, many1, parseOnly, string)
 import           Data.List                    (foldl', intercalate)
@@ -341,6 +342,78 @@ instance ParseableAttribute TextPathSpacing where
     TextPathSpacingAuto  -> "auto"
     TextPathSpacingExact -> "exact"
 
+instance ParseableAttribute CompositeOperator where
+  aparse s = case s of
+    "over"       -> Just CompositeOver
+    "in"         -> Just CompositeIn
+    "out"        -> Just CompositeOut
+    "atop"       -> Just CompositeAtop
+    "xor"        -> Just CompositeXor
+    "arithmetic" -> Just CompositeArithmetic
+    _            -> Nothing
+
+  aserialize v = Just $ case v of
+    CompositeOver       -> "over"
+    CompositeIn         -> "in"
+    CompositeOut        -> "out"
+    CompositeAtop       -> "atop"
+    CompositeXor        -> "xor"
+    CompositeArithmetic -> "arithmetic"
+
+instance ParseableAttribute FilterSource where
+  aparse s = Just $ case s of
+    "SourceGraphic"   -> SourceGraphic
+    "SourceAlpha"     -> SourceAlpha
+    "BackgroundImage" -> BackgroundImage
+    "BackgroundAlpha" -> BackgroundAlpha
+    "FillPaint"       -> FillPaint
+    "StrokePaint"     -> StrokePaint
+    _                 -> SourceRef s
+
+  aserialize v = Just $ case v of
+    SourceGraphic   -> "SourceGraphic"
+    SourceAlpha     -> "SourceAlpha"
+    BackgroundImage -> "BackgroundImage"
+    BackgroundAlpha -> "BackgroundAlpha"
+    FillPaint       -> "FillPaint"
+    StrokePaint     -> "StrokePaint"
+    SourceRef s     -> s
+
+instance ParseableAttribute ColorMatrixType where
+  aparse s = case s of
+    "matrix"           -> Just Matrix
+    "saturate"         -> Just Saturate
+    "hueRotate"        -> Just HueRotate
+    "luminanceToAlpha" -> Just LuminanceToAlpha
+    _                  -> Nothing
+
+  aserialize v = Just $ case v of
+    Matrix           -> "matrix"
+    Saturate         -> "saturate"
+    HueRotate        -> "hueRotate"
+    LuminanceToAlpha -> "luminanceToAlpha"
+
+instance ParseableAttribute EdgeMode where
+  aparse s = case s of
+    "duplicate" -> Just EdgeDuplicate
+    "wrap"      -> Just EdgeWrap
+    "none"      -> Just EdgeNone
+    _           -> Nothing
+
+  aserialize v = Just $ case v of
+    EdgeDuplicate -> "duplicate"
+    EdgeWrap      -> "wrap"
+    EdgeNone      -> "none"
+
+instance ParseableAttribute (Number, Last Number) where
+  aparse s = case aparse s of
+    Just [x]   -> Just (x, Last Nothing)
+    Just [x,y] -> Just (x, Last (Just y))
+    _          -> Nothing
+
+  aserialize (x, Last Nothing)  = aserialize [x]
+  aserialize (x, Last (Just y)) = aserialize [x, y]
+
 parse :: Parser a -> String -> Maybe a
 parse p str = case parseOnly p (T.pack str) of
   Left _  -> Nothing
@@ -358,11 +431,11 @@ xmlUpdate initial el = foldl' grab initial attributes
           Nothing -> value
           Just v  -> _attributeUpdater updater value v
 
-xmlUnparse :: (XMLUpdatable a) => X.Element -> a
+xmlUnparse :: (WithDefaultSvg a, XMLUpdatable a) => X.Element -> a
 xmlUnparse = xmlUpdate defaultSvg
 
 xmlUnparseWithDrawAttr
-    :: (XMLUpdatable a, WithDrawAttributes a)
+    :: (WithDefaultSvg a, XMLUpdatable a, WithDrawAttributes a)
     => X.Element -> a
 xmlUnparseWithDrawAttr e =
     xmlUnparse e & drawAttr .~ xmlUnparse e
@@ -373,7 +446,7 @@ data SvgAttributeLens t = SvgAttributeLens
   , _attributeSerializer :: t -> Maybe String
   }
 
-class (WithDefaultSvg treeNode) => XMLUpdatable treeNode where
+class XMLUpdatable treeNode where
   xmlTagName :: treeNode -> String
   attributes :: [SvgAttributeLens treeNode]
 
@@ -586,6 +659,7 @@ drawAttributesList =
   ,("marker-end" `parseIn` markerEnd, cssElementRefSetter markerEnd)
   ,("marker-start" `parseIn` markerStart, cssElementRefSetter markerStart)
   ,("marker-mid" `parseIn` markerMid, cssElementRefSetter markerMid)
+  ,("filter" `parseIn` filterRef, cssNullSetter)
   ]
   where
     commaSeparate =
@@ -758,6 +832,7 @@ instance XMLUpdatable Tree where
     GroupTree g -> serializeTreeNode g
     SymbolTree s -> serializeTreeNode s
     DefinitionTree d -> serializeTreeNode d
+    FilterTree g -> serializeTreeNode g
     PathTree p -> serializeTreeNode p
     CircleTree c -> serializeTreeNode c
     PolyLineTree p -> serializeTreeNode p
@@ -812,6 +887,50 @@ instance XMLUpdatable (Definitions Tree) where
      ,"preserveAspectRatio" `parseIn` (groupOfDefinitions . groupAspectRatio)
      ]
 
+instance XMLUpdatable (Filter FilterElement) where
+  xmlTagName _ = "filter"
+  serializeTreeNode node =
+     updateWithAccessor (_groupChildren . _groupOfFilter) node $
+        genericSerializeWithDrawAttr node
+  attributes = []
+
+instance XMLUpdatable FilterElement where
+  xmlTagName _ = "FilterElement"
+  serializeTreeNode fe = flip mergeAttributes <$> (genericSerializeNode fe) <*>
+    case fe of
+      FEColorMatrix m  -> serializeTreeNode m
+      FEComposite c    -> serializeTreeNode c
+      FEGaussianBlur b -> serializeTreeNode b
+  attributes =
+    [ "result" `parseIn` (filterAttributes . filterResult)]
+
+instance XMLUpdatable ColorMatrix where
+  xmlTagName _ = "feColorMatrix"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "in" `parseIn` colorMatrixIn
+    , "type" `parseIn` colorMatrixType
+    , "values" `parseIn` colorMatrixValues ]
+
+instance XMLUpdatable Composite where
+  xmlTagName _ = "feComposite"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "in" `parseIn` compositeIn
+    , "in2" `parseIn` compositeIn2
+    , "operator" `parseIn` compositeOperator
+    , "k1" `parseIn` compositeK1
+    , "k2" `parseIn` compositeK2
+    , "k3" `parseIn` compositeK3
+    , "k4" `parseIn` compositeK4 ]
+
+instance XMLUpdatable GaussianBlur where
+  xmlTagName _ = "feGaussianBlur"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "in" `parseIn` gaussianBlurIn
+    , "stdDeviation" `parseIn` lensProduct gaussianBlurStdDeviationX gaussianBlurStdDeviationY
+    , "edgeMode" `parseIn` gaussianBlurEdgeMode ]
 
 instance XMLUpdatable RadialGradient where
   xmlTagName _ = "radialGradient"
@@ -1049,6 +1168,9 @@ parseMeshGradientRows = foldMap unRows . elChildren where
   unRows e@(nodeName -> "meshrow") = [MeshGradientRow $ parseMeshGradientPatches e]
   unRows _ = []
 
+unparseFE :: X.Element -> State Symbols FilterElement
+unparseFE _ = pure FENone
+
 unparse :: X.Element -> State Symbols Tree
 unparse e@(nodeName -> "pattern") =  do
   subElements <- mapM unparse $ elChildren e
@@ -1083,6 +1205,12 @@ unparse e@(nodeName -> "defs") = do
   where
     groupNode :: Group Tree
     groupNode = _groupOfSymbol $ xmlUnparseWithDrawAttr e
+unparse e@(nodeName -> "filter") = do
+  defsChildren <- mapM unparseFE $ elChildren e
+  pure . FilterTree . Filter $ groupNode & groupChildren .~ defsChildren
+  where
+    groupNode :: Group FilterElement
+    groupNode = undefined -- xmlUnparseWithDrawAttr e
 unparse e@(nodeName -> "symbol") = do
   symbolChildren <- mapM unparse $ elChildren e
   let realChildren = filter isNotNone symbolChildren
@@ -1145,7 +1273,7 @@ unparse e = case nodeName e of
     "use" -> pure $ UseTree parsed Nothing
     _ -> pure None
   where
-    parsed :: (XMLUpdatable a, WithDrawAttributes a) => a
+    parsed :: (WithDefaultSvg a, XMLUpdatable a, WithDrawAttributes a) => a
     parsed = xmlUnparseWithDrawAttr e
 
 unparseDocument :: FilePath -> X.Element -> Maybe Document
