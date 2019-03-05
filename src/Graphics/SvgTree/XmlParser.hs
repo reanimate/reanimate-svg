@@ -31,26 +31,21 @@ import           Codec.Picture                (PixelRGBA8 (..))
 import           Control.Lens                 hiding (children, element,
                                                elements, transform)
 import           Control.Lens.Unsound
-import           Control.Monad.State.Strict   (State, gets, modify, runState)
-import           Data.Attoparsec.Text         (Parser, many1, parseOnly, string)
+import           Data.Attoparsec.Text         (Parser, parseOnly, string)
 import           Data.List                    (foldl', intercalate)
 import qualified Data.Map                     as M
 import           Data.Maybe                   (catMaybes, fromMaybe)
 import           Data.Monoid                  (Last (Last), getLast, (<>))
 import qualified Data.Text                    as T
-import qualified Data.Text.Lazy               as TL
-import qualified Data.Text.Lazy.Builder       as TB
 import           Graphics.SvgTree.ColorParser
 import           Graphics.SvgTree.CssParser   (complexNumber, dashArray, num,
-                                               numberList, ruleSet, styleString)
+                                               numberList, styleString)
 import           Graphics.SvgTree.CssTypes    (CssDeclaration (..),
-                                               CssElement (..), CssRule,
-                                               tserialize)
+                                               CssElement (..))
 import           Graphics.SvgTree.PathParser
 import           Graphics.SvgTree.Types
 import qualified Text.XML.Light               as X
-import           Text.XML.Light.Proc          (elChildren, findAttrBy,
-                                               strContent)
+import           Text.XML.Light.Proc          (elChildren, findAttrBy)
 
 import           Text.Printf                  (printf)
 
@@ -435,10 +430,10 @@ xmlUnparse :: (WithDefaultSvg a, XMLUpdatable a) => X.Element -> a
 xmlUnparse = xmlUpdate defaultSvg
 
 xmlUnparseWithDrawAttr
-    :: (WithDefaultSvg a, XMLUpdatable a, WithDrawAttributes a)
+    :: (WithDefaultSvg a, XMLUpdatable a, HasDrawAttributes a)
     => X.Element -> a
 xmlUnparseWithDrawAttr e =
-    xmlUnparse e & drawAttr .~ xmlUnparse e
+    xmlUnparse e & drawAttributes .~ xmlUnparse e
 
 data SvgAttributeLens t = SvgAttributeLens
   { _attributeName       :: String
@@ -482,11 +477,11 @@ mergeAttributes :: X.Element -> X.Element -> X.Element
 mergeAttributes thisXml otherXml =
     thisXml { X.elAttribs = X.elAttribs otherXml ++ X.elAttribs thisXml }
 
-genericSerializeWithDrawAttr :: (XMLUpdatable treeNode, WithDrawAttributes treeNode)
+genericSerializeWithDrawAttr :: (XMLUpdatable treeNode, HasDrawAttributes treeNode)
                              => treeNode -> Maybe X.Element
 genericSerializeWithDrawAttr node = mergeAttributes <$> thisXml <*> drawAttrNode where
   thisXml = genericSerializeNode node
-  drawAttrNode = genericSerializeNode $ node ^. drawAttr
+  drawAttrNode = genericSerializeNode $ node ^. drawAttributes
 
 type CssUpdater a =
     a -> [[CssElement]] -> a
@@ -1144,14 +1139,6 @@ instance XMLUpdatable GradientStop where
         ]
 
 
-data Symbols = Symbols
-  { symbols  :: !(M.Map String Element)
-  , cssStyle :: [CssRule]
-  }
-
-emptyState :: Symbols
-emptyState = Symbols mempty mempty
-
 parseGradientStops :: X.Element -> [GradientStop]
 parseGradientStops = concatMap unStop . elChildren
   where
@@ -1168,86 +1155,40 @@ parseMeshGradientRows = foldMap unRows . elChildren where
   unRows e@(nodeName -> "meshrow") = [MeshGradientRow $ parseMeshGradientPatches e]
   unRows _ = []
 
-unparseFE :: X.Element -> State Symbols FilterElement
-unparseFE _ = pure FENone
+unparseFE :: X.Element -> FilterElement
+unparseFE _ = FENone
 
-unparse :: X.Element -> State Symbols Tree
-unparse e@(nodeName -> "pattern") =  do
-  subElements <- mapM unparse $ elChildren e
-  pure $ PatternTree $ pat { _patternElements = subElements}
-    where
-      pat = xmlUnparse e
-unparse e@(nodeName -> "marker") = do
-  subElements <- mapM unparse $ elChildren e
-  pure $ MarkerTree $ mark {_markerElements = subElements }
-    where
-      mark = xmlUnparseWithDrawAttr e
-unparse e@(nodeName -> "mask") = do
-  children <- mapM unparse $ elChildren e
-  let realChildren = filter isNotNone children
-      parsedMask = xmlUnparseWithDrawAttr e
-  pure $ MaskTree $ parsedMask { _maskContent = realChildren }
-unparse e@(nodeName -> "clipPath") = do
-  children <- mapM unparse $ elChildren e
-  let realChildren = filter isNotNone children
-      parsedClip = xmlUnparseWithDrawAttr e
-  pure $ ClipPathTree $ parsedClip { _clipPathContent = realChildren }
-unparse e@(nodeName -> "style") = do
-  case parseOnly (many1 ruleSet) . T.pack $ strContent e of
-    Left _ -> return ()
-    Right rules ->
-      modify $ \s -> s { cssStyle = cssStyle s ++ rules }
-  return None
-unparse e@(nodeName -> "defs") = do
-  defsChildren <- mapM unparse $ elChildren e
-  let realChildren = filter isNotNone defsChildren
-  pure . DefinitionTree . Definitions $ groupNode & groupChildren .~ realChildren
+unparse :: X.Element -> Tree
+unparse e@(nodeName -> "pattern") =
+  PatternTree $ xmlUnparse e & patternElements .~ map unparse (elChildren e)
+unparse e@(nodeName -> "marker") =
+  MarkerTree $ xmlUnparseWithDrawAttr e & markerElements .~ map unparse (elChildren e)
+unparse e@(nodeName -> "mask") =
+  MaskTree $ xmlUnparseWithDrawAttr e & maskContent .~ map unparse (elChildren e)
+unparse e@(nodeName -> "clipPath") =
+  ClipPathTree $ xmlUnparseWithDrawAttr e & clipPathContent .~ map unparse (elChildren e)
+unparse (nodeName -> "style") = None -- XXX: Create a style node?
+unparse e@(nodeName -> "defs") =
+  DefinitionTree . Definitions $ groupNode & groupChildren .~ map unparse (elChildren e)
   where
     groupNode :: Group Tree
     groupNode = _groupOfSymbol $ xmlUnparseWithDrawAttr e
-unparse e@(nodeName -> "filter") = do
-  defsChildren <- mapM unparseFE $ elChildren e
-  pure . FilterTree . Filter $ groupNode & groupChildren .~ defsChildren
+unparse e@(nodeName -> "filter") =
+  FilterTree . Filter $ groupNode & groupChildren .~ map unparseFE (elChildren e)
   where
     groupNode :: Group FilterElement
     groupNode = undefined -- xmlUnparseWithDrawAttr e
-unparse e@(nodeName -> "symbol") = do
-  symbolChildren <- mapM unparse $ elChildren e
-  let realChildren = filter isNotNone symbolChildren
-  pure . SymbolTree . Symbol $ groupNode & groupChildren .~ realChildren
+unparse e@(nodeName -> "symbol") =
+  SymbolTree . Symbol $ groupNode & groupChildren .~ map unparse (elChildren e)
   where
     groupNode :: Group Tree
     groupNode = _groupOfSymbol $ xmlUnparseWithDrawAttr e
-unparse e@(nodeName -> "g") = do
-  children <- mapM unparse $ elChildren e
-  let realChildren = filter isNotNone children
-
-      groupNode :: Group Tree
-      groupNode = xmlUnparseWithDrawAttr e
-
-  pure $ GroupTree $ groupNode & groupChildren .~ realChildren
-
-unparse e@(nodeName -> "text") = do
-  pathWithGeometry <- pathGeomtryOf tPath
-  pure . TextTree pathWithGeometry $ xmlUnparse e & textRoot .~ root
+unparse e@(nodeName -> "g") =
+  GroupTree $ xmlUnparseWithDrawAttr e & groupChildren .~ map unparse (elChildren e)
+unparse e@(nodeName -> "text") =
+  TextTree tPath $ xmlUnparse e & textRoot .~ root
     where
       (textContent, tPath) = unparseText $ X.elContent e
-
-      pathGeomtryOf Nothing = pure Nothing
-      pathGeomtryOf (Just pathInfo) = do
-        pathElem <- gets $ M.lookup (_textPathName pathInfo) . symbols
-        case pathElem of
-          Nothing -> pure Nothing
-          Just (ElementLinearGradient _) -> pure Nothing
-          Just (ElementRadialGradient _) -> pure Nothing
-          Just (ElementMeshGradient _) -> pure Nothing
-          Just (ElementPattern _) -> pure Nothing
-          Just (ElementMask _) -> pure Nothing
-          Just (ElementClipPath _) -> pure Nothing
-          Just (ElementMarker _) -> pure Nothing
-          Just (ElementGeometry (PathTree p)) ->
-              pure . Just $ pathInfo { _textPathData = _pathDefinition p }
-          Just (ElementGeometry _) -> pure Nothing
 
       root = TextSpan
            { _spanInfo = xmlUnparse e
@@ -1256,24 +1197,24 @@ unparse e@(nodeName -> "text") = do
            }
 
 unparse e = case nodeName e of
-    "image" -> pure $ ImageTree parsed
-    "ellipse" -> pure $ EllipseTree parsed
-    "rect" -> pure $ RectangleTree parsed
-    "polyline" -> pure $ PolyLineTree parsed
-    "polygon" -> pure $ PolygonTree parsed
-    "circle"-> pure $ CircleTree parsed
-    "line"  -> pure $ LineTree parsed
-    "path" -> pure $ PathTree parsed
+    "image"    -> ImageTree parsed
+    "ellipse"  -> EllipseTree parsed
+    "rect"     -> RectangleTree parsed
+    "polyline" -> PolyLineTree parsed
+    "polygon"  -> PolygonTree parsed
+    "circle"   -> CircleTree parsed
+    "line"     -> LineTree parsed
+    "path"     -> PathTree parsed
     "linearGradient" ->
-      pure $ LinearGradientTree $ parsed & linearGradientStops .~ parseGradientStops e
+      LinearGradientTree $ parsed & linearGradientStops .~ parseGradientStops e
     "radialGradient" ->
-      pure $ RadialGradientTree $ parsed & radialGradientStops .~ parseGradientStops e
+      RadialGradientTree $ parsed & radialGradientStops .~ parseGradientStops e
     "meshgradient" ->
-      pure $ MeshGradientTree $ parsed & meshGradientRows .~ parseMeshGradientRows e
-    "use" -> pure $ UseTree parsed Nothing
-    _ -> pure None
+      MeshGradientTree $ parsed & meshGradientRows .~ parseMeshGradientRows e
+    "use" -> UseTree parsed Nothing
+    _ -> None
   where
-    parsed :: (WithDefaultSvg a, XMLUpdatable a, WithDrawAttributes a) => a
+    parsed :: (WithDefaultSvg a, XMLUpdatable a, HasDrawAttributes a) => a
     parsed = xmlUnparseWithDrawAttr e
 
 unparseDocument :: FilePath -> X.Element -> Maybe Document
@@ -1285,15 +1226,13 @@ unparseDocument rootLocation e@(nodeName -> "svg") = Just Document
     , _height = lengthFind "height"
     , _definitions = defs
     , _description = ""
-    , _styleRules = cssStyle named
     , _documentLocation = rootLocation
     }
   where
-    (parsedElements, named) =
-        runState (mapM unparse $ elChildren e) emptyState
+    parsedElements = map unparse $ elChildren e
     defs = foldl' (foldTree worker) M.empty parsedElements
     worker m t =
-      case t ^.drawAttr.attrId of
+      case t ^.drawAttributes.attrId of
         Nothing  -> m
         Just tid -> M.insert tid t m
     lengthFind n =
@@ -1303,7 +1242,7 @@ unparseDocument _ _ = Nothing
 -- | Transform a SVG document to a XML node.
 xmlOfDocument :: Document -> X.Element
 xmlOfDocument doc =
-    X.node (X.unqual "svg") (attrs, descTag ++ styleTag ++ children)
+    X.node (X.unqual "svg") (attrs, descTag ++ children)
   where
     attr name = X.Attr (X.unqual name)
     children = catMaybes [serializeTreeNode el | el <- _elements doc]
@@ -1315,12 +1254,6 @@ xmlOfDocument doc =
     descTag = case _description doc of
         ""  -> []
         txt -> [X.node (X.unqual "desc") txt]
-
-    styleTag = case _styleRules doc of
-        [] -> []
-        rules -> [X.node (X.unqual "style")
-                        ([attr "type" "text/css"], txt)]
-          where txt = TL.unpack . TB.toLazyText $ foldMap tserialize rules
 
     attrs =
         docViewBox ++

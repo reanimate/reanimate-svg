@@ -1,5 +1,10 @@
 -*-change-log-*-
 
+v0.8.0.0 March 2019
+
+ * Remove WithDrawAttributes type class.
+ * Remove css and top-level definitions from Document.
+
 v0.7.0.0 March 2019
 
  * fork from svg-tree due to 'reanimate' requiring breaking changes

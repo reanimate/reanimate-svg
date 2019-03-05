@@ -11,7 +11,7 @@ module Graphics.SvgTree
     -- * Manipulation functions
   , cssApply
   , cssRulesOfText
-  , applyCSSRules
+  -- , applyCSSRules
   , resolveUses
 
     -- * Type definitions
@@ -74,11 +74,11 @@ cssApply :: [CssRule] -> Tree -> Tree
 cssApply rules = zipTree go where
   go [] = None
   go ([]:_) = None
-  go context@((t:_):_) = t & drawAttr .~ attr'
+  go context@((t:_):_) = t & drawAttributes .~ attr'
    where
      matchingDeclarations =
          findMatchingDeclarations rules context
-     attr = view drawAttr t
+     attr = view drawAttributes t
      attr' = foldl' cssDeclApplyer attr matchingDeclarations
 
 -- | For every 'use' tag, try to resolve the geometry associated
@@ -94,8 +94,8 @@ resolveUses doc =
 
     search nfo = M.lookup (_useName nfo) $ _definitions doc
 
--- | Rewrite the document by applying the CSS rules embedded
--- inside it.
-applyCSSRules :: Document -> Document
-applyCSSRules doc = doc
-    { _elements = cssApply (_styleRules doc) <$> _elements doc }
+-- -- | Rewrite the document by applying the CSS rules embedded
+-- -- inside it.
+-- applyCSSRules :: Document -> Document
+-- applyCSSRules doc = doc
+--     { _elements = cssApply (_styleRules doc) <$> _elements doc }
