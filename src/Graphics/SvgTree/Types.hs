@@ -48,7 +48,6 @@ module Graphics.SvgTree.Types
       -- * Drawing attributes
     , DrawAttributes( .. )
     , HasDrawAttributes( .. )
-    , WithDrawAttributes( .. )
 
       -- * Filters
     , FilterElement(..)
@@ -415,12 +414,6 @@ serializeTransformations :: [Transformation] -> String
 serializeTransformations =
     unwords . fmap serializeTransformation
 
--- | Class helping find the drawing attributes for all
--- the SVG attributes.
-class WithDrawAttributes a where
-    -- | Lens which can be used to read/write primitives.
-    drawAttr :: Lens' a DrawAttributes
-
 -- | Define an empty 'default' element for the SVG tree.
 -- It is used as base when parsing the element from XML.
 class WithDefaultSvg a where
@@ -616,8 +609,8 @@ instance HasPolyLine PolyLine where
   polyLinePoints f p =
     fmap (\y -> p { _polyLinePoints = y }) (f $ _polyLinePoints p)
 
-instance WithDrawAttributes PolyLine where
-    drawAttr = polyLineDrawAttributes
+instance HasDrawAttributes PolyLine where
+    drawAttributes = polyLineDrawAttributes
 
 -- | Primitive decriving polygon composed
 -- of segements. Correspond to the `<polygon>`
@@ -651,8 +644,8 @@ instance HasPolygon Polygon where
   polygonPoints f p =
     fmap (\y -> p { _polygonPoints = y }) (f $ _polygonPoints p)
 
-instance WithDrawAttributes Polygon where
-    drawAttr = polygonDrawAttributes
+instance HasDrawAttributes Polygon where
+    drawAttributes = polygonDrawAttributes
 
 instance WithDefaultSvg Polygon where
   defaultSvg = Polygon
@@ -700,8 +693,8 @@ instance HasLine Line where
   linePoint2 f l =
       fmap (\y -> l { _linePoint2 = y }) (f (_linePoint2 l))
 
-instance WithDrawAttributes Line where
-    drawAttr = lineDrawAttributes
+instance HasDrawAttributes Line where
+    drawAttributes = lineDrawAttributes
 
 instance WithDefaultSvg Line where
   defaultSvg = Line
@@ -774,8 +767,8 @@ instance HasRectangle Rectangle where
   rectWidth f attr =
     fmap (\y -> attr { _rectWidth = y }) (f $ _rectWidth attr)
 
-instance WithDrawAttributes Rectangle where
-    drawAttr = rectDrawAttributes
+instance HasDrawAttributes Rectangle where
+    drawAttributes = rectDrawAttributes
 
 instance WithDefaultSvg Rectangle where
   defaultSvg = Rectangle
@@ -817,8 +810,8 @@ instance HasPath Path where
   pathDrawAttributes f attr =
     fmap (\y -> attr { _pathDrawAttributes = y }) (f $ _pathDrawAttributes attr)
 
-instance WithDrawAttributes Path where
-  drawAttr = pathDrawAttributes
+instance HasDrawAttributes Path where
+  drawAttributes = pathDrawAttributes
 
 instance WithDefaultSvg Path where
   defaultSvg = Path
@@ -879,8 +872,8 @@ instance HasGroup (Group a) a where
   groupViewBox f attr =
     fmap (\y -> attr { _groupViewBox = y }) (f $ _groupViewBox attr)
 
-instance WithDrawAttributes (Group a) where
-    drawAttr = groupDrawAttributes
+instance HasDrawAttributes (Group a) where
+  drawAttributes = groupDrawAttributes
 
 instance WithDefaultSvg (Group a) where
   defaultSvg = Group
@@ -902,8 +895,8 @@ groupOfSymbol :: Lens (Symbol s) (Symbol t) (Group s) (Group t)
 {-# INLINE groupOfSymbol #-}
 groupOfSymbol f = fmap Symbol . f . _groupOfSymbol
 
-instance WithDrawAttributes (Symbol a) where
-  drawAttr = groupOfSymbol . drawAttr
+instance HasDrawAttributes (Symbol a) where
+  drawAttributes = groupOfSymbol . drawAttributes
 
 instance WithDefaultSvg (Symbol a) where
   defaultSvg = Symbol defaultSvg
@@ -920,8 +913,8 @@ groupOfDefinitions :: Lens (Definitions s) (Definitions t) (Group s) (Group t)
 {-# INLINE groupOfDefinitions #-}
 groupOfDefinitions f = fmap Definitions . f . _groupOfDefinitions
 
-instance WithDrawAttributes (Definitions a) where
-  drawAttr = groupOfDefinitions . drawAttr
+instance HasDrawAttributes (Definitions a) where
+  drawAttributes = groupOfDefinitions . drawAttributes
 
 instance WithDefaultSvg (Definitions a) where
   defaultSvg = Definitions defaultSvg
@@ -935,8 +928,8 @@ newtype Filter a =
 groupOfFilter :: Lens (Filter s) (Filter t) (Group s) (Group t)
 groupOfFilter f = fmap Filter . f . _groupOfFilter
 
-instance WithDrawAttributes (Filter a) where
-  drawAttr = groupOfFilter . drawAttr
+instance HasDrawAttributes (Filter a) where
+  drawAttributes = groupOfFilter . drawAttributes
 
 instance WithDefaultSvg (Filter a) where
   defaultSvg = Filter defaultSvg
@@ -982,8 +975,8 @@ instance HasCircle Circle where
   circleRadius f attr =
     fmap (\y -> attr { _circleRadius = y }) (f $ _circleRadius attr)
 
-instance WithDrawAttributes Circle where
-    drawAttr = circleDrawAttributes
+instance HasDrawAttributes Circle where
+    drawAttributes = circleDrawAttributes
 
 instance WithDefaultSvg Circle where
   defaultSvg = Circle
@@ -1040,8 +1033,8 @@ instance HasEllipse Ellipse where
   ellipseYRadius f attr =
     fmap (\y -> attr { _ellipseYRadius = y }) (f $ _ellipseYRadius attr)
 
-instance WithDrawAttributes Ellipse where
-  drawAttr = ellipseDrawAttributes
+instance HasDrawAttributes Ellipse where
+  drawAttributes = ellipseDrawAttributes
 
 instance WithDefaultSvg Ellipse where
   defaultSvg = Ellipse
@@ -1222,8 +1215,9 @@ instance HasMeshGradient MeshGradient where
   meshGradientY f attr =
     fmap (\y -> attr { _meshGradientY = y }) (f $ _meshGradientY attr)
 
-instance WithDrawAttributes MeshGradient where
-  drawAttr = meshGradientDrawAttributes
+
+instance HasDrawAttributes MeshGradient where
+  drawAttributes = meshGradientDrawAttributes
 
 instance WithDefaultSvg MeshGradient where
   defaultSvg = MeshGradient
@@ -1298,8 +1292,9 @@ instance HasImage Image where
   imageWidth f attr =
     fmap (\y -> attr { _imageWidth = y }) (f $ _imageWidth attr)
 
-instance WithDrawAttributes Image where
-  drawAttr = imageDrawAttributes
+
+instance HasDrawAttributes Image where
+  drawAttributes = imageDrawAttributes
 
 instance WithDefaultSvg Image where
   defaultSvg = Image
@@ -1371,8 +1366,8 @@ instance HasUse Use where
   useWidth f attr =
     fmap (\y -> attr { _useWidth = y }) (f $ _useWidth attr)
 
-instance WithDrawAttributes Use where
-  drawAttr = useDrawAttributes
+instance HasDrawAttributes Use where
+  drawAttributes = useDrawAttributes
 
 instance WithDefaultSvg Use where
   defaultSvg = Use
@@ -1528,48 +1523,11 @@ data TextPath = TextPath
   , _textPathMethod      :: !TextPathMethod
     -- | Correspond to the `spacing` attribute.
   , _textPathSpacing     :: !TextPathSpacing
-    -- XXX: Remove this.
-    -- | Real content of the path.
-  , _textPathData        :: ![PathCommand]
   }
   deriving (Eq, Show)
 
--- makeClassy ''TextPath
 -- | Lenses for the TextPath type.
-class HasTextPath c_aojU where
-  textPath :: Lens' c_aojU TextPath
-  textPathData :: Lens' c_aojU [PathCommand]
-  {-# INLINE textPathData #-}
-  textPathMethod :: Lens' c_aojU TextPathMethod
-  {-# INLINE textPathMethod #-}
-  textPathName :: Lens' c_aojU String
-  {-# INLINE textPathName #-}
-  textPathSpacing :: Lens' c_aojU TextPathSpacing
-  {-# INLINE textPathSpacing #-}
-  textPathStartOffset :: Lens' c_aojU Number
-  {-# INLINE textPathStartOffset #-}
-  textPathData = ((.) textPath) textPathData
-  textPathMethod = ((.) textPath) textPathMethod
-  textPathName = ((.) textPath) textPathName
-  textPathSpacing = ((.) textPath) textPathSpacing
-  textPathStartOffset = ((.) textPath) textPathStartOffset
-instance HasTextPath TextPath where
-  {-# INLINE textPathData #-}
-  {-# INLINE textPathMethod #-}
-  {-# INLINE textPathName #-}
-  {-# INLINE textPathSpacing #-}
-  {-# INLINE textPathStartOffset #-}
-  textPath = id
-  textPathData f attr =
-    fmap (\y -> attr { _textPathData = y }) (f $ _textPathData attr)
-  textPathMethod f attr =
-    fmap (\y -> attr { _textPathMethod = y }) (f $ _textPathMethod attr)
-  textPathName f attr =
-    fmap (\y -> attr { _textPathName = y }) (f $ _textPathName attr)
-  textPathSpacing f attr =
-    fmap (\y -> attr { _textPathSpacing = y }) (f $ _textPathSpacing attr)
-  textPathStartOffset f attr =
-    fmap (\y -> attr { _textPathStartOffset = y }) (f $ _textPathStartOffset attr)
+makeClassy ''TextPath
 
 instance WithDefaultSvg TextPath where
   defaultSvg = TextPath
@@ -1577,7 +1535,6 @@ instance WithDefaultSvg TextPath where
     , _textPathName        = mempty
     , _textPathMethod      = TextPathAlign
     , _textPathSpacing     = TextPathSpacingExact
-    , _textPathData        = []
     }
 
 -- | Define the possible values of the `lengthAdjust`
@@ -1627,8 +1584,8 @@ textAt (x, y) txt = Text TextAdjustSpacing tspan where
                     }
         }
 
-instance WithDrawAttributes Text where
-  drawAttr = textRoot . spanDrawAttributes
+instance HasDrawAttributes Text where
+  drawAttributes = textRoot . spanDrawAttributes
 
 instance WithDefaultSvg Text where
   defaultSvg = Text
@@ -1893,8 +1850,8 @@ instance HasMarker Marker where
   markerWidth f attr =
     fmap (\y -> attr { _markerWidth = y }) (f $ _markerWidth attr)
 
-instance WithDrawAttributes Marker where
-    drawAttr = markerDrawAttributes
+instance HasDrawAttributes Marker where
+  drawAttributes = markerDrawAttributes
 
 instance WithDefaultSvg Marker where
   defaultSvg = Marker
@@ -2052,55 +2009,56 @@ nameOfTree v =
 drawAttrOfTree :: Tree -> DrawAttributes
 drawAttrOfTree v = case v of
   None                 -> mempty
-  UseTree e _          -> e ^. drawAttr
-  GroupTree e          -> e ^. drawAttr
-  SymbolTree e         -> e ^. drawAttr
-  DefinitionTree e     -> e ^. drawAttr
-  FilterTree e         -> e ^. drawAttr
-  PathTree e           -> e ^. drawAttr
-  CircleTree e         -> e ^. drawAttr
-  PolyLineTree e       -> e ^. drawAttr
-  PolygonTree e        -> e ^. drawAttr
-  EllipseTree e        -> e ^. drawAttr
-  LineTree e           -> e ^. drawAttr
-  RectangleTree e      -> e ^. drawAttr
-  TextTree _ e         -> e ^. drawAttr
-  ImageTree e          -> e ^. drawAttr
-  LinearGradientTree e -> e ^. drawAttr
-  RadialGradientTree e -> e ^. drawAttr
-  MeshGradientTree e   -> e ^. drawAttr
-  PatternTree e        -> e ^. drawAttr
-  MarkerTree e         -> e ^. drawAttr
-  MaskTree e           -> e ^. drawAttr
-  ClipPathTree e       -> e ^. drawAttr
+  UseTree e _          -> e ^. drawAttributes
+  GroupTree e          -> e ^. drawAttributes
+  SymbolTree e         -> e ^. drawAttributes
+  DefinitionTree e     -> e ^. drawAttributes
+  FilterTree e         -> e ^. drawAttributes
+  PathTree e           -> e ^. drawAttributes
+  CircleTree e         -> e ^. drawAttributes
+  PolyLineTree e       -> e ^. drawAttributes
+  PolygonTree e        -> e ^. drawAttributes
+  EllipseTree e        -> e ^. drawAttributes
+  LineTree e           -> e ^. drawAttributes
+  RectangleTree e      -> e ^. drawAttributes
+  TextTree _ e         -> e ^. drawAttributes
+  ImageTree e          -> e ^. drawAttributes
+  LinearGradientTree e -> e ^. drawAttributes
+  RadialGradientTree e -> e ^. drawAttributes
+  MeshGradientTree e   -> e ^. drawAttributes
+  PatternTree e        -> e ^. drawAttributes
+  MarkerTree e         -> e ^. drawAttributes
+  MaskTree e           -> e ^. drawAttributes
+  ClipPathTree e       -> e ^. drawAttributes
 
 setDrawAttrOfTree :: Tree -> DrawAttributes -> Tree
 setDrawAttrOfTree v attr = case v of
   None                 -> None
-  UseTree e m          -> UseTree (e & drawAttr .~ attr) m
-  GroupTree e          -> GroupTree $ e & drawAttr .~ attr
-  SymbolTree e         -> SymbolTree $ e & drawAttr .~ attr
-  DefinitionTree e     -> DefinitionTree e & drawAttr .~ attr
-  FilterTree e         -> FilterTree $ e & drawAttr .~ attr
-  PathTree e           -> PathTree $ e & drawAttr .~ attr
-  CircleTree e         -> CircleTree $ e & drawAttr .~ attr
-  PolyLineTree e       -> PolyLineTree $ e & drawAttr .~ attr
-  PolygonTree e        -> PolygonTree $ e & drawAttr .~ attr
-  EllipseTree e        -> EllipseTree $ e & drawAttr .~ attr
-  LineTree e           -> LineTree $ e & drawAttr .~ attr
-  RectangleTree e      -> RectangleTree $ e & drawAttr .~ attr
-  TextTree a e         -> TextTree a $ e & drawAttr .~ attr
-  ImageTree e          -> ImageTree $ e & drawAttr .~ attr
-  LinearGradientTree e -> LinearGradientTree $ e & drawAttr .~ attr
-  RadialGradientTree e -> RadialGradientTree $ e & drawAttr .~ attr
-  MeshGradientTree e   -> MeshGradientTree $ e & drawAttr .~ attr
-  PatternTree e        -> PatternTree $ e & drawAttr .~ attr
-  MarkerTree e         -> MarkerTree $ e & drawAttr .~ attr
-  MaskTree e           -> MaskTree $ e & drawAttr .~ attr
-  ClipPathTree e       -> ClipPathTree $ e & drawAttr .~ attr
+  UseTree e m          -> UseTree (e & drawAttributes .~ attr) m
+  GroupTree e          -> GroupTree $ e & drawAttributes .~ attr
+  SymbolTree e         -> SymbolTree $ e & drawAttributes .~ attr
+  DefinitionTree e     -> DefinitionTree e & drawAttributes .~ attr
+  FilterTree e         -> FilterTree $ e & drawAttributes .~ attr
+  PathTree e           -> PathTree $ e & drawAttributes .~ attr
+  CircleTree e         -> CircleTree $ e & drawAttributes .~ attr
+  PolyLineTree e       -> PolyLineTree $ e & drawAttributes .~ attr
+  PolygonTree e        -> PolygonTree $ e & drawAttributes .~ attr
+  EllipseTree e        -> EllipseTree $ e & drawAttributes .~ attr
+  LineTree e           -> LineTree $ e & drawAttributes .~ attr
+  RectangleTree e      -> RectangleTree $ e & drawAttributes .~ attr
+  TextTree a e         -> TextTree a $ e & drawAttributes .~ attr
+  ImageTree e          -> ImageTree $ e & drawAttributes .~ attr
+  LinearGradientTree e -> LinearGradientTree $ e & drawAttributes .~ attr
+  RadialGradientTree e -> RadialGradientTree $ e & drawAttributes .~ attr
+  MeshGradientTree e   -> MeshGradientTree $ e & drawAttributes .~ attr
+  PatternTree e        -> PatternTree $ e & drawAttributes .~ attr
+  MarkerTree e         -> MarkerTree $ e & drawAttributes .~ attr
+  MaskTree e           -> MaskTree $ e & drawAttributes .~ attr
+  ClipPathTree e       -> ClipPathTree $ e & drawAttributes .~ attr
 
-instance WithDrawAttributes Tree where
-    drawAttr = lens drawAttrOfTree setDrawAttrOfTree
+
+instance HasDrawAttributes Tree where
+  drawAttributes = lens drawAttrOfTree setDrawAttrOfTree
 
 instance WithDefaultSvg Tree where
     defaultSvg = None
@@ -2186,8 +2144,9 @@ instance HasLinearGradient LinearGradient where
   linearGradientUnits f attr =
     fmap (\y -> attr { _linearGradientUnits = y }) (f $ _linearGradientUnits attr)
 
-instance WithDrawAttributes LinearGradient where
-  drawAttr = linearGradientDrawAttributes
+
+instance HasDrawAttributes LinearGradient where
+  drawAttributes = linearGradientDrawAttributes
 
 instance WithDefaultSvg LinearGradient where
   defaultSvg = LinearGradient
@@ -2292,8 +2251,9 @@ instance HasRadialGradient RadialGradient where
   radialGradientUnits f attr =
     fmap (\y -> attr { _radialGradientUnits = y }) (f $ _radialGradientUnits attr)
 
-instance WithDrawAttributes RadialGradient where
-  drawAttr = radialGradientDrawAttributes
+
+instance HasDrawAttributes RadialGradient where
+  drawAttributes = radialGradientDrawAttributes
 
 instance WithDefaultSvg RadialGradient where
   defaultSvg = RadialGradient
@@ -2377,8 +2337,9 @@ instance HasMask Mask where
   maskWidth f attr =
     fmap (\y -> attr { _maskWidth = y }) (f $ _maskWidth attr)
 
-instance WithDrawAttributes Mask where
-  drawAttr = maskDrawAttributes
+
+instance HasDrawAttributes Mask where
+  drawAttributes = maskDrawAttributes
 
 instance WithDefaultSvg Mask where
   defaultSvg = Mask
@@ -2426,8 +2387,9 @@ instance HasClipPath ClipPath where
   clipPathUnits f attr =
     fmap (\y -> attr { _clipPathUnits = y }) (f $ _clipPathUnits attr)
 
-instance WithDrawAttributes ClipPath where
-  drawAttr = clipPathDrawAttributes
+
+instance HasDrawAttributes ClipPath where
+  drawAttributes = clipPathDrawAttributes
 
 instance WithDefaultSvg ClipPath where
   defaultSvg = ClipPath
@@ -2536,8 +2498,8 @@ instance HasPattern Pattern where
   patternWidth f attr =
     fmap (\y -> attr { _patternWidth = y }) (f $ _patternWidth attr)
 
-instance WithDrawAttributes Pattern where
-    drawAttr = patternDrawAttributes
+instance HasDrawAttributes Pattern where
+  drawAttributes = patternDrawAttributes
 
 instance WithDefaultSvg Pattern where
   defaultSvg = Pattern
@@ -2575,80 +2537,13 @@ data Document = Document
     , _elements         :: [Tree]
     , _definitions      :: M.Map String Tree
     , _description      :: String
-    , _styleRules       :: [CssRule]
     , _documentLocation :: FilePath
     }
     deriving Show
 
--- makeClassy ''Document
+
 -- | Lenses associated to a SVG document.
-class HasDocument c_aqpq where
-  document :: Lens' c_aqpq Document
-  definitions :: Lens' c_aqpq (M.Map String Tree)
-  {-# INLINE definitions #-}
-  definitions = document . definitions
-
-  description :: Lens' c_aqpq String
-  {-# INLINE description #-}
-  description = document . description
-
-  documentLocation :: Lens' c_aqpq FilePath
-  {-# INLINE documentLocation #-}
-  documentLocation = document . documentLocation
-
-  elements :: Lens' c_aqpq [Tree]
-  {-# INLINE elements #-}
-  elements = document . elements
-
-  height :: Lens' c_aqpq (Maybe Number)
-  {-# INLINE height #-}
-  height = document . height
-
-  styleRules :: Lens' c_aqpq [CssRule]
-  {-# INLINE styleRules #-}
-  styleRules = document . styleRules
-
-  viewBox :: Lens' c_aqpq (Maybe (Double, Double, Double, Double))
-  {-# INLINE viewBox #-}
-  viewBox = document . viewBox
-
-  width :: Lens' c_aqpq (Maybe Number)
-  {-# INLINE width #-}
-  width = document . width
-
-instance HasDocument Document where
-  document = id
-  {-# INLINE definitions #-}
-  definitions f attr =
-    fmap (\y -> attr { _definitions = y }) (f $ _definitions attr)
-
-  {-# INLINE description #-}
-  description f attr =
-    fmap (\y -> attr { _description = y }) (f $ _description attr)
-
-  {-# INLINE documentLocation #-}
-  documentLocation f attr =
-    fmap (\y -> attr { _documentLocation = y }) (f $ _documentLocation attr)
-
-  {-# INLINE elements #-}
-  elements f attr =
-    fmap (\y -> attr { _elements = y }) (f $ _elements attr)
-
-  {-# INLINE height #-}
-  height f attr =
-    fmap (\y -> attr { _height = y }) (f $ _height attr)
-
-  {-# INLINE styleRules #-}
-  styleRules f attr =
-    fmap (\y -> attr { _styleRules = y }) (f $ _styleRules attr)
-
-  {-# INLINE viewBox #-}
-  viewBox f attr =
-    fmap (\y -> attr { _viewBox = y }) (f $ _viewBox attr)
-
-  {-# INLINE width #-}
-  width f attr =
-    fmap (\y -> attr { _width = y }) (f $ _width attr)
+makeClassy ''Document
 
 -- | Calculate the document size in function of the
 -- different available attributes in the document.
@@ -2749,8 +2644,8 @@ instance WithDefaultSvg DrawAttributes where
 
 instance CssMatcheable Tree where
   cssAttribOf _ _ = Nothing
-  cssClassOf = view (drawAttr . attrClass)
-  cssIdOf = fmap T.pack . view (drawAttr . attrId)
+  cssClassOf = view (drawAttributes . attrClass)
+  cssIdOf = fmap T.pack . view (drawAttributes . attrId)
   cssNameOf = nameOfTree
 
 --------------------------------------------------------------------------
@@ -2863,14 +2758,15 @@ makeClassy ''Composite
 makeClassy ''ColorMatrix
 makeClassy ''GaussianBlur
 
-instance WithDrawAttributes Composite where
-    drawAttr = compositeDrawAttributes
+instance HasDrawAttributes Composite where
+    drawAttributes = compositeDrawAttributes
 
-instance WithDrawAttributes ColorMatrix where
-    drawAttr = colorMatrixDrawAttributes
 
-instance WithDrawAttributes GaussianBlur where
-    drawAttr = gaussianBlurDrawAttributes
+instance HasDrawAttributes ColorMatrix where
+    drawAttributes = colorMatrixDrawAttributes
+
+instance HasDrawAttributes GaussianBlur where
+    drawAttributes = gaussianBlurDrawAttributes
 
 instance HasFilterAttributes Composite where
   filterAttributes = compositeFilterAttr
