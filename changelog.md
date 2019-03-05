@@ -1,5 +1,9 @@
 -*-change-log-*-
 
+v0.8.1.0 March 2019
+
+ * Filter attributes.
+
 v0.8.0.0 March 2019
 
  * Remove WithDrawAttributes type class.
