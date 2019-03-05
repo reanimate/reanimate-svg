@@ -887,7 +887,11 @@ instance XMLUpdatable Filter where
   serializeTreeNode node =
      updateWithAccessor _filterChildren node $
         genericSerializeWithDrawAttr node
-  attributes = []
+  attributes =
+    [ "width" `parseIn` filterWidth
+    , "height" `parseIn` filterHeight
+    , "x" `parseIn` filterX
+    , "y" `parseIn` filterY ]
 
 instance XMLUpdatable FilterElement where
   xmlTagName _ = "FilterElement"
