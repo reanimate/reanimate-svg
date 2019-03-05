@@ -4,6 +4,7 @@ v0.8.0.0 March 2019
 
  * Remove WithDrawAttributes type class.
  * Remove css and top-level definitions from Document.
+ * Basic support for SVG filters.
 
 v0.7.0.0 March 2019
 
