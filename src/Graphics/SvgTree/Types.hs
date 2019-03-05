@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE RankNTypes             #-}
+{-# LANGUAGE TemplateHaskell        #-}
 -- | This module define all the types used in the definition
 -- of a svg scene.
 --
@@ -48,6 +49,21 @@ module Graphics.SvgTree.Types
     , DrawAttributes( .. )
     , HasDrawAttributes( .. )
     , WithDrawAttributes( .. )
+
+      -- * Filters
+    , FilterElement(..)
+    , FilterAttributes(..)
+    , HasFilterAttributes(..)
+    , FilterSource(..)
+    , ColorMatrixType(..)
+    , HasColorMatrix(..)
+    , ColorMatrix(..)
+    , HasComposite(..)
+    , Composite(..)
+    , CompositeOperator(..)
+    , EdgeMode(..)
+    , HasGaussianBlur(..)
+    , GaussianBlur(..)
 
       -- * SVG drawing primitives
       -- ** Rectangle
@@ -197,6 +213,7 @@ import           Data.Monoid               (Monoid (..))
 import           Codec.Picture             (PixelRGBA8 (..))
 import           Control.Lens              (Lens, Lens', lens, view, (&), (.~),
                                             (^.))
+import           Control.Lens.TH
 import qualified Data.Foldable             as F
 import           Data.Function             (on)
 import           Data.List                 (inits)
@@ -453,6 +470,32 @@ data ElementRef
   | Ref String -- ^ Equivalent to `url()` attribute.
   deriving (Eq, Show)
 
+data FilterSource
+  = SourceGraphic
+  | SourceAlpha
+  | BackgroundImage
+  | BackgroundAlpha
+  | FillPaint
+  | StrokePaint
+  | SourceRef String
+  deriving (Eq, Show)
+
+data FilterAttributes = FilterAttributes
+  { _filterHeight :: !(Last Number)
+  , _filterResult :: !(Maybe String)
+  , _filterWidth  :: !(Last Number)
+  , _filterX      :: !(Last Number)
+  , _filterY      :: !(Last Number)
+  } deriving (Eq, Show)
+
+instance WithDefaultSvg FilterAttributes where
+  defaultSvg = FilterAttributes
+    { _filterHeight = Last Nothing
+    , _filterResult = Nothing
+    , _filterWidth  = Last Nothing
+    , _filterX      = Last Nothing
+    , _filterY      = Last Nothing }
+
 -- | This type define how to draw any primitives,
 -- which color to use, how to stroke the primitives
 -- and the potential transformations to use.
@@ -527,9 +570,11 @@ data DrawAttributes = DrawAttributes
       -- | Define the marker used for the end of the line.
       -- Correspond to the `marker-end` attribute.
     , _markerEnd        :: !(Last ElementRef)
+    , _filterRef        :: !(Last ElementRef)
     }
     deriving (Eq, Show)
 
+makeClassy ''DrawAttributes
 
 -- | This primitive describe an unclosed suite of
 -- segments. Correspond to the `<polyline>` tag.
@@ -1483,6 +1528,7 @@ data TextPath = TextPath
   , _textPathMethod      :: !TextPathMethod
     -- | Correspond to the `spacing` attribute.
   , _textPathSpacing     :: !TextPathSpacing
+    -- XXX: Remove this.
     -- | Real content of the path.
   , _textPathData        :: ![PathCommand]
   }
@@ -1599,7 +1645,7 @@ data Tree
     | GroupTree     !(Group Tree)
     | SymbolTree    !(Symbol Tree)
     | DefinitionTree !(Definitions Tree)
-    | FilterTree    !(Filter Tree)
+    | FilterTree    !(Filter FilterElement)
     | PathTree      !Path
     | CircleTree    !Circle
     | PolyLineTree  !PolyLine
@@ -1617,6 +1663,118 @@ data Tree
     | MaskTree      !Mask
     | ClipPathTree  !ClipPath
     deriving (Eq, Show)
+
+data FilterElement
+  = FEBlend
+  | FEColorMatrix ColorMatrix
+  | FEComponentTransfer
+  | FEComposite Composite
+  | FEConvolveMatrix
+  | FEDiffuseLighting
+  | FEDisplacementMap
+  | FEDropShadow
+  | FEFlood
+  | FEFuncA
+  | FEFuncB
+  | FEFuncG
+  | FEFuncR
+  | FEGaussianBlur GaussianBlur
+  | FEImage
+  | FEMerge
+  | FEMergeNode
+  | FEMorphology
+  | FEOffset
+  | FESpecularLighting
+  | FETile
+  | FETurbulence
+  | FENone
+  deriving (Eq,Show)
+
+instance WithDefaultSvg FilterElement where
+  defaultSvg = FENone
+
+data ColorMatrixType
+  = Matrix
+  | Saturate
+  | HueRotate
+  | LuminanceToAlpha
+  deriving (Eq,Show)
+
+data ColorMatrix = ColorMatrix
+  { _colorMatrixDrawAttributes :: !DrawAttributes
+  , _colorMatrixFilterAttr     :: !FilterAttributes
+  , _colorMatrixIn             :: !(Last FilterSource)
+  , _colorMatrixType           :: !ColorMatrixType
+  , _colorMatrixValues         :: !String
+  } deriving (Eq,Show)
+
+instance WithDefaultSvg ColorMatrix where
+  defaultSvg = ColorMatrix
+    { _colorMatrixDrawAttributes = defaultSvg
+    , _colorMatrixFilterAttr     = defaultSvg
+    , _colorMatrixIn             = Last Nothing
+    , _colorMatrixType           = Matrix
+    , _colorMatrixValues         = ""
+    }
+
+data CompositeOperator
+  = CompositeOver -- this is default
+  | CompositeIn
+  | CompositeOut
+  | CompositeAtop
+  | CompositeXor
+  | CompositeArithmetic
+  deriving (Eq, Show)
+
+data Composite = Composite
+  { _compositeDrawAttributes :: DrawAttributes
+  , _compositeFilterAttr     :: !FilterAttributes
+  , _compositeIn             :: Last FilterSource
+  , _compositeIn2            :: Last FilterSource
+  , _compositeOperator       :: CompositeOperator
+  , _compositeK1             :: Number
+  , _compositeK2             :: Number
+  , _compositeK3             :: Number
+  , _compositeK4             :: Number
+  } deriving (Eq, Show)
+
+instance WithDefaultSvg Composite where
+  defaultSvg = Composite
+    { _compositeDrawAttributes = defaultSvg
+    , _compositeFilterAttr     = defaultSvg
+    , _compositeIn             = Last Nothing
+    , _compositeIn2            = Last Nothing
+    , _compositeOperator       = CompositeOver
+    , _compositeK1             = Num 0
+    , _compositeK2             = Num 0
+    , _compositeK3             = Num 0
+    , _compositeK4             = Num 0
+    }
+
+data EdgeMode
+  = EdgeDuplicate
+  | EdgeWrap
+  | EdgeNone
+  deriving (Eq,Show)
+
+data GaussianBlur = GaussianBlur
+  { _gaussianBlurDrawAttributes :: DrawAttributes
+  , _gaussianBlurFilterAttr     :: !FilterAttributes
+  , _gaussianBlurIn             :: Last FilterSource
+  , _gaussianBlurStdDeviationX  :: Number
+  , _gaussianBlurStdDeviationY  :: Last Number
+  , _gaussianBlurEdgeMode       :: EdgeMode
+  } deriving (Eq,Show)
+
+instance WithDefaultSvg GaussianBlur where
+  defaultSvg = GaussianBlur
+    { _gaussianBlurDrawAttributes = defaultSvg
+    , _gaussianBlurFilterAttr     = defaultSvg
+    , _gaussianBlurIn             = Last Nothing
+    , _gaussianBlurStdDeviationX      = Num 0
+    , _gaussianBlurStdDeviationY      = Last Nothing
+    , _gaussianBlurEdgeMode           = EdgeDuplicate
+    }
 
 -- | Define the orientation, associated to the
 -- `orient` attribute on the Marker
@@ -1775,9 +1933,7 @@ zipTree f = dig [] where
   dig prev e@(DefinitionTree g) =
       f . appNode prev . DefinitionTree . Definitions .
             zipGroup (appNode prev e) $ _groupOfDefinitions g
-  dig prev e@(FilterTree g) =
-      f . appNode prev . FilterTree . Filter .
-            zipGroup (appNode prev e) $ _groupOfFilter g
+  dig prev e@(FilterTree _) = f $ appNode prev e
   dig prev e@(PathTree _) = f $ appNode prev e
   dig prev e@(CircleTree _) = f $ appNode prev e
   dig prev e@(PolyLineTree _) = f $ appNode prev e
@@ -1807,28 +1963,28 @@ zipTree f = dig [] where
 foldTree :: (a -> Tree -> a) -> a -> Tree -> a
 foldTree f = go where
   go acc e = case e of
-    None            -> f acc e
-    UseTree _ _     -> f acc e
-    PathTree _      -> f acc e
-    CircleTree _    -> f acc e
-    PolyLineTree _  -> f acc e
-    PolygonTree _   -> f acc e
-    EllipseTree _   -> f acc e
-    LineTree _      -> f acc e
-    RectangleTree _ -> f acc e
-    TextTree    _ _ -> f acc e
-    ImageTree _     -> f acc e
+    None                 -> f acc e
+    UseTree _ _          -> f acc e
+    PathTree _           -> f acc e
+    CircleTree _         -> f acc e
+    PolyLineTree _       -> f acc e
+    PolygonTree _        -> f acc e
+    EllipseTree _        -> f acc e
+    LineTree _           -> f acc e
+    RectangleTree _      -> f acc e
+    TextTree    _ _      -> f acc e
+    ImageTree _          -> f acc e
     LinearGradientTree _ -> f acc e
     RadialGradientTree _ -> f acc e
-    MeshGradientTree _ -> f acc e
-    PatternTree _   -> f acc e
-    MarkerTree _    -> f acc e
-    MaskTree _      -> f acc e
-    ClipPathTree _  -> f acc e
-    DefinitionTree g -> foldGroup (_groupOfDefinitions g)
-    FilterTree g    -> foldGroup (_groupOfFilter g)
-    GroupTree g     -> foldGroup g
-    SymbolTree s    -> foldGroup (_groupOfSymbol s)
+    MeshGradientTree _   -> f acc e
+    PatternTree _        -> f acc e
+    MarkerTree _         -> f acc e
+    MaskTree _           -> f acc e
+    ClipPathTree _       -> f acc e
+    DefinitionTree g     -> foldGroup (_groupOfDefinitions g)
+    FilterTree _         -> f acc e
+    GroupTree g          -> foldGroup g
+    SymbolTree s         -> foldGroup (_groupOfSymbol s)
     where
       foldGroup g =
         let subAcc = F.foldl' go acc $ _groupChildren g in
@@ -1844,8 +2000,7 @@ mapTree f = go where
       f . SymbolTree . Symbol . mapGroup $ _groupOfSymbol g
   go (DefinitionTree defs) =
     f . DefinitionTree . Definitions . mapGroup $ _groupOfDefinitions defs
-  go (FilterTree g) =
-    f . FilterTree . Filter . mapGroup $ _groupOfFilter g
+  go e@(FilterTree _) = f e
   go e@(PathTree _) = f e
   go e@(CircleTree _) = f e
   go e@(PolyLineTree _) = f e
@@ -2549,6 +2704,7 @@ instance Semigroup DrawAttributes where
         , _markerStart = (mappend `on` _markerStart) a b
         , _markerMid = (mappend `on` _markerMid) a b
         , _markerEnd = (mappend `on` _markerEnd) a b
+        , _filterRef = (mappend `on` _filterRef) a b
         }
       where
         opacityMappend Nothing Nothing    = Nothing
@@ -2585,6 +2741,7 @@ instance Monoid DrawAttributes where
         , _markerStart      = Last Nothing
         , _markerMid        = Last Nothing
         , _markerEnd        = Last Nothing
+        , _filterRef        = Last Nothing
         }
 
 instance WithDefaultSvg DrawAttributes where
@@ -2630,185 +2787,148 @@ instance HasPreserveAspectRatio PreserveAspectRatio where
   aspectRatioMeetSlice f attr =
     fmap (\y -> attr { _aspectRatioMeetSlice = y }) (f $ _aspectRatioMeetSlice attr)
 
--- makeClassy ''DrawAttributes
+-- makeClassy ''FilterAttributes
+-- | Lenses for the FilterAttributes type.
+class HasFilterAttributes c_asYk where
+  filterAttributes :: Lens' c_asYk FilterAttributes
+  filterHeight :: Lens' c_asYk (Last Number)
+  {-# INLINE filterHeight #-}
+  filterResult :: Lens' c_asYk (Maybe String)
+  {-# INLINE filterResult #-}
+  filterWidth :: Lens' c_asYk (Last Number)
+  {-# INLINE filterWidth #-}
+  filterX :: Lens' c_asYk (Last Number)
+  {-# INLINE filterX #-}
+  filterY :: Lens' c_asYk (Last Number)
+  {-# INLINE filterY #-}
+  filterHeight = ((.) filterAttributes) filterHeight
+  filterResult = ((.) filterAttributes) filterResult
+  filterWidth = ((.) filterAttributes) filterWidth
+  filterX = ((.) filterAttributes) filterX
+  filterY = ((.) filterAttributes) filterY
+instance HasFilterAttributes FilterAttributes where
+  {-# INLINE filterHeight #-}
+  {-# INLINE filterResult #-}
+  {-# INLINE filterWidth #-}
+  {-# INLINE filterX #-}
+  {-# INLINE filterY #-}
+  filterAttributes = id
+  filterHeight
+    f_asYl
+    (FilterAttributes x1_asYm x2_asYn x3_asYo x4_asYp x5_asYq)
+    = (fmap
+         (\ y1_asYr
+            -> ((((FilterAttributes y1_asYr) x2_asYn) x3_asYo) x4_asYp)
+                 x5_asYq))
+        (f_asYl x1_asYm)
+  filterResult
+    f_asYs
+    (FilterAttributes x1_asYt x2_asYu x3_asYv x4_asYw x5_asYx)
+    = (fmap
+         (\ y1_asYy
+            -> ((((FilterAttributes x1_asYt) y1_asYy) x3_asYv) x4_asYw)
+                 x5_asYx))
+        (f_asYs x2_asYu)
+  filterWidth
+    f_asYz
+    (FilterAttributes x1_asYA x2_asYB x3_asYC x4_asYD x5_asYE)
+    = (fmap
+         (\ y1_asYF
+            -> ((((FilterAttributes x1_asYA) x2_asYB) y1_asYF) x4_asYD)
+                 x5_asYE))
+        (f_asYz x3_asYC)
+  filterX
+    f_asYG
+    (FilterAttributes x1_asYH x2_asYI x3_asYJ x4_asYK x5_asYL)
+    = (fmap
+         (\ y1_asYM
+            -> ((((FilterAttributes x1_asYH) x2_asYI) x3_asYJ) y1_asYM)
+                 x5_asYL))
+        (f_asYG x4_asYK)
+  filterY
+    f_asYN
+    (FilterAttributes x1_asYO x2_asYP x3_asYQ x4_asYR x5_asYS)
+    = (fmap
+         (\ y1_asYT
+            -> ((((FilterAttributes x1_asYO) x2_asYP) x3_asYQ) x4_asYR)
+                 y1_asYT))
+        (f_asYN x5_asYS)
+
+
 -- | Lenses for the DrawAttributes type.
-class HasDrawAttributes a where
-  drawAttributes :: Lens' a DrawAttributes
-  attrClass :: Lens' a [T.Text]
-  {-# INLINE attrClass #-}
-  attrClass = drawAttributes . attrClass
+-- makeClassy ''DrawAttributes
 
-  attrId :: Lens' a (Maybe String)
-  {-# INLINE attrId #-}
-  attrId = drawAttributes . attrId
 
-  clipPathRef :: Lens' a (Last ElementRef)
-  {-# INLINE clipPathRef #-}
-  clipPathRef = drawAttributes . clipPathRef
+makeClassy ''Composite
+makeClassy ''ColorMatrix
+makeClassy ''GaussianBlur
 
-  clipRule :: Lens' a (Last FillRule)
-  {-# INLINE clipRule #-}
-  clipRule = drawAttributes . clipRule
+instance WithDrawAttributes Composite where
+    drawAttr = compositeDrawAttributes
 
-  fillColor :: Lens' a (Last Texture)
-  {-# INLINE fillColor #-}
-  fillColor = drawAttributes . fillColor
+instance WithDrawAttributes ColorMatrix where
+    drawAttr = colorMatrixDrawAttributes
 
-  fillOpacity :: Lens' a (Maybe Float)
-  {-# INLINE fillOpacity #-}
-  fillOpacity = drawAttributes . fillOpacity
+instance WithDrawAttributes GaussianBlur where
+    drawAttr = gaussianBlurDrawAttributes
 
-  fillRule :: Lens' a (Last FillRule)
-  {-# INLINE fillRule #-}
-  fillRule = drawAttributes . fillRule
+instance HasFilterAttributes Composite where
+  filterAttributes = compositeFilterAttr
 
-  fontFamily :: Lens' a (Last [String])
-  {-# INLINE fontFamily #-}
-  fontFamily = drawAttributes . fontFamily
+instance HasFilterAttributes ColorMatrix where
+  filterAttributes = colorMatrixFilterAttr
 
-  fontSize :: Lens' a (Last Number)
-  {-# INLINE fontSize #-}
-  fontSize = drawAttributes . fontSize
+instance HasFilterAttributes GaussianBlur where
+  filterAttributes = gaussianBlurFilterAttr
 
-  fontStyle :: Lens' a (Last FontStyle)
-  {-# INLINE fontStyle #-}
-  fontStyle = drawAttributes . fontStyle
-
-  groupOpacity :: Lens' a (Maybe Float)
-  {-# INLINE groupOpacity #-}
-  groupOpacity = drawAttributes . groupOpacity
-
-  markerEnd :: Lens' a (Last ElementRef)
-  {-# INLINE markerEnd #-}
-  markerEnd = drawAttributes . markerEnd
-
-  markerMid :: Lens' a (Last ElementRef)
-  {-# INLINE markerMid #-}
-  markerMid = drawAttributes . markerMid
-
-  markerStart :: Lens' a (Last ElementRef)
-  {-# INLINE markerStart #-}
-  markerStart = drawAttributes . markerStart
-
-  maskRef :: Lens' a (Last ElementRef)
-  {-# INLINE maskRef #-}
-  maskRef = drawAttributes . maskRef
-
-  strokeColor :: Lens' a (Last Texture)
-  {-# INLINE strokeColor #-}
-  strokeColor = drawAttributes . strokeColor
-
-  strokeDashArray :: Lens' a (Last [Number])
-  {-# INLINE strokeDashArray #-}
-  strokeDashArray = drawAttributes . strokeDashArray
-
-  strokeLineCap :: Lens' a (Last Cap)
-  {-# INLINE strokeLineCap #-}
-  strokeLineCap = drawAttributes . strokeLineCap
-
-  strokeLineJoin :: Lens' a (Last LineJoin)
-  {-# INLINE strokeLineJoin #-}
-  strokeLineJoin = drawAttributes . strokeLineJoin
-
-  strokeMiterLimit :: Lens' a (Last Double)
-  {-# INLINE strokeMiterLimit #-}
-  strokeMiterLimit = drawAttributes . strokeMiterLimit
-
-  strokeOffset :: Lens' a (Last Number)
-  {-# INLINE strokeOffset #-}
-  strokeOffset = drawAttributes . strokeOffset
-
-  strokeOpacity :: Lens' a (Maybe Float)
-  {-# INLINE strokeOpacity #-}
-  strokeOpacity = drawAttributes . strokeOpacity
-
-  strokeWidth :: Lens' a (Last Number)
-  {-# INLINE strokeWidth #-}
-  strokeWidth = drawAttributes . strokeWidth
-
-  textAnchor :: Lens' a (Last TextAnchor)
-  {-# INLINE textAnchor #-}
-  textAnchor = drawAttributes . textAnchor
-
-  transform :: Lens' a (Maybe [Transformation])
-  {-# INLINE transform #-}
-  transform = drawAttributes . transform
-
-instance HasDrawAttributes DrawAttributes where
-  {-# INLINE attrId #-}
-  {-# INLINE clipPathRef #-}
-  {-# INLINE clipRule #-}
-  {-# INLINE fillColor #-}
-  {-# INLINE fillOpacity #-}
-  {-# INLINE fillRule #-}
-  {-# INLINE fontFamily #-}
-  {-# INLINE fontSize #-}
-  {-# INLINE fontStyle #-}
-  {-# INLINE groupOpacity #-}
-  {-# INLINE markerEnd #-}
-  {-# INLINE markerMid #-}
-  {-# INLINE markerStart #-}
-  {-# INLINE maskRef #-}
-  {-# INLINE strokeColor #-}
-  {-# INLINE strokeDashArray #-}
-  {-# INLINE strokeLineCap #-}
-  {-# INLINE strokeLineJoin #-}
-  {-# INLINE strokeMiterLimit #-}
-  {-# INLINE strokeOffset #-}
-  {-# INLINE strokeOpacity #-}
-  {-# INLINE strokeWidth #-}
-  {-# INLINE textAnchor #-}
-  {-# INLINE transform #-}
-  drawAttributes = id
-
-  {-# INLINE attrClass #-}
-  attrClass f attr =
-    fmap (\y -> attr { _attrClass = y }) (f (_attrClass attr))
-  attrId f attr =
-    fmap (\y -> attr { _attrId = y }) (f $ _attrId attr)
-  clipPathRef f attr =
-    fmap (\y -> attr { _clipPathRef = y }) (f $ _clipPathRef attr)
-  clipRule f attr =
-    fmap (\y -> attr { _clipRule = y }) (f $ _clipRule attr)
-  fillColor f attr =
-    fmap (\y -> attr { _fillColor = y }) (f $ _fillColor attr)
-  fillOpacity f attr =
-    fmap (\y -> attr { _fillOpacity = y }) (f $ _fillOpacity attr)
-  fillRule f attr =
-    fmap (\y -> attr { _fillRule = y }) (f $ _fillRule attr)
-  fontFamily f attr =
-    fmap (\y -> attr { _fontFamily = y }) (f $ _fontFamily attr)
-  fontSize f attr =
-    fmap (\y -> attr { _fontSize = y }) (f $ _fontSize attr)
-  fontStyle f attr =
-    fmap (\y -> attr { _fontStyle = y }) (f $ _fontStyle attr)
-  groupOpacity f attr =
-    fmap (\y -> attr { _groupOpacity = y }) (f $ _groupOpacity attr)
-  markerEnd f attr =
-    fmap (\y -> attr { _markerEnd = y }) (f $ _markerEnd attr)
-  markerMid f attr =
-    fmap (\y -> attr { _markerMid = y }) (f $ _markerMid attr)
-  markerStart f attr =
-    fmap (\y -> attr { _markerStart = y }) (f $ _markerStart attr)
-  maskRef f attr =
-    fmap (\y -> attr { _maskRef = y }) (f $ _maskRef attr)
-  strokeColor f attr =
-    fmap (\y -> attr { _strokeColor = y }) (f $ _strokeColor attr)
-  strokeDashArray f attr =
-    fmap (\y -> attr { _strokeDashArray = y }) (f $ _strokeDashArray attr)
-  strokeLineCap f attr =
-    fmap (\y -> attr { _strokeLineCap = y }) (f $ _strokeLineCap attr)
-  strokeLineJoin f attr =
-    fmap (\y -> attr { _strokeLineJoin = y }) (f $ _strokeLineJoin attr)
-  strokeMiterLimit f attr =
-    fmap (\y -> attr { _strokeMiterLimit = y }) (f $ _strokeMiterLimit attr)
-  strokeOffset f attr =
-    fmap (\y -> attr { _strokeOffset = y }) (f $ _strokeOffset attr)
-  strokeOpacity f attr =
-    fmap (\y -> attr { _strokeOpacity = y }) (f $ _strokeOpacity attr)
-  strokeWidth f attr =
-    fmap (\y -> attr { _strokeWidth = y }) (f $ _strokeWidth attr)
-  textAnchor f attr =
-    fmap (\y -> attr { _textAnchor = y }) (f $ _textAnchor attr)
-  transform f attr =
-    fmap (\y -> attr { _transform = y }) (f $ _transform attr)
+instance HasFilterAttributes FilterElement where
+  filterAttributes = lens getter setter
+    where
+      getter fe = case fe of
+          FEBlend             -> defaultSvg
+          FEColorMatrix m     -> m ^. filterAttributes
+          FEComponentTransfer -> defaultSvg
+          FEComposite c       -> c ^. filterAttributes
+          FEConvolveMatrix    -> defaultSvg
+          FEDiffuseLighting   -> defaultSvg
+          FEDisplacementMap   -> defaultSvg
+          FEDropShadow        -> defaultSvg
+          FEFlood             -> defaultSvg
+          FEFuncA             -> defaultSvg
+          FEFuncB             -> defaultSvg
+          FEFuncG             -> defaultSvg
+          FEFuncR             -> defaultSvg
+          FEGaussianBlur g    -> g ^. filterAttributes
+          FEImage             -> defaultSvg
+          FEMerge             -> defaultSvg
+          FEMergeNode         -> defaultSvg
+          FEMorphology        -> defaultSvg
+          FEOffset            -> defaultSvg
+          FESpecularLighting  -> defaultSvg
+          FETile              -> defaultSvg
+          FETurbulence        -> defaultSvg
+          FENone              -> defaultSvg
+      setter fe attr = case fe of
+        FEBlend             -> fe
+        FEColorMatrix m     -> FEColorMatrix $ m & filterAttributes .~ attr
+        FEComponentTransfer -> fe
+        FEComposite c       -> FEComposite $ c & filterAttributes .~ attr
+        FEConvolveMatrix    -> fe
+        FEDiffuseLighting   -> fe
+        FEDisplacementMap   -> fe
+        FEDropShadow        -> fe
+        FEFlood             -> fe
+        FEFuncA             -> fe
+        FEFuncB             -> fe
+        FEFuncG             -> fe
+        FEFuncR             -> fe
+        FEGaussianBlur g    -> FEGaussianBlur $ g & filterAttributes .~ attr
+        FEImage             -> fe
+        FEMerge             -> fe
+        FEMergeNode         -> fe
+        FEMorphology        -> fe
+        FEOffset            -> fe
+        FESpecularLighting  -> fe
+        FETile              -> fe
+        FETurbulence        -> fe
+        FENone              -> fe
