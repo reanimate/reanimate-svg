@@ -129,7 +129,7 @@ module Graphics.SvgTree.Types
 
     -- ** Filter
     , Filter( .. )
-    , groupOfFilter
+    , filterChildren
 
       -- * Text related types
       -- ** Text
@@ -920,19 +920,19 @@ instance WithDefaultSvg (Definitions a) where
   defaultSvg = Definitions defaultSvg
 
 -- | Define the `<filter>` tag.
-newtype Filter a =
-    Filter { _groupOfFilter :: Group a }
+data Filter = Filter
+  { _filterDrawAttributes :: !DrawAttributes
+  , _filterSelfAttributes :: !FilterAttributes
+  , _filterChildren       :: ![FilterElement]
+  }
   deriving (Eq, Show)
 
--- | Lenses associated with the Definitions type.
-groupOfFilter :: Lens (Filter s) (Filter t) (Group s) (Group t)
-groupOfFilter f = fmap Filter . f . _groupOfFilter
-
-instance HasDrawAttributes (Filter a) where
-  drawAttributes = groupOfFilter . drawAttributes
-
-instance WithDefaultSvg (Filter a) where
-  defaultSvg = Filter defaultSvg
+instance WithDefaultSvg Filter where
+  defaultSvg = Filter
+    { _filterDrawAttributes = defaultSvg
+    , _filterSelfAttributes     = defaultSvg
+    , _filterChildren       = []
+    }
 
 -- | Define a `<circle>`.
 data Circle = Circle
@@ -1526,8 +1526,7 @@ data TextPath = TextPath
   }
   deriving (Eq, Show)
 
--- | Lenses for the TextPath type.
-makeClassy ''TextPath
+-- -- | Lenses for the TextPath type.
 
 instance WithDefaultSvg TextPath where
   defaultSvg = TextPath
@@ -1602,7 +1601,7 @@ data Tree
     | GroupTree     !(Group Tree)
     | SymbolTree    !(Symbol Tree)
     | DefinitionTree !(Definitions Tree)
-    | FilterTree    !(Filter FilterElement)
+    | FilterTree    !Filter
     | PathTree      !Path
     | CircleTree    !Circle
     | PolyLineTree  !PolyLine
@@ -2750,9 +2749,18 @@ instance HasFilterAttributes FilterAttributes where
         (f_asYN x5_asYS)
 
 
+makeClassy ''TextPath
+
 -- | Lenses for the DrawAttributes type.
 -- makeClassy ''DrawAttributes
 
+makeLenses ''Filter
+
+instance HasDrawAttributes Filter where
+  drawAttributes = filterDrawAttributes
+
+instance HasFilterAttributes Filter where
+  filterAttributes = filterSelfAttributes
 
 makeClassy ''Composite
 makeClassy ''ColorMatrix

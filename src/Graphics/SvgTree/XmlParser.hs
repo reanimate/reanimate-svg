@@ -882,10 +882,10 @@ instance XMLUpdatable (Definitions Tree) where
      ,"preserveAspectRatio" `parseIn` (groupOfDefinitions . groupAspectRatio)
      ]
 
-instance XMLUpdatable (Filter FilterElement) where
+instance XMLUpdatable Filter where
   xmlTagName _ = "filter"
   serializeTreeNode node =
-     updateWithAccessor (_groupChildren . _groupOfFilter) node $
+     updateWithAccessor _filterChildren node $
         genericSerializeWithDrawAttr node
   attributes = []
 
@@ -1174,10 +1174,7 @@ unparse e@(nodeName -> "defs") =
     groupNode :: Group Tree
     groupNode = _groupOfSymbol $ xmlUnparseWithDrawAttr e
 unparse e@(nodeName -> "filter") =
-  FilterTree . Filter $ groupNode & groupChildren .~ map unparseFE (elChildren e)
-  where
-    groupNode :: Group FilterElement
-    groupNode = undefined -- xmlUnparseWithDrawAttr e
+  FilterTree $ xmlUnparseWithDrawAttr e & filterChildren .~ map unparseFE (elChildren e)
 unparse e@(nodeName -> "symbol") =
   SymbolTree . Symbol $ groupNode & groupChildren .~ map unparse (elChildren e)
   where
