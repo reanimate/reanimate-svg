@@ -1,5 +1,9 @@
 -*-change-log-*-
 
+v0.8.2.0 March 2019
+
+ * Export parser and serializer.
+
 v0.8.1.0 March 2019
 
  * Filter attributes.

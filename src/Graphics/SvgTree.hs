@@ -5,7 +5,9 @@ module Graphics.SvgTree
   ( -- * Saving/Loading functions
     loadSvgFile
   , parseSvgFile
+  , unparse
   , xmlOfDocument
+  , xmlOfTree
   , saveXmlFile
 
     -- * Manipulation functions

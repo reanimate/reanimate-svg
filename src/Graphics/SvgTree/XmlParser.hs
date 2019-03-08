@@ -7,6 +7,8 @@
 module Graphics.SvgTree.XmlParser
   ( xmlOfDocument
   , unparseDocument
+  , unparse
+  , xmlOfTree
 
   , SvgAttributeLens( .. )
   , drawAttributesList
@@ -1264,3 +1266,6 @@ xmlOfDocument doc =
         catMaybes [attr "width" . serializeNumber <$> _width doc
                   ,attr "height" . serializeNumber <$> _height doc
                   ]
+
+xmlOfTree :: Tree -> Maybe X.Element
+xmlOfTree = serializeTreeNode
