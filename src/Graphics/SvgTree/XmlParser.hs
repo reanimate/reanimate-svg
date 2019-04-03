@@ -99,15 +99,15 @@ instance ParseableAttribute PixelRGBA8 where
 
 instance ParseableAttribute [PathCommand] where
   aparse = parse pathParser
-  aserialize = Just . serializeCommands
+  aserialize v = Just $ serializeCommands v ""
 
 instance ParseableAttribute GradientPathCommand where
   aparse = parse gradientCommand
-  aserialize = Just . serializeGradientCommand
+  aserialize v = Just $ serializeGradientCommand v ""
 
 instance ParseableAttribute [RPoint] where
   aparse = parse pointData
-  aserialize = Just . serializePoints
+  aserialize v = Just $ serializePoints v ""
 
 instance ParseableAttribute Double where
   aparse = parseMayStartDot num

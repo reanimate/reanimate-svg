@@ -564,6 +564,7 @@ data DrawAttributes = DrawAttributes
       -- Correspond to the `marker-end` attribute.
     , _markerEnd        :: !(Last ElementRef)
     , _filterRef        :: !(Last ElementRef)
+    , _preRendered      :: !(Maybe String)
     }
     deriving (Eq, Show)
 
@@ -889,6 +890,9 @@ newtype Symbol a =
     Symbol { _groupOfSymbol :: Group a }
   deriving (Eq, Show)
 
+instance HasGroup (Symbol a) a where
+  group = groupOfSymbol
+
 -- makeLenses ''Symbol
 -- | Lenses associated with the Symbol type.
 groupOfSymbol :: Lens (Symbol s) (Symbol t) (Group s) (Group t)
@@ -906,6 +910,9 @@ instance WithDefaultSvg (Symbol a) where
 newtype Definitions a =
     Definitions { _groupOfDefinitions :: Group a }
   deriving (Eq, Show)
+
+instance HasGroup (Definitions a) a where
+  group = groupOfDefinitions
 
 -- makeLenses ''Definitions
 -- | Lenses associated with the Definitions type.
@@ -2031,12 +2038,12 @@ drawAttrOfTree v = case v of
   ClipPathTree e       -> e ^. drawAttributes
 
 setDrawAttrOfTree :: Tree -> DrawAttributes -> Tree
-setDrawAttrOfTree v attr = case v of
+setDrawAttrOfTree v attr' = case v of
   None                 -> None
   UseTree e m          -> UseTree (e & drawAttributes .~ attr) m
   GroupTree e          -> GroupTree $ e & drawAttributes .~ attr
   SymbolTree e         -> SymbolTree $ e & drawAttributes .~ attr
-  DefinitionTree e     -> DefinitionTree e & drawAttributes .~ attr
+  DefinitionTree e     -> DefinitionTree $ e & drawAttributes .~ attr
   FilterTree e         -> FilterTree $ e & drawAttributes .~ attr
   PathTree e           -> PathTree $ e & drawAttributes .~ attr
   CircleTree e         -> CircleTree $ e & drawAttributes .~ attr
@@ -2054,7 +2061,8 @@ setDrawAttrOfTree v attr = case v of
   MarkerTree e         -> MarkerTree $ e & drawAttributes .~ attr
   MaskTree e           -> MaskTree $ e & drawAttributes .~ attr
   ClipPathTree e       -> ClipPathTree $ e & drawAttributes .~ attr
-
+  where
+    attr = attr'{_preRendered = Nothing}
 
 instance HasDrawAttributes Tree where
   drawAttributes = lens drawAttrOfTree setDrawAttrOfTree
@@ -2599,6 +2607,7 @@ instance Semigroup DrawAttributes where
         , _markerMid = (mappend `on` _markerMid) a b
         , _markerEnd = (mappend `on` _markerEnd) a b
         , _filterRef = (mappend `on` _filterRef) a b
+        , _preRendered = Nothing
         }
       where
         opacityMappend Nothing Nothing    = Nothing
@@ -2636,6 +2645,7 @@ instance Monoid DrawAttributes where
         , _markerMid        = Last Nothing
         , _markerEnd        = Last Nothing
         , _filterRef        = Last Nothing
+        , _preRendered      = Nothing
         }
 
 instance WithDefaultSvg DrawAttributes where

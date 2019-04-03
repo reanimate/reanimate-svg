@@ -1,5 +1,5 @@
 name:                reanimate-svg
-version:             0.8.2.0
+version:             0.9.0.0
 synopsis:            SVG file loader and serializer
 description:
   reanimate-svg provides types representing a SVG document,
@@ -34,6 +34,8 @@ library
                  , Graphics.SvgTree.Types
                  , Graphics.SvgTree.PathParser
                  , Graphics.SvgTree.NamedColors
+                 , Graphics.SvgTree.Memo
+                 , Graphics.SvgTree.Printer
 
   other-modules: Graphics.SvgTree.XmlParser
                , Graphics.SvgTree.CssParser

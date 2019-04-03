@@ -1,5 +1,10 @@
 -*-change-log-*-
 
+v0.9.0.0 April 2019
+
+ * Performance optimizations.
+ * Memo module and render cache.
+
 v0.8.2.0 March 2019
 
  * Export parser and serializer.
