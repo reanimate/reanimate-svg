@@ -6,9 +6,11 @@ module Graphics.SvgTree.Printer
 import           Control.Lens
 import           Data.Char
 import           Data.List
-import           Graphics.SvgTree.Types     (DrawAttributes, Tree (..),
-                                             groupChildren,
-                                             preRendered, Document(..))
+import           Graphics.SvgTree.Types     (Document (..), DrawAttributes,
+                                             Tree (..), groupChildren,
+                                             patternElements, markerElements,
+                                             maskContent, clipPathContent,
+                                             preRendered)
 import           Graphics.SvgTree.XmlParser
 import           Text.XML.Light
 
@@ -32,6 +34,10 @@ treeChildren :: Tree -> [Tree]
 treeChildren (GroupTree g)      = g^.groupChildren
 treeChildren (SymbolTree g)     = g^.groupChildren
 treeChildren (DefinitionTree g) = g^.groupChildren
+treeChildren (ClipPathTree c)   = c^.clipPathContent
+treeChildren (PatternTree p)    = p^.patternElements
+treeChildren (MarkerTree m)     = m^.markerElements
+treeChildren (MaskTree m)       = m^.maskContent
 treeChildren _                  = []
 
 ppElementS_         :: [Tree] -> Element -> ShowS
