@@ -29,6 +29,7 @@ import           Data.Monoid            ((<>))
 import qualified Data.Text              as T
 import qualified Data.Text.Lazy.Builder as TB
 import           Text.Printf
+import           Data.Ratio
 
 import           Codec.Picture          (PixelRGBA8 (..))
 
@@ -208,19 +209,26 @@ mapNumber f nu = case nu of
   Point n   -> Point $ f n
   Inches n  -> Inches $ f n
 
+-- XXX: Compress unused precision.
 -- | Encode the number to string which can be used in a
 -- CSS or a svg attributes.
 serializeNumber :: Number -> String
 serializeNumber n = case n of
-    Num c     -> printf "%g" c
-    Px c      -> printf "%gpx" c
-    Em cc     -> printf "%gem" cc
+    Num c     -> ppDouble c
+    Px c      -> printf "%.*gpx" precision c
+    Em cc     -> printf "%.*gem" precision cc
     Percent p -> printf "%d%%" (floor $ 100 * p :: Int)
-    Pc p      -> printf "%gpc" p
-    Mm m      -> printf "%gmm" m
-    Cm c      -> printf "%gcm" c
-    Point p   -> printf "%gpt" p
-    Inches i  -> printf "%gin" i
+    Pc p      -> printf "%.*gpc" precision p
+    Mm m      -> printf "%.*gmm" precision m
+    Cm c      -> printf "%.*gcm" precision c
+    Point p   -> printf "%.*gpt" precision p
+    Inches i  -> printf "%.*gin" precision i
+  where
+    ppDouble d = pickMin
+      (printf "%.*g" precision d)
+      (printf "%g" d)
+    pickMin a b = if length a < length b then a else b
+    precision = 6 :: Int
 
 instance TextBuildable Number where
    tserialize = TB.fromText . T.pack . serializeNumber
