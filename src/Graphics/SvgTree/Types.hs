@@ -221,6 +221,7 @@ import           Data.Monoid               (Last (..))
 import           Data.Semigroup            (Semigroup (..))
 import qualified Data.Text                 as T
 import           Graphics.SvgTree.CssTypes
+import           Graphics.SvgTree.Misc
 import           Linear                    hiding (angle)
 
 import           Text.Printf
@@ -399,14 +400,16 @@ serializeTransformation :: Transformation -> String
 serializeTransformation t = case t of
   TransformUnknown -> ""
   TransformMatrix a b c d e f ->
-      printf "matrix(%g, %g, %g, %g, %g, %g)" a b c d e f
-  Translate x y -> printf "translate(%g, %g)" x y
-  Scale x Nothing -> printf "scale(%g)" x
-  Scale x (Just y) -> printf "scale(%g, %g)" x y
-  Rotate angle Nothing -> printf "rotate(%g)" angle
-  Rotate angle (Just (x, y))-> printf "rotate(%g, %g, %g)" angle x y
-  SkewX x -> printf "skewX(%g)" x
-  SkewY y -> printf "skewY(%g)" y
+      printf "matrix(%s, %s, %s, %s, %s, %s)"
+        (ppD a) (ppD b) (ppD c) (ppD d) (ppD e) (ppD f)
+  Translate x y -> printf "translate(%s, %s)" (ppD x) (ppD y)
+  Scale x Nothing -> printf "scale(%s)" (ppD x)
+  Scale x (Just y) -> printf "scale(%s, %s)" (ppD x) (ppD y)
+  Rotate angle Nothing -> printf "rotate(%s)" (ppD angle)
+  Rotate angle (Just (x, y))-> printf "rotate(%s, %s, %s)"
+    (ppD angle) (ppD x) (ppD y)
+  SkewX x -> printf "skewX(%s)" (ppD x)
+  SkewY y -> printf "skewY(%s)" (ppD y)
 
 -- | Transform a list of transformations to a string for svg
 -- `transform` attributes.

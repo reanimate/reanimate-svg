@@ -26,10 +26,10 @@ import           Data.Attoparsec.Text       (Parser, char, digit, many1,
 import           Data.Scientific            (toRealFloat)
 
 import Numeric
-import Text.Show
 import Data.List
 import qualified Data.Text                  as T
 import           Graphics.SvgTree.Types
+import           Graphics.SvgTree.Misc
 import           Linear                     hiding (angle, point)
 import           Text.Printf                (printf)
 
@@ -52,7 +52,7 @@ viewBoxParser = (,,,)
     iParse = num <* skipSpace
 
 serializeViewBox :: (Double, Double, Double, Double) -> String
-serializeViewBox (a, b, c, d) = printf "%g %g %g %g" a b c d
+serializeViewBox (a, b, c, d) = printf "%s %s %s %s" (ppD a) (ppD b) (ppD c) (ppD d)
 
 commaWsp :: Parser ()
 commaWsp = skipSpace *> option () (string "," *> return ()) <* skipSpace
@@ -157,14 +157,15 @@ serializeCommand p = case p of
   EndPath -> showChar 'Z'
   where
     serializeArg (a, b, c, d, e, V2 x y) =
-        showFFloat Nothing a . showChar ' ' .
-        showFFloat Nothing b . showChar ' ' .
-        showFFloat Nothing c . showChar ' ' .
-        shows (fromEnum d) . showChar ' ' .
-        shows (fromEnum e) . showChar ' ' .
-        showFFloat Nothing x . showChar ',' .
-        showFFloat Nothing y
-        -- printf "%g %g %g %d %d %g,%g" a b c (fromEnum d) (fromEnum e) x y
+        -- ppD a . showChar ' ' .
+        -- ppD b . showChar ' ' .
+        -- ppD c . showChar ' ' .
+        -- shows (fromEnum d) . showChar ' ' .
+        -- shows (fromEnum e) . showChar ' ' .
+        -- ppD x . showChar ',' .
+        -- ppd y
+        printf "%s %s %s %d %d %s,%s"
+          (ppD a) (ppD b) (ppD c) (fromEnum d) (fromEnum e) (ppD x) (ppD y)
     serializeArgs = unwordsS . fmap serializeArg
 
 

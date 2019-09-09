@@ -29,9 +29,10 @@ import           Data.Monoid            ((<>))
 import qualified Data.Text              as T
 import qualified Data.Text.Lazy.Builder as TB
 import           Text.Printf
-import           Data.Ratio
 
 import           Codec.Picture          (PixelRGBA8 (..))
+
+import           Graphics.SvgTree.Misc
 
 -- | Alias describing a "dot per inch" information
 -- used for size calculation (see toUserUnit).
@@ -214,21 +215,15 @@ mapNumber f nu = case nu of
 -- CSS or a svg attributes.
 serializeNumber :: Number -> String
 serializeNumber n = case n of
-    Num c     -> ppDouble c
-    Px c      -> printf "%.*gpx" precision c
-    Em cc     -> printf "%.*gem" precision cc
+    Num c     -> ppD c
+    Px c      -> printf "%spx" (ppD c)
+    Em cc     -> printf "%sem" (ppD cc)
     Percent p -> printf "%d%%" (floor $ 100 * p :: Int)
-    Pc p      -> printf "%.*gpc" precision p
-    Mm m      -> printf "%.*gmm" precision m
-    Cm c      -> printf "%.*gcm" precision c
-    Point p   -> printf "%.*gpt" precision p
-    Inches i  -> printf "%.*gin" precision i
-  where
-    ppDouble d = pickMin
-      (printf "%.*g" precision d)
-      (printf "%g" d)
-    pickMin a b = if length a < length b then a else b
-    precision = 6 :: Int
+    Pc p      -> printf "%spc" (ppD p)
+    Mm m      -> printf "%smm" (ppD m)
+    Cm c      -> printf "%scm" (ppD c)
+    Point p   -> printf "%spt" (ppD p)
+    Inches i  -> printf "%sin" (ppD i)
 
 instance TextBuildable Number where
    tserialize = TB.fromText . T.pack . serializeNumber

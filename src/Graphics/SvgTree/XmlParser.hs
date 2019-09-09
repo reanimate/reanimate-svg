@@ -46,6 +46,7 @@ import           Graphics.SvgTree.CssTypes    (CssDeclaration (..),
                                                CssElement (..))
 import           Graphics.SvgTree.PathParser
 import           Graphics.SvgTree.Types
+import           Graphics.SvgTree.Misc
 import qualified Text.XML.Light               as X
 import           Text.XML.Light.Proc          (elChildren, findAttrBy)
 
@@ -111,7 +112,7 @@ instance ParseableAttribute [RPoint] where
 
 instance ParseableAttribute Double where
   aparse = parseMayStartDot num
-  aserialize v = Just $ printf "%g" v
+  aserialize v = Just $ printf "%s" (ppD v)
 
 instance ParseableAttribute Texture where
   aparse = parse textureParser
@@ -492,7 +493,7 @@ opacitySetter :: String -> Lens' a (Maybe Float) -> SvgAttributeLens a
 opacitySetter attribute elLens =
     SvgAttributeLens attribute updater serializer
   where
-    serializer a = printf "%g" <$> a ^. elLens
+    serializer a = printf "%s" . ppF <$> a ^. elLens
     updater el str = case parseMayStartDot num str of
         Nothing -> el
         Just v  -> el & elLens .~ Just (realToFrac v)
@@ -982,7 +983,7 @@ instance XMLUpdatable TextInfo where
 
       rotateNotEmpty [] = Nothing
       rotateNotEmpty lst =
-          Just . unwords $ printf "%g" <$> lst
+          Just . unwords $ printf "%s" . ppD <$> lst
 
 
 instance XMLUpdatable TextPath where
