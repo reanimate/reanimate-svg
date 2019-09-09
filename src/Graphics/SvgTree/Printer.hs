@@ -41,12 +41,14 @@ treeChildren (MaskTree m)       = m^.maskContent
 treeChildren _                  = []
 
 ppElementS_         :: [Tree] -> Element -> ShowS
+ppElementS_ [] e xs | not (null (elContent e)) = ppElement e ++ xs
 ppElementS_ children e xs = tagStart name (elAttribs e) $
   case children of
     [] | "?" `isPrefixOf` qName name -> showString " ?>" xs
-       | True  -> showString " />" xs
+       | otherwise                   -> showString " />" xs
     _ -> showChar '>' (foldr ppTreeS (tagEnd name xs) children)
-  where name = elName e
+  where
+    name = elName e
 
 --------------------------------------------------------------------------------
 tagStart           :: QName -> [Attr] -> ShowS
