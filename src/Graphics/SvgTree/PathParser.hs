@@ -25,11 +25,10 @@ import           Data.Attoparsec.Text       (Parser, char, digit, many1,
                                              string)
 import           Data.Scientific            (toRealFloat)
 
-import Numeric
-import Data.List
+import           Data.List
 import qualified Data.Text                  as T
-import           Graphics.SvgTree.Types
 import           Graphics.SvgTree.Misc
+import           Graphics.SvgTree.Types
 import           Linear                     hiding (angle, point)
 import           Text.Printf                (printf)
 
@@ -108,13 +107,13 @@ unwordsS :: [ShowS] -> ShowS
 unwordsS = foldr (.) id . intersperse (showChar ' ')
 
 serializePoint :: RPoint -> ShowS
-serializePoint (V2 x y) = showFFloat Nothing x . showChar ',' . showFFloat Nothing y
+serializePoint (V2 x y) = showString (ppD x) . showChar ',' . showString (ppD y)
 
 serializePoints :: [RPoint] -> ShowS
 serializePoints = unwordsS . map serializePoint
 
 serializeCoords :: [Coord] -> ShowS
-serializeCoords = unwordsS . fmap (showFFloat Nothing)
+serializeCoords = unwordsS . fmap (showString . ppD)
 
 serializePointPair :: (RPoint, RPoint) -> ShowS
 serializePointPair (a, b) = serializePoint a . showChar ' ' . serializePoint b
