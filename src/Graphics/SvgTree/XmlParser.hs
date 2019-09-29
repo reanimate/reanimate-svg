@@ -1231,6 +1231,9 @@ unparseDocument rootLocation e@(nodeName -> "svg") = Just Document
     , _definitions = defs
     , _description = ""
     , _documentLocation = rootLocation
+    , _documentAspectRatio =
+        fromMaybe defaultSvg $
+        attributeFinder "preserveAspectRatio" e >>= aparse
     }
   where
     parsedElements = map unparse $ elChildren e
@@ -1266,7 +1269,9 @@ xmlOfDocument doc =
         ,attr "version" "1.1"] ++
         catMaybes [attr "width" . serializeNumber <$> _width doc
                   ,attr "height" . serializeNumber <$> _height doc
-                  ]
+                  ] ++
+        catMaybes [attr "preserveAspectRatio" <$>  aserialize (_documentAspectRatio doc)
+                  | _documentAspectRatio doc /= defaultSvg ]
 
 xmlOfTree :: Tree -> Maybe X.Element
 xmlOfTree = serializeTreeNode

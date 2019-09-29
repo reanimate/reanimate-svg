@@ -2548,6 +2548,7 @@ data Document = Document
     , _definitions      :: M.Map String Tree
     , _description      :: String
     , _documentLocation :: FilePath
+    , _documentAspectRatio :: PreserveAspectRatio
     }
     deriving Show
 
