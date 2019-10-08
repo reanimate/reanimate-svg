@@ -156,13 +156,7 @@ serializeCommand p = case p of
   EndPath -> showChar 'Z'
   where
     serializeArg (a, b, c, d, e, V2 x y) =
-        -- ppD a . showChar ' ' .
-        -- ppD b . showChar ' ' .
-        -- ppD c . showChar ' ' .
-        -- shows (fromEnum d) . showChar ' ' .
-        -- shows (fromEnum e) . showChar ' ' .
-        -- ppD x . showChar ',' .
-        -- ppd y
+        showString $
         printf "%s %s %s %d %d %s,%s"
           (ppD a) (ppD b) (ppD c) (fromEnum d) (fromEnum e) (ppD x) (ppD y)
     serializeArgs = unwordsS . fmap serializeArg
