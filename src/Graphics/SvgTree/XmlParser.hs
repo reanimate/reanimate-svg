@@ -35,7 +35,6 @@ import           Control.Lens                 hiding (children, element,
 import           Control.Lens.Unsound
 import           Data.Attoparsec.Text         (Parser, parseOnly, string)
 import           Data.List                    (foldl', intercalate)
-import qualified Data.Map                     as M
 import           Data.Maybe                   (catMaybes, fromMaybe)
 import           Data.Monoid                  (Last (Last), getLast, (<>))
 import qualified Data.Text                    as T
@@ -852,6 +851,7 @@ instance XMLUpdatable Tree where
        pathNode <- serializeTreeNode p
        let sub = [X.Elem . setChildren pathNode $ X.elContent textNode]
        return $ setChildren textNode sub
+    SvgTree doc -> Just $ xmlOfDocument doc
 
 
 isNotNone :: Tree -> Bool
@@ -903,6 +903,8 @@ instance XMLUpdatable FilterElement where
       FEColorMatrix m  -> serializeTreeNode m
       FEComposite c    -> serializeTreeNode c
       FEGaussianBlur b -> serializeTreeNode b
+      _                -> error $
+        "Unsupported element: " ++ show fe ++ ". Please submit bug on github."
   attributes =
     [ "result" `parseIn` (filterAttributes . filterResult)]
 
@@ -1189,6 +1191,10 @@ unparse e@(nodeName -> "symbol") =
     groupNode = _groupOfSymbol $ xmlUnparseWithDrawAttr e
 unparse e@(nodeName -> "g") =
   GroupTree $ xmlUnparseWithDrawAttr e & groupChildren .~ map unparse (elChildren e)
+unparse e@(nodeName -> "svg") =
+  case unparseDocument "" e of
+    Nothing -> None
+    Just doc -> SvgTree doc
 unparse e@(nodeName -> "text") =
   TextTree tPath $ xmlUnparse e & textRoot .~ root
     where
@@ -1228,7 +1234,6 @@ unparseDocument rootLocation e@(nodeName -> "svg") = Just Document
     , _elements = parsedElements
     , _width = lengthFind "width"
     , _height = lengthFind "height"
-    , _definitions = defs
     , _description = ""
     , _documentLocation = rootLocation
     , _documentAspectRatio =
@@ -1237,11 +1242,6 @@ unparseDocument rootLocation e@(nodeName -> "svg") = Just Document
     }
   where
     parsedElements = map unparse $ elChildren e
-    defs = foldl' (foldTree worker) M.empty parsedElements
-    worker m t =
-      case t ^.drawAttributes.attrId of
-        Nothing  -> m
-        Just tid -> M.insert tid t m
     lengthFind n =
         attributeFinder n e >>= parse complexNumber
 unparseDocument _ _ = Nothing

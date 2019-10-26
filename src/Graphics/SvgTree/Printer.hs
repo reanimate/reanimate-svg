@@ -3,16 +3,15 @@ module Graphics.SvgTree.Printer
   , ppDocument
   ) where
 
-import           Control.Lens
-import           Data.Char
+import           Control.Lens               ((^.))
 import           Data.List
-import           Graphics.SvgTree.Types     (Document (..), DrawAttributes,
-                                             Tree (..), groupChildren,
-                                             patternElements, markerElements,
-                                             maskContent, clipPathContent,
+import           Graphics.SvgTree.Types     (Document (..),
+                                             Tree (..), clipPathContent,
+                                             groupChildren, markerElements,
+                                             maskContent, patternElements,
                                              preRendered)
 import           Graphics.SvgTree.XmlParser
-import           Text.XML.Light
+import           Text.XML.Light             hiding (showAttr)
 
 ppDocument :: Document -> String
 ppDocument doc =
@@ -54,5 +53,6 @@ ppElementS_ children e xs = tagStart name (elAttribs e) $
 tagStart           :: QName -> [Attr] -> ShowS
 tagStart qn as rs   = '<':showQName qn ++ as_str ++ rs
  where as_str       = if null as then "" else ' ' : unwords (map showAttr as)
-       showAttr           :: Attr -> String
-       showAttr (Attr qn v) = showQName qn ++ '=' : '"' : v ++ "\""
+
+showAttr           :: Attr -> String
+showAttr (Attr qn v) = showQName qn ++ '=' : '"' : v ++ "\""

@@ -216,7 +216,6 @@ import           Control.Lens.TH
 import qualified Data.Foldable             as F
 import           Data.Function             (on)
 import           Data.List                 (inits)
-import qualified Data.Map                  as M
 import           Data.Monoid               (Last (..))
 import           Data.Semigroup            (Semigroup (..))
 import qualified Data.Text                 as T
@@ -1628,6 +1627,7 @@ data Tree
     | MarkerTree    !Marker
     | MaskTree      !Mask
     | ClipPathTree  !ClipPath
+    | SvgTree       !Document
     deriving (Eq, Show)
 
 data FilterElement
@@ -1916,6 +1916,7 @@ zipTree f = dig [] where
   dig prev e@(MarkerTree _) = f $ appNode prev e
   dig prev e@(MaskTree _) = f $ appNode prev e
   dig prev e@(ClipPathTree _) = f $ appNode prev e
+  dig prev e@(SvgTree _) = f $ appNode prev e
 
 
   zipGroup prev g = g { _groupChildren = updatedChildren }
@@ -1951,6 +1952,7 @@ foldTree f = go where
     FilterTree _         -> f acc e
     GroupTree g          -> foldGroup g
     SymbolTree s         -> foldGroup (_groupOfSymbol s)
+    SvgTree{}            -> f acc e
     where
       foldGroup g =
         let subAcc = F.foldl' go acc $ _groupChildren g in
@@ -1983,6 +1985,7 @@ mapTree f = go where
   go e@(MarkerTree _) = f e
   go e@(MaskTree _) = f e
   go e@(ClipPathTree _) = f e
+  go e@SvgTree{} = f e
 
   mapGroup g =
       g { _groupChildren = map go $ _groupChildren g }
@@ -2014,6 +2017,7 @@ nameOfTree v =
    MarkerTree _         -> "marker"
    MaskTree _           -> "mask"
    ClipPathTree _       -> "clipPath"
+   SvgTree{}            -> "svg"
 
 drawAttrOfTree :: Tree -> DrawAttributes
 drawAttrOfTree v = case v of
@@ -2039,6 +2043,7 @@ drawAttrOfTree v = case v of
   MarkerTree e         -> e ^. drawAttributes
   MaskTree e           -> e ^. drawAttributes
   ClipPathTree e       -> e ^. drawAttributes
+  SvgTree _            -> mempty -- FIXME
 
 setDrawAttrOfTree :: Tree -> DrawAttributes -> Tree
 setDrawAttrOfTree v attr' = case v of
@@ -2064,6 +2069,7 @@ setDrawAttrOfTree v attr' = case v of
   MarkerTree e         -> MarkerTree $ e & drawAttributes .~ attr
   MaskTree e           -> MaskTree $ e & drawAttributes .~ attr
   ClipPathTree e       -> ClipPathTree $ e & drawAttributes .~ attr
+  SvgTree e            -> SvgTree e
   where
     attr = attr'{_preRendered = Nothing}
 
@@ -2545,12 +2551,11 @@ data Document = Document
     , _width            :: Maybe Number
     , _height           :: Maybe Number
     , _elements         :: [Tree]
-    , _definitions      :: M.Map String Tree
     , _description      :: String
     , _documentLocation :: FilePath
     , _documentAspectRatio :: PreserveAspectRatio
     }
-    deriving Show
+    deriving (Show, Eq)
 
 
 -- | Lenses associated to a SVG document.

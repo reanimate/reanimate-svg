@@ -14,7 +14,7 @@ module Graphics.SvgTree
   , cssApply
   , cssRulesOfText
   -- , applyCSSRules
-  , resolveUses
+  -- , resolveUses
 
     -- * Type definitions
   , module Graphics.SvgTree.Types
@@ -27,7 +27,7 @@ import           Control.Applicative        ((<$>))
 import           Control.Lens
 import qualified Data.ByteString            as B
 import           Data.List                  (foldl')
-import qualified Data.Map                   as M
+-- import qualified Data.Map                   as M
 import qualified Data.Text                  as T
 import           Text.XML.Light.Input       (parseXMLDoc)
 import           Text.XML.Light.Output      (ppcTopElement, prettyConfigPP)
@@ -83,18 +83,18 @@ cssApply rules = zipTree go where
      attr = view drawAttributes t
      attr' = foldl' cssDeclApplyer attr matchingDeclarations
 
--- | For every 'use' tag, try to resolve the geometry associated
+-- For every 'use' tag, try to resolve the geometry associated
 -- with it and place it in the scene Tree. It is important to
 -- resolve the 'use' tag before applying the CSS rules, as some
 -- rules may apply some elements matching the children of "use".
-resolveUses :: Document -> Document
-resolveUses doc =
-  doc { _elements = mapTree fetchUses <$> _elements doc }
-  where
-    fetchUses (UseTree useInfo _) = UseTree useInfo $ search useInfo
-    fetchUses a                   = a
-
-    search nfo = M.lookup (_useName nfo) $ _definitions doc
+-- resolveUses :: Document -> Document
+-- resolveUses doc =
+--   doc { _elements = mapTree fetchUses <$> _elements doc }
+--   where
+--     fetchUses (UseTree useInfo _) = UseTree useInfo $ search useInfo
+--     fetchUses a                   = a
+--
+--     search nfo = M.lookup (_useName nfo) $ _definitions doc
 
 -- -- | Rewrite the document by applying the CSS rules embedded
 -- -- inside it.
