@@ -1,19 +1,16 @@
-module Graphics.SvgTree.Misc where
+module Graphics.SvgTree.Misc
+  ( ppD
+  , ppF
+  ) where
 
-import Numeric
+import           Data.Double.Conversion.Text
+import qualified Data.Text                   as T
+
+precision :: Int
+precision = 6
 
 ppD :: Double -> String
-ppD c = pickMin (showFFloat Nothing c "") (showFFloat (Just precision) c "")
-  where
-    pickMin [] _ = []
-    pickMin _ [] = []
-    pickMin (x:xs) (_:ys) = x : pickMin xs ys
-    precision = 6
+ppD c = T.unpack $ T.take (precision+2) $ toShortest c
 
 ppF :: Float -> String
-ppF c = pickMin (showFFloat Nothing c "") (showFFloat (Just precision) c "")
-  where
-    pickMin [] _ = []
-    pickMin _ [] = []
-    pickMin (x:xs) (_:ys) = x : pickMin xs ys
-    precision = 6
+ppF = ppD . realToFrac

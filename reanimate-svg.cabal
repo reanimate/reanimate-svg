@@ -1,5 +1,5 @@
 name:                reanimate-svg
-version:             0.9.4.0
+version:             0.9.5.0
 synopsis:            SVG file loader and serializer
 description:
   reanimate-svg provides types representing a SVG document,
@@ -61,6 +61,7 @@ library
                , transformers >= 0.3 && < 0.6
                , mtl        >= 2.1 && < 2.3
                , lens       >= 4.6 && < 5
+               , double-conversion >= 2.0.0.0 && < 3.0.0.0
 
 test-suite test
   default-language: Haskell2010
