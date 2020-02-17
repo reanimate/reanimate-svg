@@ -10,7 +10,7 @@ precision :: Int
 precision = 6
 
 ppD :: Double -> String
-ppD = T.unpack . T.dropWhileEnd (\c -> c == '.' || c == '0') . toFixed precision
+ppD = T.unpack . T.dropWhileEnd (== '.') . T.dropWhileEnd (== '0') . toFixed precision
 
 ppF :: Float -> String
 ppF = ppD . realToFrac
