@@ -93,6 +93,10 @@ instance ParseableAttribute [Number] where
   aparse = parse dashArray
   aserialize = Just . serializeDashArray
 
+instance ParseableAttribute [Double] where
+  aparse = parse numberList
+  aserialize = Just . serializeDashArray . map Num
+
 instance ParseableAttribute PixelRGBA8 where
   aparse = parse colorParser
   aserialize = Just . colorSerializer
@@ -112,6 +116,10 @@ instance ParseableAttribute [RPoint] where
 instance ParseableAttribute Double where
   aparse = parseMayStartDot num
   aserialize v = Just $ printf "%s" (ppD v)
+
+instance ParseableAttribute Int where
+  aparse = fmap (round :: Double -> Int) . aparse
+  aserialize v = Just $ printf "%d" v
 
 instance ParseableAttribute Texture where
   aparse = parse textureParser
@@ -390,6 +398,40 @@ instance ParseableAttribute ColorMatrixType where
     HueRotate        -> "hueRotate"
     LuminanceToAlpha -> "luminanceToAlpha"
 
+instance ParseableAttribute StitchTiles where
+  aparse s = case s of
+    "noStitch" -> Just NoStitch
+    "stitch"   -> Just Stitch
+    _          -> Nothing
+
+  aserialize v = Just $ case v of
+    NoStitch -> "noStitch"
+    Stitch   -> "stitch"
+
+instance ParseableAttribute TurbulenceType where
+  aparse s = case s of
+    "fractalNoise" -> Just FractalNoiseType
+    "turbulence"   -> Just TurbulenceType
+    _              -> Nothing
+
+  aserialize v = Just $ case v of
+    FractalNoiseType -> "fractalNoise"
+    TurbulenceType   -> "turbulence"
+
+instance ParseableAttribute ChannelSelector where
+  aparse s = case s of
+    "R" -> Just ChannelR
+    "G" -> Just ChannelG
+    "B" -> Just ChannelB
+    "A" -> Just ChannelA
+    _   -> Nothing
+
+  aserialize v = Just $ case v of
+    ChannelR -> "R"
+    ChannelG -> "G"
+    ChannelB -> "B"
+    ChannelA -> "A"
+
 instance ParseableAttribute EdgeMode where
   aparse s = case s of
     "duplicate" -> Just EdgeDuplicate
@@ -403,6 +445,15 @@ instance ParseableAttribute EdgeMode where
     EdgeNone      -> "none"
 
 instance ParseableAttribute (Number, Last Number) where
+  aparse s = case aparse s of
+    Just [x]   -> Just (x, Last Nothing)
+    Just [x,y] -> Just (x, Last (Just y))
+    _          -> Nothing
+
+  aserialize (x, Last Nothing)  = aserialize [x]
+  aserialize (x, Last (Just y)) = aserialize [x, y]
+
+instance ParseableAttribute (Double, Last Double) where
   aparse s = case aparse s of
     Just [x]   -> Just (x, Last Nothing)
     Just [x,y] -> Just (x, Last (Just y))
@@ -900,10 +951,12 @@ instance XMLUpdatable FilterElement where
   xmlTagName _ = "FilterElement"
   serializeTreeNode fe = flip mergeAttributes <$> (genericSerializeNode fe) <*>
     case fe of
-      FEColorMatrix m  -> serializeTreeNode m
-      FEComposite c    -> serializeTreeNode c
-      FEGaussianBlur b -> serializeTreeNode b
-      _                -> error $
+      FEColorMatrix m     -> serializeTreeNode m
+      FEComposite c       -> serializeTreeNode c
+      FEGaussianBlur b    -> serializeTreeNode b
+      FETurbulence t      -> serializeTreeNode t
+      FEDisplacementMap d -> serializeTreeNode d
+      _                   -> error $
         "Unsupported element: " ++ show fe ++ ". Please submit bug on github."
   attributes =
     [ "result" `parseIn` (filterAttributes . filterResult)]
@@ -935,6 +988,26 @@ instance XMLUpdatable GaussianBlur where
     [ "in" `parseIn` gaussianBlurIn
     , "stdDeviation" `parseIn` lensProduct gaussianBlurStdDeviationX gaussianBlurStdDeviationY
     , "edgeMode" `parseIn` gaussianBlurEdgeMode ]
+
+instance XMLUpdatable DisplacementMap where
+  xmlTagName _ = "feDisplacementMap"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "in" `parseIn` displacementMapIn
+    , "in2" `parseIn` displacementMapIn2
+    , "scale" `parseIn` displacementMapScale
+    , "xChannelSelector" `parseIn` displacementMapXChannelSelector
+    , "yChannelSelector" `parseIn` displacementMapYChannelSelector ]
+
+instance XMLUpdatable Turbulence where
+  xmlTagName _ = "feTurbulence"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "baseFrequency" `parseIn` turbulenceBaseFrequency
+    , "numOctaves" `parseIn` turbulenceNumOctaves
+    , "seed" `parseIn` turbulenceSeed
+    , "stitchTiles" `parseIn` turbulenceStitchTiles
+    , "type" `parseIn` turbulenceType ]
 
 instance XMLUpdatable RadialGradient where
   xmlTagName _ = "radialGradient"

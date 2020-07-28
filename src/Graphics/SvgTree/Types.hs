@@ -63,6 +63,13 @@ module Graphics.SvgTree.Types
     , EdgeMode(..)
     , HasGaussianBlur(..)
     , GaussianBlur(..)
+    , HasTurbulence(..)
+    , Turbulence(..)
+    , TurbulenceType(..)
+    , StitchTiles(..)
+    , HasDisplacementMap(..)
+    , DisplacementMap(..)
+    , ChannelSelector(..)
 
       -- * SVG drawing primitives
       -- ** Rectangle
@@ -1633,14 +1640,14 @@ data Tree
 data FilterElement
   = FEBlend
   | FEColorMatrix ColorMatrix
-  | FEComponentTransfer
+  | FEComponentTransfer -- Need
   | FEComposite Composite
   | FEConvolveMatrix
   | FEDiffuseLighting
-  | FEDisplacementMap
+  | FEDisplacementMap DisplacementMap
   | FEDropShadow
   | FEFlood
-  | FEFuncA
+  | FEFuncA -- Need
   | FEFuncB
   | FEFuncG
   | FEFuncR
@@ -1652,12 +1659,60 @@ data FilterElement
   | FEOffset
   | FESpecularLighting
   | FETile
-  | FETurbulence
+  | FETurbulence Turbulence
   | FENone
   deriving (Eq,Show)
 
 instance WithDefaultSvg FilterElement where
   defaultSvg = FENone
+
+data TransferFunctionType
+  = TFIdentity
+  | TFTable
+  | TFDiscrete
+  | TFLinear
+  | TFGamma
+  deriving (Eq, Show)
+
+data TransferFunction = TransferFunction
+  { _transferFunctionDrawAttributes   :: !DrawAttributes
+  , _transferFunctionFilterAttr       :: !FilterAttributes
+  , _transferFunctionType             :: TransferFunctionType
+  , _transferFunctionTableValues      :: [Double]
+  , _transferFunctionSlope            :: Double
+  , _transferFunctionIntercept        :: Double
+  , _transferFunctionAmplitude        :: Double
+  , _transferFunctionExponent         :: Double
+  , _transferFunctionOffset           :: Double
+  } deriving (Eq, Show)
+
+data ChannelSelector
+  = ChannelR
+  | ChannelG
+  | ChannelB
+  | ChannelA
+  deriving (Eq, Show)
+
+data DisplacementMap = DisplacementMap
+  { _displacementMapDrawAttributes   :: !DrawAttributes
+  , _displacementMapFilterAttr       :: !FilterAttributes
+  , _displacementMapIn               :: !(Last FilterSource)
+  , _displacementMapIn2              :: !(Last FilterSource)
+  , _displacementMapScale            :: !(Last Double)
+  , _displacementMapXChannelSelector :: ChannelSelector
+  , _displacementMapYChannelSelector :: ChannelSelector
+  } deriving (Eq, Show)
+
+instance WithDefaultSvg DisplacementMap where
+  defaultSvg = DisplacementMap
+    { _displacementMapDrawAttributes   = defaultSvg
+    , _displacementMapFilterAttr       = defaultSvg
+    , _displacementMapIn               = Last Nothing
+    , _displacementMapIn2              = Last Nothing
+    , _displacementMapScale            = Last Nothing
+    , _displacementMapXChannelSelector = ChannelA
+    , _displacementMapYChannelSelector = ChannelA
+    }
 
 data ColorMatrixType
   = Matrix
@@ -1715,6 +1770,37 @@ instance WithDefaultSvg Composite where
     , _compositeK2             = Num 0
     , _compositeK3             = Num 0
     , _compositeK4             = Num 0
+    }
+
+data Turbulence = Turbulence
+  { _turbulenceDrawAttributes :: !DrawAttributes
+  , _turbulenceFilterAttr     :: !FilterAttributes
+  , _turbulenceBaseFrequency  :: !(Double, Last Double) -- Not negative
+  , _turbulenceNumOctaves     :: Int -- Not negative
+  , _turbulenceSeed           :: Double
+  , _turbulenceStitchTiles    :: StitchTiles
+  , _turbulenceType           :: TurbulenceType
+  } deriving (Eq, Show)
+
+data StitchTiles
+  = NoStitch
+  | Stitch
+  deriving (Eq, Show)
+
+data TurbulenceType
+  = FractalNoiseType
+  | TurbulenceType
+  deriving (Eq, Show)
+
+instance WithDefaultSvg Turbulence where
+  defaultSvg = Turbulence
+    { _turbulenceDrawAttributes = defaultSvg
+    , _turbulenceFilterAttr     = defaultSvg
+    , _turbulenceBaseFrequency  = (0, Last Nothing)
+    , _turbulenceNumOctaves     = 1
+    , _turbulenceSeed           = 0
+    , _turbulenceStitchTiles    = NoStitch
+    , _turbulenceType           = TurbulenceType
     }
 
 data EdgeMode
@@ -2784,6 +2870,8 @@ instance HasFilterAttributes Filter where
 makeClassy ''Composite
 makeClassy ''ColorMatrix
 makeClassy ''GaussianBlur
+makeClassy ''Turbulence
+makeClassy ''DisplacementMap
 
 instance HasDrawAttributes Composite where
     drawAttributes = compositeDrawAttributes
@@ -2795,6 +2883,12 @@ instance HasDrawAttributes ColorMatrix where
 instance HasDrawAttributes GaussianBlur where
     drawAttributes = gaussianBlurDrawAttributes
 
+instance HasDrawAttributes Turbulence where
+    drawAttributes = turbulenceDrawAttributes
+
+instance HasDrawAttributes DisplacementMap where
+    drawAttributes = displacementMapDrawAttributes
+
 instance HasFilterAttributes Composite where
   filterAttributes = compositeFilterAttr
 
@@ -2803,6 +2897,12 @@ instance HasFilterAttributes ColorMatrix where
 
 instance HasFilterAttributes GaussianBlur where
   filterAttributes = gaussianBlurFilterAttr
+
+instance HasFilterAttributes Turbulence where
+  filterAttributes = turbulenceFilterAttr
+
+instance HasFilterAttributes DisplacementMap where
+  filterAttributes = displacementMapFilterAttr
 
 instance HasFilterAttributes FilterElement where
   filterAttributes = lens getter setter
@@ -2814,7 +2914,7 @@ instance HasFilterAttributes FilterElement where
           FEComposite c       -> c ^. filterAttributes
           FEConvolveMatrix    -> defaultSvg
           FEDiffuseLighting   -> defaultSvg
-          FEDisplacementMap   -> defaultSvg
+          FEDisplacementMap d -> d ^. filterAttributes
           FEDropShadow        -> defaultSvg
           FEFlood             -> defaultSvg
           FEFuncA             -> defaultSvg
@@ -2829,7 +2929,7 @@ instance HasFilterAttributes FilterElement where
           FEOffset            -> defaultSvg
           FESpecularLighting  -> defaultSvg
           FETile              -> defaultSvg
-          FETurbulence        -> defaultSvg
+          FETurbulence t      -> t ^. filterAttributes
           FENone              -> defaultSvg
       setter fe attr = case fe of
         FEBlend             -> fe
@@ -2838,7 +2938,7 @@ instance HasFilterAttributes FilterElement where
         FEComposite c       -> FEComposite $ c & filterAttributes .~ attr
         FEConvolveMatrix    -> fe
         FEDiffuseLighting   -> fe
-        FEDisplacementMap   -> fe
+        FEDisplacementMap d -> FEDisplacementMap $ d & filterAttributes .~ attr
         FEDropShadow        -> fe
         FEFlood             -> fe
         FEFuncA             -> fe
@@ -2853,5 +2953,5 @@ instance HasFilterAttributes FilterElement where
         FEOffset            -> fe
         FESpecularLighting  -> fe
         FETile              -> fe
-        FETurbulence        -> fe
+        FETurbulence t      -> FETurbulence $ t & filterAttributes .~ attr
         FENone              -> fe
