@@ -4,7 +4,7 @@ module Graphics.SvgTree.Misc
   , ppF
   ) where
 
-#ifdef ASTERIUS
+#if defined(ASTERIUS) || defined(ghcjs_HOST_OS)
 import           Numeric
 #else
 import           Data.Double.Conversion.Text
@@ -15,7 +15,7 @@ precision :: Int
 precision = 6
 
 ppD :: Double -> String
-#ifdef ASTERIUS
+#if defined(ASTERIUS) || defined(ghcjs_HOST_OS)
 ppD v = showFFloat (Just precision) v ""
 #else
 ppD = T.unpack . T.dropWhileEnd (== '.') . T.dropWhileEnd (== '0') . toFixed precision
