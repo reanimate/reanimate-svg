@@ -1,4 +1,8 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE CPP                    #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
@@ -222,15 +226,24 @@ import           Control.Lens              (Lens, Lens', lens, view, (&), (.~),
 import           Control.Lens.TH
 import qualified Data.Foldable             as F
 import           Data.Function             (on)
+import           Data.Hashable             (Hashable)
 import           Data.List                 (inits)
 import           Data.Monoid               (Last (..))
 import           Data.Semigroup            (Semigroup (..))
 import qualified Data.Text                 as T
+import           GHC.Generics              (Generic)
 import           Graphics.SvgTree.CssTypes
 import           Graphics.SvgTree.Misc
 import           Linear                    hiding (angle)
 
 import           Text.Printf
+
+
+-- Orphan instances :(
+instance Hashable a => Hashable (Last a)
+
+deriving instance Generic PixelRGBA8
+instance Hashable PixelRGBA8
 
 -- | Basic coordinate type.
 type Coord = Double
@@ -247,12 +260,12 @@ type Point = (Number, Number)
 data Origin
   = OriginAbsolute -- ^ Next point in absolute coordinate
   | OriginRelative -- ^ Next point relative to the previous
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 data MeshGradientType
   = GradientBilinear
   | GradientBicubic
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- | Path command definition.
 data PathCommand
@@ -278,7 +291,7 @@ data PathCommand
     | EllipticalArc !Origin ![(Coord, Coord, Coord, Bool, Bool, RPoint)]
       -- | Close the path, 'Z' or 'z' svg path command.
     | EndPath
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, Hashable)
 
 -- | Description of path used in meshgradient tag
 data GradientPathCommand
@@ -288,7 +301,7 @@ data GradientPathCommand
     | GCurve !Origin !RPoint !RPoint !(Maybe RPoint)
       -- | 'Z' command
     | GClose
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, Hashable)
 
 -- | Little helper function to build a point.
 toPoint :: Number -> Number -> Point
@@ -308,7 +321,7 @@ isPathWithArc = F.any isPathArc
 data CoordinateUnits
     = CoordUserSpace   -- ^ `userSpaceOnUse` value
     | CoordBoundingBox -- ^ `objectBoundingBox` value
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, Hashable)
 
 -- | This type represent the align information of the
 -- preserveAspectRatio SVGattribute
@@ -323,12 +336,12 @@ data Alignment
   | AlignxMinYMax -- ^ "xMinYMax" value
   | AlignxMidYMax -- ^ "xMidYMax" value
   | AlignxMaxYMax -- ^ "xMaxYMax" value
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- | This type represent the "meet or slice" information
 -- of the preserveAspectRatio SVGattribute
 data MeetSlice = Meet | Slice
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, Hashable)
 
 -- | Describe the content of the preserveAspectRatio attribute.
 data PreserveAspectRatio = PreserveAspectRatio
@@ -336,7 +349,7 @@ data PreserveAspectRatio = PreserveAspectRatio
   , _aspectRatioAlign     :: !Alignment
   , _aspectRatioMeetSlice :: !(Maybe MeetSlice)
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 instance WithDefaultSvg PreserveAspectRatio where
   defaultSvg = PreserveAspectRatio
@@ -353,7 +366,7 @@ data Cap
   = CapRound -- ^ End with a round (`round` value)
   | CapButt  -- ^ Define straight just at the end (`butt` value)
   | CapSquare -- ^ Straight further of the ends (`square` value)
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- | Define the possible values of the `stroke-linejoin`
 -- attribute.
@@ -362,7 +375,7 @@ data LineJoin
     = JoinMiter -- ^ `miter` value
     | JoinBevel -- ^ `bevel` value
     | JoinRound -- ^ `round` value
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, Hashable)
 
 -- | Describe the different value which can be used
 -- in the `fill` or `stroke` attributes.
@@ -370,14 +383,14 @@ data Texture
   = ColorRef   PixelRGBA8 -- ^ Direct solid color (#rrggbb, #rgb)
   | TextureRef String     -- ^ Link to a complex texture (url(#name))
   | FillNone              -- ^ Equivalent to the `none` value.
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- | Describe the possile filling algorithms.
 -- Map the values of the `fill-rule` attributes.
 data FillRule
     = FillEvenOdd -- ^ Correspond to the `evenodd` value.
     | FillNonZero -- ^ Correspond to the `nonzero` value.
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, Hashable)
 
 -- | Describe the content of the `transformation` attribute.
 -- see `_transform` and `transform`.
@@ -398,7 +411,7 @@ data Transformation
     | SkewY !Double
       -- | Unkown transformation, like identity.
     | TransformUnknown
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, Hashable)
 
 -- | Convert the Transformation to a string which can be
 -- directly used in a svg attributes.
@@ -435,7 +448,7 @@ data FontStyle
   = FontStyleNormal
   | FontStyleItalic
   | FontStyleOblique
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- | Tell where to anchor the text, where the position
 -- given is realative to the text.
@@ -461,7 +474,7 @@ data TextAnchor
     --
     -- Equivalent to the `end` value.
   | TextAnchorEnd
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 
 -- | Correspond to the possible values of the
@@ -470,7 +483,7 @@ data TextAnchor
 data ElementRef
   = RefNone  -- ^ Value for `none`
   | Ref String -- ^ Equivalent to `url()` attribute.
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 data FilterSource
   = SourceGraphic
@@ -480,7 +493,7 @@ data FilterSource
   | FillPaint
   | StrokePaint
   | SourceRef String
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 data FilterAttributes = FilterAttributes
   { _filterHeight :: !(Last Number)
@@ -488,7 +501,7 @@ data FilterAttributes = FilterAttributes
   , _filterWidth  :: !(Last Number)
   , _filterX      :: !(Last Number)
   , _filterY      :: !(Last Number)
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic, Hashable)
 
 instance WithDefaultSvg FilterAttributes where
   defaultSvg = FilterAttributes
@@ -575,7 +588,7 @@ data DrawAttributes = DrawAttributes
     , _filterRef        :: !(Last ElementRef)
     , _preRendered      :: !(Maybe String)
     }
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, Hashable)
 
 makeClassy ''DrawAttributes
 
@@ -589,7 +602,7 @@ data PolyLine = PolyLine
     -- correspond to the `points` attribute
   , _polyLinePoints         :: ![RPoint]
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 
 instance WithDefaultSvg PolyLine where
@@ -632,7 +645,7 @@ data Polygon = Polygon
     -- the `points` attributes.
   , _polygonPoints         :: ![RPoint]
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''Polygon
 -- | Lenses for the Polygon type
@@ -675,7 +688,7 @@ data Line = Line
     -- to the `x2` and `y2` attributes.
   , _linePoint2         :: !Point
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''Line
 -- | Lenses for the Line type.
@@ -733,7 +746,7 @@ data Rectangle = Rectangle
     -- `ry` attributes.
   , _rectCornerRadius    :: !(Maybe Number, Maybe Number)
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''Rectangle
 -- | Lenses for the Rectangle type.
@@ -797,7 +810,7 @@ data Path = Path
     -- `d` attributes.
   , _pathDefinition     :: ![PathCommand]
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''Path
 -- | Lenses for the Path type
@@ -842,7 +855,7 @@ data Group a = Group
     -- | used for symbols only
   , _groupAspectRatio    :: !PreserveAspectRatio
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''Group
 -- | Lenses associated to the Group type.
@@ -897,7 +910,7 @@ instance WithDefaultSvg (Group a) where
 -- a hidden named group.
 newtype Symbol a =
     Symbol { _groupOfSymbol :: Group a }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 instance HasGroup (Symbol a) a where
   group = groupOfSymbol
@@ -918,7 +931,7 @@ instance WithDefaultSvg (Symbol a) where
 -- a named symbol.
 newtype Definitions a =
     Definitions { _groupOfDefinitions :: Group a }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 instance HasGroup (Definitions a) a where
   group = groupOfDefinitions
@@ -941,7 +954,7 @@ data Filter = Filter
   , _filterSelfAttributes :: !FilterAttributes
   , _filterChildren       :: ![FilterElement]
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 instance WithDefaultSvg Filter where
   defaultSvg = Filter
@@ -961,7 +974,7 @@ data Circle = Circle
     -- attribute.
   , _circleRadius         :: !Number
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''Circle
 -- | Lenses for the Circle type.
@@ -1015,7 +1028,7 @@ data Ellipse = Ellipse
     -- `ry` attribute.
   , _ellipseYRadius        :: !Number
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''Ellipse
 -- | Lenses for the ellipse type.
@@ -1074,7 +1087,7 @@ data GradientStop = GradientStop
       -- | Stop color opacity
     , _gradientOpacity :: !(Maybe Float)
     }
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''GradientStop
 -- | Lenses for the GradientStop type.
@@ -1122,7 +1135,7 @@ data MeshGradientPatch = MeshGradientPatch
   { -- | List of stop, from 2 to 4 in a patch
     _meshGradientPatchStops :: ![GradientStop]
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''MeshGradientPatch
 class HasMeshGradientPatch c_annx where
@@ -1145,7 +1158,7 @@ data MeshGradientRow = MeshGradientRow
   { -- | List of patch in a row
     _meshGradientRowPatches :: ![MeshGradientPatch]
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''MeshGradientRow
 class HasMeshGradientRow c_antr where
@@ -1180,7 +1193,7 @@ data MeshGradient = MeshGradient
     -- | List of patch rows in the the mesh.
   , _meshGradientRows           :: ![MeshGradientRow]
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''MeshGradient
 class HasMeshGradient c_anxG where
@@ -1263,7 +1276,7 @@ data Image = Image
     -- | preserveAspectRatio attribute
   , _imageAspectRatio     :: !PreserveAspectRatio
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''Image
 -- | Lenses for the Image type.
@@ -1343,7 +1356,7 @@ data Use = Use
     -- | Use draw attributes.
   , _useDrawAttributes :: DrawAttributes
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''Use
 -- | Lenses for the Use type.
@@ -1404,7 +1417,7 @@ data TextInfo = TextInfo
   , _textInfoRotate :: ![Double] -- ^ `rotate` attribute.
   , _textInfoLength :: !(Maybe Number) -- ^ `textLength` attribute.
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 instance Semigroup TextInfo where
   (<>) (TextInfo x1 y1 dx1 dy1 r1 l1)
@@ -1469,7 +1482,7 @@ data TextSpanContent
     = SpanText    !T.Text -- ^ Raw text
     | SpanTextRef !String -- ^ Equivalent to a `<tref>`
     | SpanSub     !TextSpan -- ^ Define a `<tspan>`
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, Hashable)
 
 -- | Define a `<tspan>` tag.
 data TextSpan = TextSpan
@@ -1480,7 +1493,7 @@ data TextSpan = TextSpan
     -- | Content of the span.
   , _spanContent        :: ![TextSpanContent]
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''TextSpan
 -- | Lenses for the TextSpan type.
@@ -1519,14 +1532,14 @@ instance WithDefaultSvg TextSpan where
 data TextPathMethod
   = TextPathAlign   -- ^ Map to the `align` value.
   | TextPathStretch -- ^ Map to the `stretch` value.
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- | Describe the content of the `spacing` text path
 -- attribute.
 data TextPathSpacing
   = TextPathSpacingExact -- ^ Map to the `exact` value.
   | TextPathSpacingAuto  -- ^ Map to the `auto` value.
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- | Describe the `<textpath>` SVG tag.
 data TextPath = TextPath
@@ -1540,7 +1553,7 @@ data TextPath = TextPath
     -- | Correspond to the `spacing` attribute.
   , _textPathSpacing     :: !TextPathSpacing
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- -- | Lenses for the TextPath type.
 
@@ -1557,7 +1570,7 @@ instance WithDefaultSvg TextPath where
 data TextAdjust
   = TextAdjustSpacing -- ^ Value `spacing`
   | TextAdjustSpacingAndGlyphs -- ^ Value `spacingAndGlyphs`
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- | Define the global `<tag>` SVG tag.
 data Text = Text
@@ -1566,7 +1579,7 @@ data Text = Text
     -- | Root of the text content.
   , _textRoot   :: !TextSpan
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''Text
 -- | Lenses for the Text type.
@@ -1635,7 +1648,7 @@ data Tree
     | MaskTree      !Mask
     | ClipPathTree  !ClipPath
     | SvgTree       !Document
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, Hashable)
 
 data FilterElement
   = FEBlend
@@ -1661,7 +1674,7 @@ data FilterElement
   | FETile
   | FETurbulence Turbulence
   | FENone
-  deriving (Eq,Show)
+  deriving (Eq,Show, Generic, Hashable)
 
 instance WithDefaultSvg FilterElement where
   defaultSvg = FENone
@@ -1672,7 +1685,7 @@ data TransferFunctionType
   | TFDiscrete
   | TFLinear
   | TFGamma
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 data TransferFunction = TransferFunction
   { _transferFunctionDrawAttributes   :: !DrawAttributes
@@ -1684,14 +1697,14 @@ data TransferFunction = TransferFunction
   , _transferFunctionAmplitude        :: Double
   , _transferFunctionExponent         :: Double
   , _transferFunctionOffset           :: Double
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic, Hashable)
 
 data ChannelSelector
   = ChannelR
   | ChannelG
   | ChannelB
   | ChannelA
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 data DisplacementMap = DisplacementMap
   { _displacementMapDrawAttributes   :: !DrawAttributes
@@ -1701,7 +1714,7 @@ data DisplacementMap = DisplacementMap
   , _displacementMapScale            :: !(Last Double)
   , _displacementMapXChannelSelector :: ChannelSelector
   , _displacementMapYChannelSelector :: ChannelSelector
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic, Hashable)
 
 instance WithDefaultSvg DisplacementMap where
   defaultSvg = DisplacementMap
@@ -1719,7 +1732,7 @@ data ColorMatrixType
   | Saturate
   | HueRotate
   | LuminanceToAlpha
-  deriving (Eq,Show)
+  deriving (Eq,Show, Generic, Hashable)
 
 data ColorMatrix = ColorMatrix
   { _colorMatrixDrawAttributes :: !DrawAttributes
@@ -1727,7 +1740,7 @@ data ColorMatrix = ColorMatrix
   , _colorMatrixIn             :: !(Last FilterSource)
   , _colorMatrixType           :: !ColorMatrixType
   , _colorMatrixValues         :: !String
-  } deriving (Eq,Show)
+  } deriving (Eq,Show, Generic, Hashable)
 
 instance WithDefaultSvg ColorMatrix where
   defaultSvg = ColorMatrix
@@ -1745,7 +1758,7 @@ data CompositeOperator
   | CompositeAtop
   | CompositeXor
   | CompositeArithmetic
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 data Composite = Composite
   { _compositeDrawAttributes :: DrawAttributes
@@ -1757,7 +1770,7 @@ data Composite = Composite
   , _compositeK2             :: Number
   , _compositeK3             :: Number
   , _compositeK4             :: Number
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic, Hashable)
 
 instance WithDefaultSvg Composite where
   defaultSvg = Composite
@@ -1780,17 +1793,17 @@ data Turbulence = Turbulence
   , _turbulenceSeed           :: Double
   , _turbulenceStitchTiles    :: StitchTiles
   , _turbulenceType           :: TurbulenceType
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic, Hashable)
 
 data StitchTiles
   = NoStitch
   | Stitch
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 data TurbulenceType
   = FractalNoiseType
   | TurbulenceType
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 instance WithDefaultSvg Turbulence where
   defaultSvg = Turbulence
@@ -1807,7 +1820,7 @@ data EdgeMode
   = EdgeDuplicate
   | EdgeWrap
   | EdgeNone
-  deriving (Eq,Show)
+  deriving (Eq,Show, Generic, Hashable)
 
 data GaussianBlur = GaussianBlur
   { _gaussianBlurDrawAttributes :: DrawAttributes
@@ -1816,7 +1829,7 @@ data GaussianBlur = GaussianBlur
   , _gaussianBlurStdDeviationX  :: Number
   , _gaussianBlurStdDeviationY  :: Last Number
   , _gaussianBlurEdgeMode       :: EdgeMode
-  } deriving (Eq,Show)
+  } deriving (Eq,Show, Generic, Hashable)
 
 instance WithDefaultSvg GaussianBlur where
   defaultSvg = GaussianBlur
@@ -1833,21 +1846,21 @@ instance WithDefaultSvg GaussianBlur where
 data MarkerOrientation
   = OrientationAuto        -- ^ Auto value
   | OrientationAngle Coord -- ^ Specific angle.
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- | Define the content of the `markerUnits` attribute
 -- on the Marker.
 data MarkerUnit
   = MarkerUnitStrokeWidth    -- ^ Value `strokeWidth`
   | MarkerUnitUserSpaceOnUse -- ^ Value `userSpaceOnUse`
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- | Define the content of the `markerUnits` attribute
 -- on the Marker.
 data Overflow
   = OverflowVisible    -- ^ Value `visible`
   | OverflowHidden     -- ^ Value `hidden`
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- | Define the `<marker>` tag.
 data Marker = Marker
@@ -1875,7 +1888,7 @@ data Marker = Marker
     -- | Elements defining the marker.
   , _markerElements       :: [Tree]
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''Marker
 -- | Lenses for the Marker type.
@@ -2171,7 +2184,7 @@ data Spread
     = SpreadRepeat  -- ^ `reapeat` value
     | SpreadPad     -- ^ `pad` value
     | SpreadReflect -- ^ `reflect value`
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, Hashable)
 
 -- | Define a `<linearGradient>` tag.
 data LinearGradient = LinearGradient
@@ -2197,7 +2210,7 @@ data LinearGradient = LinearGradient
       -- | List of color stops of the linear gradient.
     , _linearGradientStops          :: [GradientStop]
     }
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''LinearGradient
 -- | Lenses for the LinearGradient type.
@@ -2291,7 +2304,7 @@ data RadialGradient = RadialGradient
     -- | List of color stops of the radial gradient.
   , _radialGradientStops          :: [GradientStop]
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''RadialGradient
 -- | Lenses for the RadialGradient type.
@@ -2387,7 +2400,7 @@ data Mask = Mask
     -- | Children of the `<mask>` tag.
   , _maskContent        :: [Tree]
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''Mask
 -- | Lenses for the Mask type.
@@ -2462,7 +2475,7 @@ data ClipPath = ClipPath
     -- | Maps to the content of the tree
   , _clipPathContent        :: [Tree]
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''ClipPath
 -- | Lenses for the ClipPath type.
@@ -2529,7 +2542,7 @@ data Pattern = Pattern
       -- | Value of "patternTransform" attribute
     , _patternTransform      :: !(Maybe [Transformation])
     }
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, Hashable)
 
 -- makeClassy ''Pattern
 -- | Lenses for the Patter type.
@@ -2628,7 +2641,7 @@ data Element
     | ElementMarker Marker
     | ElementMask Mask
     | ElementClipPath ClipPath
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, Hashable)
 
 -- | Represent a full svg document with style,
 -- geometry and named elements.
@@ -2641,7 +2654,7 @@ data Document = Document
     , _documentLocation :: FilePath
     , _documentAspectRatio :: PreserveAspectRatio
     }
-    deriving (Show, Eq)
+    deriving (Show, Eq, Generic, Hashable)
 
 
 -- | Lenses associated to a SVG document.

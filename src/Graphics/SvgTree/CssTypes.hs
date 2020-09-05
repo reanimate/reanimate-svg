@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 -- | Define the types used to describes CSS elements
@@ -24,10 +26,12 @@ module Graphics.SvgTree.CssTypes
 import           Data.Monoid            (mconcat)
 #endif
 
+import           Data.Hashable          (Hashable)
 import           Data.List              (intersperse)
 import           Data.Monoid            ((<>))
 import qualified Data.Text              as T
 import qualified Data.Text.Lazy.Builder as TB
+import           GHC.Generics           (Generic)
 import           Text.Printf
 
 import           Codec.Picture          (PixelRGBA8 (..))
@@ -195,7 +199,7 @@ data Number
   | Cm Double        -- ^ Number in centimeters, relative to DPI.
   | Point Double     -- ^ Number in points, relative to DPI.
   | Inches Double    -- ^ Number in inches, relative to DPI.
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Hashable)
 
 -- | Helper function to modify inner value of a number
 mapNumber :: (Double -> Double) -> Number -> Number
