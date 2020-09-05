@@ -35,6 +35,7 @@ import           Text.XML.Light.Output      (ppcTopElement, prettyConfigPP)
 import           Graphics.SvgTree.CssParser (cssRulesOfText)
 import           Graphics.SvgTree.CssTypes
 import           Graphics.SvgTree.Types
+import           Graphics.SvgTree.Types.Hashable ()
 import           Graphics.SvgTree.XmlParser
 
 {-import Graphics.Svg.CssParser-}

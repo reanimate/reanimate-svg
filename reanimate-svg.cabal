@@ -41,6 +41,7 @@ library
                , Graphics.SvgTree.CssParser
                , Graphics.SvgTree.ColorParser
                , Graphics.SvgTree.Misc
+               , Graphics.SvgTree.Types.Hashable
 
   if impl(ghc >= 8.0)
     ghc-options: -Wcompat -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances
