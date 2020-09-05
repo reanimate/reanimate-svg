@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-orphans -O0 #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE CPP                    #-}
 {-# LANGUAGE DeriveAnyClass #-}
