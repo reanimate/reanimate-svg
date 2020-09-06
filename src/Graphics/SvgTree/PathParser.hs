@@ -18,9 +18,9 @@ import           Data.Attoparsec.Combinator (option, sepBy, sepBy1)
 import           Data.Attoparsec.Text       (Parser, char, digit, many1,
                                              parseOnly, scientific, skipSpace,
                                              string)
-import           Data.Scientific            (toRealFloat)
-
+import           Data.Functor
 import           Data.List
+import           Data.Scientific            (toRealFloat)
 import qualified Data.Text                  as T
 import           Graphics.SvgTree.Misc
 import           Graphics.SvgTree.Types
@@ -49,7 +49,7 @@ serializeViewBox :: (Double, Double, Double, Double) -> String
 serializeViewBox (a, b, c, d) = printf "%s %s %s %s" (ppD a) (ppD b) (ppD c) (ppD d)
 
 commaWsp :: Parser ()
-commaWsp = skipSpace *> option () (string "," *> return ()) <* skipSpace
+commaWsp = skipSpace *> option () (string "," $> ()) <* skipSpace
 
 point :: Parser RPoint
 point = V2 <$> num <* commaWsp <*> num
@@ -94,8 +94,8 @@ command =  (MoveTo OriginAbsolute <$ string "M" <*> pointList)
           ellipticalArgs = (,,,,,) <$> numComma
                                    <*> numComma
                                    <*> numComma
-                                   <*> (fmap (/= 0) numComma)
-                                   <*> (fmap (/= 0) numComma)
+                                   <*> fmap (/= 0) numComma
+                                   <*> fmap (/= 0) numComma
                                    <*> point
 
 unwordsS :: [ShowS] -> ShowS

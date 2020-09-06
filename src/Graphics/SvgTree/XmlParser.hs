@@ -528,7 +528,7 @@ opacitySetter attribute elLens =
     serializer a = printf "%s" . ppF <$> a ^. elLens
     updater el str = case parseMayStartDot num str of
         Nothing -> el
-        Just v  -> el & elLens .~ Just (realToFrac v)
+        Just v  -> el & elLens ?~ realToFrac v
 
 type Serializer e = e -> Maybe String
 
@@ -574,7 +574,7 @@ classSetter :: SvgAttributeLens DrawAttributes
 classSetter = SvgAttributeLens "class" updater serializer
   where
     updater el str =
-      el & attrClass .~ (T.split (== ' ') $ T.pack str)
+      el & attrClass .~ T.split (== ' ') (T.pack str)
 
     serializer a = case a ^. attrClass of
       []  -> Nothing
@@ -591,7 +591,7 @@ cssUniqueFloat :: (Fractional n)
                => ASetter el el a (Maybe n)
                -> CssUpdater el
 cssUniqueFloat setter attr ((CssNumber (Num n):_):_) =
-    attr & setter .~ Just (realToFrac n)
+    attr & setter ?~ realToFrac n
 cssUniqueFloat _ attr _ = attr
 
 cssUniqueMayFloat :: ASetter el el a (Last Double)
@@ -642,9 +642,9 @@ cssElementRefSetter _ attr _ = attr
 
 cssMayStringSetter :: ASetter el el a (Maybe String) -> CssUpdater el
 cssMayStringSetter setter attr ((CssIdent i:_):_) =
-    attr & setter .~ Just (T.unpack i)
+    attr & setter ?~ T.unpack i
 cssMayStringSetter setter attr ((CssString i:_):_) =
-    attr & setter .~ Just (T.unpack i)
+    attr & setter ?~ T.unpack i
 cssMayStringSetter _ attr _ = attr
 
 cssNullSetter :: CssUpdater a
@@ -931,7 +931,7 @@ instance XMLUpdatable Filter where
 
 instance XMLUpdatable FilterElement where
   xmlTagName _ = "FilterElement"
-  serializeTreeNode fe = flip mergeAttributes <$> (genericSerializeNode fe) <*>
+  serializeTreeNode fe = flip mergeAttributes <$> genericSerializeNode fe <*>
     case fe of
       FEColorMatrix m     -> serializeTreeNode m
       FEComposite c       -> serializeTreeNode c
@@ -1193,7 +1193,7 @@ instance XMLUpdatable GradientStop where
     attributes = styleAttribute cssAvailable : fmap fst cssAvailable ++ lst where
       cssAvailable :: [(SvgAttributeLens GradientStop, CssUpdater GradientStop)]
       cssAvailable =
-          [(opacitySetter "stop-opacity" gradientOpacity, (cssUniqueFloat gradientOpacity))
+          [(opacitySetter "stop-opacity" gradientOpacity, cssUniqueFloat gradientOpacity)
           ,("stop-color" `parseIn` gradientColor, cssUniqueColor gradientColor)
           ]
 
@@ -1247,9 +1247,7 @@ unparse e@(nodeName -> "symbol") =
 unparse e@(nodeName -> "g") =
   GroupTree $ xmlUnparseWithDrawAttr e & groupChildren .~ map unparse (elChildren e)
 unparse e@(nodeName -> "svg") =
-  case unparseDocument "" e of
-    Nothing  -> None
-    Just doc -> SvgTree doc
+  maybe None SvgTree $ unparseDocument "" e
 unparse e@(nodeName -> "text") =
   TextTree tPath $ xmlUnparse e & textRoot .~ root
     where

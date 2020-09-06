@@ -94,7 +94,7 @@ ruleSet :: Parser CssRule
 ruleSet = cleanSpace *> rule where
   rule = CssRule
       <$> selector `sepBy1` commaWsp
-      <*> (between '{' '}' styleString)
+      <*> between '{' '}' styleString
       <?> "cssrule"
 
 styleString :: Parser [CssDeclaration]
@@ -113,7 +113,7 @@ selector = (:)
 
     combOpt = cleanSpace *> option id ((:) <$> combinator)
     next :: Parser [CssSelector]
-    next = id <$> combOpt <*> selector
+    next = combOpt <*> selector
 
 simpleSelector :: Parser [CssDescriptor]
 simpleSelector = (:) <$> elementName <*> many whole
@@ -220,6 +220,6 @@ term = checkRgb <$> function
 
 -- | Parse CSS text into rules.
 cssRulesOfText :: T.Text -> [CssRule]
-cssRulesOfText txt = case parseOnly (many1 ruleSet) $ txt of
+cssRulesOfText txt = case parseOnly (many1 ruleSet) txt of
     Left _      -> []
     Right rules -> rules
