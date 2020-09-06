@@ -5,10 +5,11 @@ module Graphics.SvgTree.Printer
 
 import           Control.Lens               ((^.))
 import           Data.List
-import           Graphics.SvgTree.Types     (Document (..),
-                                             Tree (..), clipPathContent,
+import           Graphics.SvgTree.Types     (Document (..), Tree,
+                                             TreeBranch (..), clipPathContent,
                                              groupChildren, markerElements,
-                                             maskContent, patternElements)
+                                             maskContent, patternElements,
+                                             treeBranch)
 import           Graphics.SvgTree.XmlParser
 import           Text.XML.Light             hiding (showAttr)
 
@@ -26,14 +27,15 @@ ppTreeS tree =
     Nothing -> id
 
 treeChildren :: Tree -> [Tree]
-treeChildren (GroupTree g)      = g^.groupChildren
-treeChildren (SymbolTree g)     = g^.groupChildren
-treeChildren (DefinitionTree g) = g^.groupChildren
-treeChildren (ClipPathTree c)   = c^.clipPathContent
-treeChildren (PatternTree p)    = p^.patternElements
-treeChildren (MarkerTree m)     = m^.markerElements
-treeChildren (MaskTree m)       = m^.maskContent
-treeChildren _                  = []
+treeChildren t = case t ^. treeBranch of
+  GroupTree g      -> g^.groupChildren
+  SymbolTree g     -> g^.groupChildren
+  DefinitionTree g -> g^.groupChildren
+  ClipPathTree c   -> c^.clipPathContent
+  PatternTree p    -> p^.patternElements
+  MarkerTree m     -> m^.markerElements
+  MaskTree m       -> m^.maskContent
+  _                -> []
 
 ppElementS_         :: [Tree] -> Element -> ShowS
 ppElementS_ [] e xs | not (null (elContent e)) = ppElement e ++ xs

@@ -4,11 +4,14 @@
 {-# OPTIONS_GHC -Wno-orphans -O0 #-}
 module Graphics.SvgTree.Types.Hashable where
 
+import           Control.Lens                 (Lens', lens, view)
 import           Codec.Picture          (PixelRGBA8 (..))
-import           Data.Hashable          (Hashable)
+import           Data.Hashable          
 import           Data.Monoid
 import           GHC.Generics           (Generic)
-import           Graphics.SvgTree.Types
+import           Graphics.SvgTree.Types.Internal
+import           Graphics.SvgTree.CssTypes    (CssMatcheable (..))
+import qualified Data.Text                    as T
 
 -- Orphan instances :(
 instance Hashable a => Hashable (Last a)
@@ -22,7 +25,7 @@ deriving instance Hashable Element
 deriving instance Hashable ClipPath
 deriving instance Hashable Mask
 deriving instance Hashable CoordinateUnits
-deriving instance Hashable Tree
+deriving instance Hashable TreeBranch
 deriving instance Hashable a => Hashable (Group a)
 deriving instance Hashable a => Hashable (Symbol a)
 deriving instance Hashable a => Hashable (Definitions a)
@@ -85,3 +88,28 @@ deriving instance Hashable FillRule
 deriving instance Hashable ElementRef
 deriving instance Hashable FontStyle
 deriving instance Hashable TextAnchor
+
+instance Hashable Tree where
+  hashWithSalt s = hashWithSalt s . _treeHash
+
+
+updTreeHash :: Tree -> Tree
+updTreeHash t = t
+  { _treeHash = hash (_treeDrawAttributes t, _treeBranch t) }
+
+treeBranch :: Lens' Tree TreeBranch
+treeBranch = lens _treeBranch $ \obj val ->
+  updTreeHash $ obj { _treeBranch = val }
+
+treeDrawAttributes :: Lens' Tree DrawAttributes
+treeDrawAttributes = lens _treeDrawAttributes $ \obj val ->
+  updTreeHash $ obj { _treeDrawAttributes = val }
+
+instance HasDrawAttributes Tree where
+  drawAttributes = treeDrawAttributes
+
+instance CssMatcheable Tree where
+  cssAttribOf _ _ = Nothing
+  cssClassOf = view (drawAttributes . attrClass)
+  cssIdOf = fmap T.pack . view (drawAttributes . attrId)
+  cssNameOf = nameOfTree

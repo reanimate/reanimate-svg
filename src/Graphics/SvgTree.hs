@@ -30,7 +30,6 @@ import           Text.XML.Light.Output      (ppcTopElement, prettyConfigPP)
 import           Graphics.SvgTree.CssParser (cssRulesOfText)
 import           Graphics.SvgTree.CssTypes
 import           Graphics.SvgTree.Types
-import           Graphics.SvgTree.Types.Hashable ()
 import           Graphics.SvgTree.XmlParser
 
 {-import Graphics.Svg.CssParser-}
@@ -70,9 +69,9 @@ cssDeclApplyer value (CssDeclaration txt elems) =
 -- css directly in each matched element.
 cssApply :: [CssRule] -> Tree -> Tree
 cssApply rules = zipTree go where
-  go [] = None
-  go ([]:_) = None
-  go context@((t:_):_) = t & drawAttributes .~ attr'
+  go [] = defaultSvg
+  go ([]:_) = defaultSvg
+  go context@((t:_):_) = t & treeDrawAttributes .~ attr'
    where
      matchingDeclarations =
          findMatchingDeclarations rules context

@@ -724,7 +724,7 @@ styleAttribute styleAttrs = SvgAttributeLens
 
 instance XMLUpdatable Rectangle where
   xmlTagName _ = "rect"
-  serializeTreeNode = genericSerializeWithDrawAttr
+  serializeTreeNode = genericSerializeNode
   attributes =
     ["width" `parseIn` rectWidth
     ,"height" `parseIn` rectHeight
@@ -736,7 +736,7 @@ instance XMLUpdatable Rectangle where
 
 instance XMLUpdatable Image where
   xmlTagName _ = "image"
-  serializeTreeNode = genericSerializeWithDrawAttr
+  serializeTreeNode = genericSerializeNode
   attributes =
     ["width" `parseIn` imageWidth
     ,"height" `parseIn` imageHeight
@@ -748,7 +748,7 @@ instance XMLUpdatable Image where
 
 instance XMLUpdatable Line where
   xmlTagName _ = "line"
-  serializeTreeNode = genericSerializeWithDrawAttr
+  serializeTreeNode = genericSerializeNode
   attributes =
     ["x1" `parseIn` (linePoint1._1)
     ,"y1" `parseIn` (linePoint1._2)
@@ -758,7 +758,7 @@ instance XMLUpdatable Line where
 
 instance XMLUpdatable Ellipse where
   xmlTagName _ = "ellipse"
-  serializeTreeNode = genericSerializeWithDrawAttr
+  serializeTreeNode = genericSerializeNode
   attributes =
     ["cx" `parseIn` (ellipseCenter._1)
     ,"cy" `parseIn` (ellipseCenter._2)
@@ -768,7 +768,7 @@ instance XMLUpdatable Ellipse where
 
 instance XMLUpdatable Circle where
   xmlTagName _ = "circle"
-  serializeTreeNode = genericSerializeWithDrawAttr
+  serializeTreeNode = genericSerializeNode
   attributes =
     ["cx" `parseIn` (circleCenter._1)
     ,"cy" `parseIn` (circleCenter._2)
@@ -779,7 +779,7 @@ instance XMLUpdatable Mask where
   xmlTagName _ = "mask"
   serializeTreeNode node =
       updateWithAccessor _maskContent node $
-          genericSerializeWithDrawAttr node
+          genericSerializeNode node
 
   attributes =
     ["x" `parseIn` (maskPosition._1)
@@ -794,23 +794,23 @@ instance XMLUpdatable ClipPath where
   xmlTagName _ = "clipPath"
   serializeTreeNode node =
       updateWithAccessor _clipPathContent node $
-          genericSerializeWithDrawAttr node
+          genericSerializeNode node
   attributes =
     ["clipPathUnits" `parseIn` clipPathUnits]
 
 instance XMLUpdatable Polygon where
   xmlTagName _ = "polygon"
-  serializeTreeNode = genericSerializeWithDrawAttr
+  serializeTreeNode = genericSerializeNode
   attributes = ["points" `parseIn` polygonPoints]
 
 instance XMLUpdatable PolyLine where
   xmlTagName _ =  "polyline"
-  serializeTreeNode = genericSerializeWithDrawAttr
+  serializeTreeNode = genericSerializeNode
   attributes = ["points" `parseIn` polyLinePoints]
 
 instance XMLUpdatable Path where
   xmlTagName _ =  "path"
-  serializeTreeNode = genericSerializeWithDrawAttr
+  serializeTreeNode = genericSerializeNode
   attributes = ["d" `parseIn` pathDefinition]
 
 instance XMLUpdatable MeshGradientPatch where
@@ -828,7 +828,7 @@ instance XMLUpdatable MeshGradientRow where
 instance XMLUpdatable MeshGradient where
   xmlTagName _ = "meshgradient"
   serializeTreeNode node =
-     updateWithAccessor _meshGradientRows node $ genericSerializeWithDrawAttr node
+     updateWithAccessor _meshGradientRows node $ genericSerializeNode node
   attributes =
     ["x" `parseIn` meshGradientX
     ,"y" `parseIn` meshGradientY
@@ -856,7 +856,7 @@ instance XMLUpdatable LinearGradient where
 instance XMLUpdatable Tree where
   xmlTagName _ = "TREE"
   attributes = []
-  serializeTreeNode e = case e of
+  serializeTreeNode e = mergeAttributes <$> (case e ^. treeBranch of
     None -> Nothing
     UseTree u _ -> serializeTreeNode u
     GroupTree g -> serializeTreeNode g
@@ -884,25 +884,27 @@ instance XMLUpdatable Tree where
        pathNode <- serializeTreeNode p
        let sub = [X.Elem . setChildren pathNode $ X.elContent textNode]
        return $ setChildren textNode sub
-    SvgTree doc -> Just $ xmlOfDocument doc
+    SvgTree doc -> Just $ xmlOfDocument doc)
+    <*> (genericSerializeNode $ e ^. treeDrawAttributes)
 
 
 isNotNone :: Tree -> Bool
-isNotNone None = False
-isNotNone _    = True
+isNotNone t = case t ^. treeBranch of
+  None -> False
+  _    -> True
 
 instance XMLUpdatable (Group Tree) where
   xmlTagName _ = "g"
   serializeTreeNode node =
      updateWithAccessor (filter isNotNone . _groupChildren) node $
-        genericSerializeWithDrawAttr node
+        genericSerializeNode node
   attributes = []
 
 instance XMLUpdatable (Symbol Tree) where
   xmlTagName _ = "symbol"
   serializeTreeNode node =
      updateWithAccessor (filter isNotNone . _groupChildren . _groupOfSymbol) node $
-        genericSerializeWithDrawAttr node
+        genericSerializeNode node
   attributes =
      ["viewBox" `parseIn` (groupOfSymbol . groupViewBox)
      ,"preserveAspectRatio" `parseIn` (groupOfSymbol . groupAspectRatio)
@@ -912,7 +914,7 @@ instance XMLUpdatable (Definitions Tree) where
   xmlTagName _ = "defs"
   serializeTreeNode node =
      updateWithAccessor (filter isNotNone . _groupChildren . _groupOfDefinitions) node $
-        genericSerializeWithDrawAttr node
+        genericSerializeNode node
   attributes =
      ["viewBox" `parseIn` (groupOfDefinitions . groupViewBox)
      ,"preserveAspectRatio" `parseIn` (groupOfDefinitions . groupAspectRatio)
@@ -922,7 +924,7 @@ instance XMLUpdatable Filter where
   xmlTagName _ = "filter"
   serializeTreeNode node =
      updateWithAccessor _filterChildren node $
-        genericSerializeWithDrawAttr node
+        genericSerializeNode node
   attributes =
     [ "width" `parseIn` filterWidth
     , "height" `parseIn` filterHeight
@@ -1008,7 +1010,7 @@ instance XMLUpdatable RadialGradient where
 
 instance XMLUpdatable Use where
   xmlTagName _ = "use"
-  serializeTreeNode = genericSerializeWithDrawAttr
+  serializeTreeNode = genericSerializeNode
   attributes =
     ["x" `parseIn` (useBase._1)
     ,"y" `parseIn` (useBase._2)
@@ -1062,7 +1064,7 @@ instance XMLUpdatable Text where
 instance XMLUpdatable Pattern where
   xmlTagName _ = "pattern"
   serializeTreeNode node =
-     updateWithAccessor _patternElements node $ genericSerializeWithDrawAttr node
+     updateWithAccessor _patternElements node $ genericSerializeNode node
   attributes =
     ["viewBox" `parseIn` patternViewBox
     ,"patternUnits" `parseIn` patternUnit
@@ -1078,7 +1080,7 @@ instance XMLUpdatable Pattern where
 instance XMLUpdatable Marker where
   xmlTagName _ = "marker"
   serializeTreeNode node =
-     updateWithAccessor _markerElements node $ genericSerializeWithDrawAttr node
+     updateWithAccessor _markerElements node $ genericSerializeNode node
   attributes =
     ["refX" `parseIn` (markerRefPoint._1)
     ,"refY" `parseIn` (markerRefPoint._2)
@@ -1222,30 +1224,33 @@ parseMeshGradientRows = foldMap unRows . elChildren where
 unparseFE :: X.Element -> FilterElement
 unparseFE _ = FENone
 
-unparse :: X.Element -> Tree
+unparseTree :: X.Element -> Tree
+unparseTree = xmlUnparseWithDrawAttr
+
+unparse :: X.Element -> TreeBranch
 unparse e@(nodeName -> "pattern") =
-  PatternTree $ xmlUnparse e & patternElements .~ map unparse (elChildren e)
+  PatternTree $ xmlUnparse e & patternElements .~ map unparseTree (elChildren e)
 unparse e@(nodeName -> "marker") =
-  MarkerTree $ xmlUnparseWithDrawAttr e & markerElements .~ map unparse (elChildren e)
+  MarkerTree $ xmlUnparse e & markerElements .~ map unparseTree (elChildren e)
 unparse e@(nodeName -> "mask") =
-  MaskTree $ xmlUnparseWithDrawAttr e & maskContent .~ map unparse (elChildren e)
+  MaskTree $ xmlUnparse e & maskContent .~ map unparseTree (elChildren e)
 unparse e@(nodeName -> "clipPath") =
-  ClipPathTree $ xmlUnparseWithDrawAttr e & clipPathContent .~ map unparse (elChildren e)
+  ClipPathTree $ xmlUnparse e & clipPathContent .~ map unparseTree (elChildren e)
 unparse (nodeName -> "style") = None -- XXX: Create a style node?
 unparse e@(nodeName -> "defs") =
-  DefinitionTree . Definitions $ groupNode & groupChildren .~ map unparse (elChildren e)
+  DefinitionTree . Definitions $ groupNode & groupChildren .~ map unparseTree (elChildren e)
   where
     groupNode :: Group Tree
-    groupNode = _groupOfSymbol $ xmlUnparseWithDrawAttr e
+    groupNode = _groupOfSymbol $ xmlUnparse e
 unparse e@(nodeName -> "filter") =
-  FilterTree $ xmlUnparseWithDrawAttr e & filterChildren .~ map unparseFE (elChildren e)
+  FilterTree $ xmlUnparse e & filterChildren .~ map unparseFE (elChildren e)
 unparse e@(nodeName -> "symbol") =
-  SymbolTree . Symbol $ groupNode & groupChildren .~ map unparse (elChildren e)
+  SymbolTree . Symbol $ groupNode & groupChildren .~ map unparseTree (elChildren e)
   where
     groupNode :: Group Tree
-    groupNode = _groupOfSymbol $ xmlUnparseWithDrawAttr e
+    groupNode = _groupOfSymbol $ xmlUnparse e
 unparse e@(nodeName -> "g") =
-  GroupTree $ xmlUnparseWithDrawAttr e & groupChildren .~ map unparse (elChildren e)
+  GroupTree $ xmlUnparse e & groupChildren .~ map unparseTree (elChildren e)
 unparse e@(nodeName -> "svg") =
   maybe None SvgTree $ unparseDocument "" e
 unparse e@(nodeName -> "text") =
@@ -1277,8 +1282,8 @@ unparse e = case nodeName e of
     "use" -> UseTree parsed Nothing
     _ -> None
   where
-    parsed :: (WithDefaultSvg a, XMLUpdatable a, HasDrawAttributes a) => a
-    parsed = xmlUnparseWithDrawAttr e
+    parsed :: (WithDefaultSvg a, XMLUpdatable a) => a
+    parsed = xmlUnparse e
 
 unparseDocument :: FilePath -> X.Element -> Maybe Document
 unparseDocument rootLocation e@(nodeName -> "svg") = Just Document
@@ -1294,7 +1299,7 @@ unparseDocument rootLocation e@(nodeName -> "svg") = Just Document
         attributeFinder "preserveAspectRatio" e >>= aparse
     }
   where
-    parsedElements = map unparse $ elChildren e
+    parsedElements = map unparseTree $ elChildren e
     lengthFind n =
         attributeFinder n e >>= parse complexNumber
 unparseDocument _ _ = Nothing
