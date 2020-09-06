@@ -62,20 +62,49 @@ module Graphics.SvgTree.Types
     , HasFilterAttributes(..)
     , FilterSource(..)
     , ColorMatrixType(..)
-    , HasColorMatrix(..)
+    , colorMatrixDrawAttributes
+    , colorMatrixFilterAttr
+    , colorMatrixIn
+    , colorMatrixType
+    , colorMatrixValues
     , ColorMatrix(..)
-    , HasComposite(..)
+    , compositeDrawAttributes
+    , compositeFilterAttr
+    , compositeIn
+    , compositeIn2
+    , compositeOperator
+    , compositeK1
+    , compositeK2
+    , compositeK3
+    , compositeK4
     , Composite(..)
     , CompositeOperator(..)
     , EdgeMode(..)
-    , HasGaussianBlur(..)
+    , gaussianBlurDrawAttributes
+    , gaussianBlurFilterAttr
+    , gaussianBlurIn
+    , gaussianBlurStdDeviationX
+    , gaussianBlurStdDeviationY
+    , gaussianBlurEdgeMode
     , GaussianBlur(..)
-    , HasTurbulence(..)
+    , turbulenceDrawAttributes
+    , turbulenceFilterAttr
+    , turbulenceBaseFrequency
+    , turbulenceNumOctaves
+    , turbulenceSeed
+    , turbulenceStitchTiles
+    , turbulenceType
     , Turbulence(..)
     , TurbulenceType(..)
     , StitchTiles(..)
-    , HasDisplacementMap(..)
     , DisplacementMap(..)
+    , displacementMapDrawAttributes
+    , displacementMapFilterAttr
+    , displacementMapIn
+    , displacementMapIn2
+    , displacementMapScale
+    , displacementMapXChannelSelector
+    , displacementMapYChannelSelector
     , ChannelSelector(..)
 
       -- * SVG drawing primitives
@@ -229,15 +258,32 @@ module Graphics.SvgTree.Types
 
       -- * Gradient definition
     , GradientStop( .. )
-    , HasGradientStop( .. )
+    , gradientOffset
+    , gradientColor
+    , gradientPath
+    , gradientOpacity
 
       -- ** Linear Gradient
     , LinearGradient( .. )
-    , HasLinearGradient( .. )
+    , linearGradientDrawAttributes
+    , linearGradientUnits
+    , linearGradientStart
+    , linearGradientStop
+    , linearGradientSpread
+    , linearGradientTransform
+    , linearGradientStops
 
       -- ** Radial Gradient
     , RadialGradient( .. )
-    , HasRadialGradient( .. )
+    , radialGradientDrawAttributes
+    , radialGradientUnits
+    , radialGradientCenter
+    , radialGradientRadius
+    , radialGradientFocusX
+    , radialGradientFocusY
+    , radialGradientSpread
+    , radialGradientTransform
+    , radialGradientStops
 
       -- * Pattern definition
     , Pattern( .. )
@@ -254,11 +300,19 @@ module Graphics.SvgTree.Types
 
       -- * Mask definition
     , Mask( .. )
-    , HasMask( .. )
+    , maskDrawAttributes
+    , maskContentUnits
+    , maskUnits
+    , maskPosition
+    , maskWidth
+    , maskHeight
+    , maskContent
 
       -- * Clip path definition
     , ClipPath( .. )
-    , HasClipPath( .. )
+    , clipPathDrawAttributes
+    , clipPathUnits
+    , clipPathContent
 
       -- * Aspect Ratio description
     , PreserveAspectRatio( .. )
@@ -278,7 +332,7 @@ module Graphics.SvgTree.Types
     ) where
 
 import           Codec.Picture                (PixelRGBA8 (..))
-import           Control.Lens                 (Lens, Lens', lens, view, (&),
+import           Control.Lens                 (lens, view, (&),
                                                (.~), (^.))
 import           Control.Lens.TH              (makeClassy, makeLenses)
 import qualified Data.Foldable                as F
@@ -557,13 +611,8 @@ data PolyLine = PolyLine
   }
   deriving (Eq, Show, Generic)
 
-
 instance WithDefaultSvg PolyLine where
-  defaultSvg = PolyLine
-    { _polyLineDrawAttributes = mempty
-    , _polyLinePoints = []
-    }
-
+  defaultSvg = PolyLine mempty mempty
 
 -- | Primitive decriving polygon composed
 -- of segements. Correspond to the `<polygon>`
@@ -579,10 +628,7 @@ data Polygon = Polygon
 
 
 instance WithDefaultSvg Polygon where
-  defaultSvg = Polygon
-    { _polygonDrawAttributes = mempty
-    , _polygonPoints = []
-    }
+  defaultSvg = Polygon mempty mempty
 
 -- | Define a simple line. Correspond to the
 -- `<line>` tag.
@@ -647,10 +693,7 @@ data Path = Path
   deriving (Eq, Show, Generic)
 
 instance WithDefaultSvg Path where
-  defaultSvg = Path
-    { _pathDrawAttributes = mempty
-    , _pathDefinition = []
-    }
+  defaultSvg = Path mempty mempty
 
 -- | Define a SVG group, corresponding `<g>` tag.
 data Group a = Group
@@ -667,47 +710,6 @@ data Group a = Group
   }
   deriving (Eq, Show, Generic)
 
--- makeClassy ''Group
--- | Lenses associated to the Group type.
-class HasGroup g a | g -> a where
-  group :: Lens' g (Group a)
-  groupAspectRatio :: Lens' g PreserveAspectRatio
-  {-# INLINE groupAspectRatio #-}
-  groupAspectRatio = group . groupAspectRatio
-
-  groupChildren :: Lens' g [a]
-  {-# INLINE groupChildren #-}
-  groupChildren = group . groupChildren
-
-  groupDrawAttributes :: Lens' g DrawAttributes
-  {-# INLINE groupDrawAttributes #-}
-  groupDrawAttributes = group . groupDrawAttributes
-
-  groupViewBox :: Lens' g (Maybe (Double, Double, Double, Double))
-  {-# INLINE groupViewBox #-}
-  groupViewBox = group . groupViewBox
-
-instance HasGroup (Group a) a where
-  group = id
-  {-# INLINE groupAspectRatio #-}
-  groupAspectRatio f attr =
-    fmap (\y -> attr { _groupAspectRatio = y }) (f $ _groupAspectRatio attr)
-
-  {-# INLINE groupChildren #-}
-  groupChildren f attr =
-    fmap (\y -> attr { _groupChildren = y }) (f $ _groupChildren attr)
-
-  {-# INLINE groupDrawAttributes #-}
-  groupDrawAttributes f attr =
-    fmap (\y -> attr { _groupDrawAttributes = y }) (f $ _groupDrawAttributes attr)
-
-  {-# INLINE groupViewBox #-}
-  groupViewBox f attr =
-    fmap (\y -> attr { _groupViewBox = y }) (f $ _groupViewBox attr)
-
-instance HasDrawAttributes (Group a) where
-  drawAttributes = groupDrawAttributes
-
 instance WithDefaultSvg (Group a) where
   defaultSvg = Group
     { _groupDrawAttributes = mempty
@@ -722,17 +724,6 @@ newtype Symbol a =
     Symbol { _groupOfSymbol :: Group a }
   deriving (Eq, Show, Generic)
 
-instance HasGroup (Symbol a) a where
-  group = groupOfSymbol
-
--- | Lenses associated with the Symbol type.
-groupOfSymbol :: Lens (Symbol s) (Symbol t) (Group s) (Group t)
-{-# INLINE groupOfSymbol #-}
-groupOfSymbol f = fmap Symbol . f . _groupOfSymbol
-
-instance HasDrawAttributes (Symbol a) where
-  drawAttributes = groupOfSymbol . drawAttributes
-
 instance WithDefaultSvg (Symbol a) where
   defaultSvg = Symbol defaultSvg
 
@@ -741,17 +732,6 @@ instance WithDefaultSvg (Symbol a) where
 newtype Definitions a =
     Definitions { _groupOfDefinitions :: Group a }
   deriving (Eq, Show, Generic)
-
-instance HasGroup (Definitions a) a where
-  group = groupOfDefinitions
-
--- | Lenses associated with the Definitions type.
-groupOfDefinitions :: Lens (Definitions s) (Definitions t) (Group s) (Group t)
-{-# INLINE groupOfDefinitions #-}
-groupOfDefinitions f = fmap Definitions . f . _groupOfDefinitions
-
-instance HasDrawAttributes (Definitions a) where
-  drawAttributes = groupOfDefinitions . drawAttributes
 
 instance WithDefaultSvg (Definitions a) where
   defaultSvg = Definitions defaultSvg
@@ -831,38 +811,6 @@ data GradientStop = GradientStop
     , _gradientOpacity :: !(Maybe Float)
     }
     deriving (Eq, Show, Generic)
-
--- makeClassy ''GradientStop
--- | Lenses for the GradientStop type.
-class HasGradientStop c_anhM where
-  gradientStop :: Lens' c_anhM GradientStop
-  gradientColor :: Lens' c_anhM PixelRGBA8
-  {-# INLINE gradientColor #-}
-  gradientOffset :: Lens' c_anhM Float
-  {-# INLINE gradientOffset #-}
-  gradientOpacity :: Lens' c_anhM (Maybe Float)
-  {-# INLINE gradientOpacity #-}
-  gradientPath :: Lens' c_anhM (Maybe GradientPathCommand)
-  {-# INLINE gradientPath #-}
-  gradientColor = ((.) gradientStop) gradientColor
-  gradientOffset = ((.) gradientStop) gradientOffset
-  gradientOpacity = ((.) gradientStop) gradientOpacity
-  gradientPath = ((.) gradientStop) gradientPath
-
-instance HasGradientStop GradientStop where
-  {-# INLINE gradientColor #-}
-  {-# INLINE gradientOffset #-}
-  {-# INLINE gradientOpacity #-}
-  {-# INLINE gradientPath #-}
-  gradientStop = id
-  gradientColor f attr =
-    fmap (\y -> attr { _gradientColor = y }) (f $ _gradientColor attr)
-  gradientOffset f attr =
-    fmap (\y -> attr { _gradientOffset = y }) (f $ _gradientOffset attr)
-  gradientOpacity f attr =
-    fmap (\y -> attr { _gradientOpacity = y }) (f $ _gradientOpacity attr)
-  gradientPath f attr =
-    fmap (\y -> attr { _gradientPath = y }) (f $ _gradientPath attr)
 
 instance WithDefaultSvg GradientStop where
   defaultSvg = GradientStop
@@ -1099,7 +1047,6 @@ textAt (x, y) txt = Text TextAdjustSpacing tspan where
                     , _textInfoY = [y]
                     }
         }
-
 
 
 instance WithDefaultSvg Text where
@@ -1627,56 +1574,6 @@ data LinearGradient = LinearGradient
     }
     deriving (Eq, Show, Generic)
 
--- makeClassy ''LinearGradient
--- | Lenses for the LinearGradient type.
-class HasLinearGradient c_apmJ where
-  linearGradient :: Lens' c_apmJ LinearGradient
-  linearGradientDrawAttributes :: Lens' c_apmJ DrawAttributes
-  linearGradientSpread :: Lens' c_apmJ Spread
-  {-# INLINE linearGradientSpread #-}
-  linearGradientStart :: Lens' c_apmJ Point
-  {-# INLINE linearGradientStart #-}
-  linearGradientStop :: Lens' c_apmJ Point
-  {-# INLINE linearGradientStop #-}
-  linearGradientStops :: Lens' c_apmJ [GradientStop]
-  {-# INLINE linearGradientStops #-}
-  linearGradientTransform :: Lens' c_apmJ [Transformation]
-  {-# INLINE linearGradientTransform #-}
-  linearGradientUnits :: Lens' c_apmJ CoordinateUnits
-  {-# INLINE linearGradientUnits #-}
-  linearGradientDrawAttributes = ((.) linearGradient) linearGradientDrawAttributes
-  linearGradientSpread = ((.) linearGradient) linearGradientSpread
-  linearGradientStart = ((.) linearGradient) linearGradientStart
-  linearGradientStop = ((.) linearGradient) linearGradientStop
-  linearGradientStops = ((.) linearGradient) linearGradientStops
-  linearGradientTransform
-    = ((.) linearGradient) linearGradientTransform
-  linearGradientUnits = ((.) linearGradient) linearGradientUnits
-
-instance HasLinearGradient LinearGradient where
-  {-# INLINE linearGradientSpread #-}
-  {-# INLINE linearGradientStart #-}
-  {-# INLINE linearGradientStop #-}
-  {-# INLINE linearGradientStops #-}
-  {-# INLINE linearGradientTransform #-}
-  {-# INLINE linearGradientUnits #-}
-  linearGradient = id
-  linearGradientSpread f attr =
-    fmap (\y -> attr { _linearGradientSpread = y }) (f $ _linearGradientSpread attr)
-  linearGradientStart f attr =
-    fmap (\y -> attr { _linearGradientStart = y }) (f $ _linearGradientStart attr)
-  linearGradientStop f attr =
-    fmap (\y -> attr { _linearGradientStop = y }) (f $ _linearGradientStop attr)
-  linearGradientStops f attr =
-    fmap (\y -> attr { _linearGradientStops = y }) (f $ _linearGradientStops attr)
-  linearGradientTransform f attr =
-    fmap (\y -> attr { _linearGradientTransform = y }) (f $ _linearGradientTransform attr)
-  linearGradientUnits f attr =
-    fmap (\y -> attr { _linearGradientUnits = y }) (f $ _linearGradientUnits attr)
-
-
-instance HasDrawAttributes LinearGradient where
-  drawAttributes = linearGradientDrawAttributes
 
 instance WithDefaultSvg LinearGradient where
   defaultSvg = LinearGradient
@@ -1721,70 +1618,6 @@ data RadialGradient = RadialGradient
   }
   deriving (Eq, Show, Generic)
 
--- makeClassy ''RadialGradient
--- | Lenses for the RadialGradient type.
-
-class HasRadialGradient c_apwt where
-  radialGradient :: Lens' c_apwt RadialGradient
-  radialGradientDrawAttributes :: Lens' c_apwt DrawAttributes
-  radialGradientCenter :: Lens' c_apwt Point
-  {-# INLINE radialGradientCenter #-}
-  radialGradientFocusX :: Lens' c_apwt (Maybe Number)
-  {-# INLINE radialGradientFocusX #-}
-  radialGradientFocusY :: Lens' c_apwt (Maybe Number)
-  {-# INLINE radialGradientFocusY #-}
-  radialGradientRadius :: Lens' c_apwt Number
-  {-# INLINE radialGradientRadius #-}
-  radialGradientSpread :: Lens' c_apwt Spread
-  {-# INLINE radialGradientSpread #-}
-  radialGradientStops :: Lens' c_apwt [GradientStop]
-  {-# INLINE radialGradientStops #-}
-  radialGradientTransform :: Lens' c_apwt [Transformation]
-  {-# INLINE radialGradientTransform #-}
-  radialGradientUnits :: Lens' c_apwt CoordinateUnits
-  {-# INLINE radialGradientUnits #-}
-  radialGradientDrawAttributes = ((.) radialGradient) radialGradientDrawAttributes
-  radialGradientCenter = ((.) radialGradient) radialGradientCenter
-  radialGradientFocusX = ((.) radialGradient) radialGradientFocusX
-  radialGradientFocusY = ((.) radialGradient) radialGradientFocusY
-  radialGradientRadius = ((.) radialGradient) radialGradientRadius
-  radialGradientSpread = ((.) radialGradient) radialGradientSpread
-  radialGradientStops = ((.) radialGradient) radialGradientStops
-  radialGradientTransform
-    = ((.) radialGradient) radialGradientTransform
-  radialGradientUnits = ((.) radialGradient) radialGradientUnits
-
-instance HasRadialGradient RadialGradient where
-  {-# INLINE radialGradientCenter #-}
-  {-# INLINE radialGradientFocusX #-}
-  {-# INLINE radialGradientFocusY #-}
-  {-# INLINE radialGradientRadius #-}
-  {-# INLINE radialGradientSpread #-}
-  {-# INLINE radialGradientStops #-}
-  {-# INLINE radialGradientTransform #-}
-  {-# INLINE radialGradientUnits #-}
-  radialGradient = id
-  radialGradientCenter f attr =
-    fmap (\y -> attr { _radialGradientCenter = y }) (f $ _radialGradientCenter attr)
-  radialGradientFocusX f attr =
-    fmap (\y -> attr { _radialGradientFocusX = y }) (f $ _radialGradientFocusX attr)
-  radialGradientFocusY f attr =
-    fmap (\y -> attr { _radialGradientFocusY = y }) (f $ _radialGradientFocusY attr)
-  radialGradientRadius f attr =
-    fmap (\y -> attr { _radialGradientRadius = y }) (f $ _radialGradientRadius attr)
-  radialGradientSpread f attr =
-    fmap (\y -> attr { _radialGradientSpread = y }) (f $ _radialGradientSpread attr)
-  radialGradientStops f attr =
-    fmap (\y -> attr { _radialGradientStops = y }) (f $ _radialGradientStops attr)
-  radialGradientTransform f attr =
-    fmap (\y -> attr { _radialGradientTransform = y }) (f $ _radialGradientTransform attr)
-  radialGradientUnits f attr =
-    fmap (\y -> attr { _radialGradientUnits = y }) (f $ _radialGradientUnits attr)
-
-
-instance HasDrawAttributes RadialGradient where
-  drawAttributes = radialGradientDrawAttributes
-
 instance WithDefaultSvg RadialGradient where
   defaultSvg = RadialGradient
     { _radialGradientDrawAttributes = mempty
@@ -1817,60 +1650,6 @@ data Mask = Mask
   }
   deriving (Eq, Show, Generic)
 
--- makeClassy ''Mask
--- | Lenses for the Mask type.
-class HasMask c_apHI where
-  mask :: Lens' c_apHI Mask
-  maskContent :: Lens' c_apHI [Tree]
-  {-# INLINE maskContent #-}
-  maskContentUnits :: Lens' c_apHI CoordinateUnits
-  {-# INLINE maskContentUnits #-}
-  maskDrawAttributes :: Lens' c_apHI DrawAttributes
-  {-# INLINE maskDrawAttributes #-}
-  maskHeight :: Lens' c_apHI Number
-  {-# INLINE maskHeight #-}
-  maskPosition :: Lens' c_apHI Point
-  {-# INLINE maskPosition #-}
-  maskUnits :: Lens' c_apHI CoordinateUnits
-  {-# INLINE maskUnits #-}
-  maskWidth :: Lens' c_apHI Number
-  {-# INLINE maskWidth #-}
-  maskContent = ((.) mask) maskContent
-  maskContentUnits = ((.) mask) maskContentUnits
-  maskDrawAttributes = ((.) mask) maskDrawAttributes
-  maskHeight = ((.) mask) maskHeight
-  maskPosition = ((.) mask) maskPosition
-  maskUnits = ((.) mask) maskUnits
-  maskWidth = ((.) mask) maskWidth
-
-instance HasMask Mask where
-  {-# INLINE maskContent #-}
-  {-# INLINE maskContentUnits #-}
-  {-# INLINE maskDrawAttributes #-}
-  {-# INLINE maskHeight #-}
-  {-# INLINE maskPosition #-}
-  {-# INLINE maskUnits #-}
-  {-# INLINE maskWidth #-}
-  mask = id
-  maskContent f attr =
-    fmap (\y -> attr { _maskContent = y }) (f $ _maskContent attr)
-  maskContentUnits f attr =
-    fmap (\y -> attr { _maskContentUnits = y }) (f $ _maskContentUnits attr)
-  maskDrawAttributes f attr =
-    fmap (\y -> attr { _maskDrawAttributes = y }) (f $ _maskDrawAttributes attr)
-  maskHeight f attr =
-    fmap (\y -> attr { _maskHeight = y }) (f $ _maskHeight attr)
-  maskPosition f attr =
-    fmap (\y -> attr { _maskPosition = y }) (f $ _maskPosition attr)
-  maskUnits f attr =
-    fmap (\y -> attr { _maskUnits = y }) (f $ _maskUnits attr)
-  maskWidth f attr =
-    fmap (\y -> attr { _maskWidth = y }) (f $ _maskWidth attr)
-
-
-instance HasDrawAttributes Mask where
-  drawAttributes = maskDrawAttributes
-
 instance WithDefaultSvg Mask where
   defaultSvg = Mask
     { _maskDrawAttributes = mempty
@@ -1892,34 +1671,6 @@ data ClipPath = ClipPath
   }
   deriving (Eq, Show, Generic)
 
--- makeClassy ''ClipPath
--- | Lenses for the ClipPath type.
-class HasClipPath c_apZq where
-  clipPath :: Lens' c_apZq ClipPath
-  clipPathContent :: Lens' c_apZq [Tree]
-  {-# INLINE clipPathContent #-}
-  clipPathDrawAttributes :: Lens' c_apZq DrawAttributes
-  {-# INLINE clipPathDrawAttributes #-}
-  clipPathUnits :: Lens' c_apZq CoordinateUnits
-  {-# INLINE clipPathUnits #-}
-  clipPathContent = ((.) clipPath) clipPathContent
-  clipPathDrawAttributes = ((.) clipPath) clipPathDrawAttributes
-  clipPathUnits = ((.) clipPath) clipPathUnits
-instance HasClipPath ClipPath where
-  {-# INLINE clipPathContent #-}
-  {-# INLINE clipPathDrawAttributes #-}
-  {-# INLINE clipPathUnits #-}
-  clipPath = id
-  clipPathContent f attr =
-    fmap (\y -> attr { _clipPathContent = y }) (f $ _clipPathContent attr)
-  clipPathDrawAttributes f attr =
-    fmap (\y -> attr { _clipPathDrawAttributes = y }) (f $ _clipPathDrawAttributes attr)
-  clipPathUnits f attr =
-    fmap (\y -> attr { _clipPathUnits = y }) (f $ _clipPathUnits attr)
-
-
-instance HasDrawAttributes ClipPath where
-  drawAttributes = clipPathDrawAttributes
 
 instance WithDefaultSvg ClipPath where
   defaultSvg = ClipPath
@@ -2130,13 +1881,41 @@ makeLenses ''Use
 makeLenses ''TextSpan
 makeLenses ''TextInfo
 makeLenses ''Marker
+makeLenses ''GradientStop
+makeLenses ''LinearGradient
+makeLenses ''RadialGradient
+makeLenses ''Mask
+makeLenses ''ClipPath
+makeLenses ''ColorMatrix
+makeLenses ''Composite
+makeLenses ''GaussianBlur
+makeLenses ''Turbulence
+makeLenses ''DisplacementMap
+makeLenses ''Symbol
+makeLenses ''Definitions
 
+makeClassy ''Group
 makeClassy ''FilterAttributes
-makeClassy ''Composite
-makeClassy ''ColorMatrix
-makeClassy ''GaussianBlur
-makeClassy ''Turbulence
-makeClassy ''DisplacementMap
+
+instance HasDrawAttributes (Definitions a) where
+  drawAttributes = groupOfDefinitions . drawAttributes
+
+instance HasDrawAttributes (Symbol a) where
+  drawAttributes = groupOfSymbol . drawAttributes
+instance HasDrawAttributes (Group a) where
+  drawAttributes = groupDrawAttributes
+
+instance HasDrawAttributes ClipPath where
+  drawAttributes = clipPathDrawAttributes
+
+instance HasDrawAttributes Mask where
+  drawAttributes = maskDrawAttributes
+
+instance HasDrawAttributes RadialGradient where
+  drawAttributes = radialGradientDrawAttributes
+
+instance HasDrawAttributes LinearGradient where
+  drawAttributes = linearGradientDrawAttributes
 
 instance HasDrawAttributes Marker where
   drawAttributes = markerDrawAttributes
@@ -2194,6 +1973,14 @@ instance HasDrawAttributes Circle where
 
 instance HasDrawAttributes Text where
   drawAttributes = textRoot . spanDrawAttributes
+
+
+
+instance HasGroup (Definitions a) a where
+  group = groupOfDefinitions
+
+instance HasGroup (Symbol a) a where
+  group = groupOfSymbol
 
 
 
