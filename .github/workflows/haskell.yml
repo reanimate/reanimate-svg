@@ -10,6 +10,7 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         ghc: ['8.4', '8.6', '8.8', '8.10']
         os: [ubuntu-latest, macOS-latest, windows-latest]

@@ -1,5 +1,13 @@
 -*-change-log-*-
 
+v0.11.0.0
+
+ * Drop support for GHC 7.
+
+v0.10.3.0 September 2020
+
+ * Generic and Hashable instances.
+
 v0.9.0.0 April 2019
 
  * Performance optimizations.

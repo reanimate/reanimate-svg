@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Graphics.SvgTree.ColorParser
   ( colorParser
@@ -7,10 +6,6 @@ module Graphics.SvgTree.ColorParser
   , textureSerializer
   , urlRef
   ) where
-
-#if !MIN_VERSION_base(4,8,0)
-import           Control.Applicative      ((*>), (<$), (<$>), (<*), (<*>))
-#endif
 
 import           Control.Applicative      ((<|>))
 import           Data.Attoparsec.Text     (Parser, char, digit, inClass, letter,

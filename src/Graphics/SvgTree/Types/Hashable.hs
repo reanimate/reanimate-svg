@@ -1,10 +1,10 @@
+{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE DeriveAnyClass #-}
 {-# OPTIONS_GHC -Wno-orphans -O0 #-}
 module Graphics.SvgTree.Types.Hashable where
 
-import Data.Hashable (Hashable)
-import Graphics.SvgTree.Types
+import           Data.Hashable          (Hashable)
+import           Graphics.SvgTree.Types
 
 deriving instance Hashable DrawAttributes
 deriving instance Hashable Pattern

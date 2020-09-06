@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP               #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -15,17 +14,7 @@ module Graphics.SvgTree.XmlParser
   ) where
 
 
-#if !MIN_VERSION_base(4,6,0)
-import           Text.Read                    (reads)
-#else
 import           Text.Read                    (readMaybe)
-#endif
-
-#if !MIN_VERSION_base(4,8,0)
-import           Control.Applicative          (pure, (<$), (<$>), (<*>))
-import           Data.Foldable                (foldMap)
-import           Data.Monoid                  (mempty)
-#endif
 
 import           Control.Applicative          (many, (<|>))
 
@@ -36,29 +25,22 @@ import           Control.Lens.Unsound
 import           Data.Attoparsec.Text         (Parser, parseOnly, string)
 import           Data.List                    (foldl', intercalate)
 import           Data.Maybe                   (catMaybes, fromMaybe)
-import           Data.Monoid                  (Last (Last), getLast, (<>))
+import           Data.Monoid
 import qualified Data.Text                    as T
 import           Graphics.SvgTree.ColorParser
 import           Graphics.SvgTree.CssParser   (complexNumber, dashArray, num,
                                                numberList, styleString)
 import           Graphics.SvgTree.CssTypes    (CssDeclaration (..),
                                                CssElement (..))
+import           Graphics.SvgTree.Misc
 import           Graphics.SvgTree.PathParser
 import           Graphics.SvgTree.Types
-import           Graphics.SvgTree.Misc
 import qualified Text.XML.Light               as X
 import           Text.XML.Light.Proc          (elChildren, findAttrBy)
 
 import           Text.Printf                  (printf)
 
 {-import Debug.Trace-}
-
-#if !MIN_VERSION_base(4,6,0)
-readMaybe :: Read a => String -> Maybe a
-readMaybe str = case reads str of
-  []       -> Nothing
-  (x, _):_ -> Just x
-#endif
 
 nodeName :: X.Element -> String
 nodeName = X.qName . X.elName
@@ -1266,7 +1248,7 @@ unparse e@(nodeName -> "g") =
   GroupTree $ xmlUnparseWithDrawAttr e & groupChildren .~ map unparse (elChildren e)
 unparse e@(nodeName -> "svg") =
   case unparseDocument "" e of
-    Nothing -> None
+    Nothing  -> None
     Just doc -> SvgTree doc
 unparse e@(nodeName -> "text") =
   TextTree tPath $ xmlUnparse e & textRoot .~ root

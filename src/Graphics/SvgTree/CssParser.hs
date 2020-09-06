@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
 module Graphics.SvgTree.CssParser
@@ -12,11 +11,6 @@ module Graphics.SvgTree.CssParser
   , num
   , cssRulesOfText
   ) where
-
-#if !MIN_VERSION_base(4,8,0)
-import           Control.Applicative        (pure, (*>), (<$), (<$>), (<*),
-                                             (<*>))
-#endif
 
 import           Control.Applicative        (many, (<|>))
 import           Data.Attoparsec.Text       (Parser, char, digit, double,

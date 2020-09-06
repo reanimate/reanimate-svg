@@ -1,13 +1,12 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE CPP                    #-}
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass         #-}
+{-# LANGUAGE DeriveGeneric          #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE RankNTypes             #-}
+{-# LANGUAGE StandaloneDeriving     #-}
 {-# LANGUAGE TemplateHaskell        #-}
 -- | This module define all the types used in the definition
 -- of a svg scene.
@@ -215,11 +214,6 @@ module Graphics.SvgTree.Types
     , mapNumber
     ) where
 
-#if !MIN_VERSION_base(4,8,0)
-import           Data.Foldable             (Foldable)
-import           Data.Monoid               (Monoid (..))
-#endif
-
 import           Codec.Picture             (PixelRGBA8 (..))
 import           Control.Lens              (Lens, Lens', lens, view, (&), (.~),
                                             (^.))
@@ -229,7 +223,6 @@ import           Data.Function             (on)
 import           Data.Hashable             (Hashable)
 import           Data.List                 (inits)
 import           Data.Monoid               (Last (..))
-import           Data.Semigroup            (Semigroup (..))
 import qualified Data.Text                 as T
 import           GHC.Generics              (Generic)
 import           Graphics.SvgTree.CssTypes
@@ -1689,15 +1682,15 @@ data TransferFunctionType
   deriving (Eq, Show, Generic)
 
 data TransferFunction = TransferFunction
-  { _transferFunctionDrawAttributes   :: !DrawAttributes
-  , _transferFunctionFilterAttr       :: !FilterAttributes
-  , _transferFunctionType             :: TransferFunctionType
-  , _transferFunctionTableValues      :: [Double]
-  , _transferFunctionSlope            :: Double
-  , _transferFunctionIntercept        :: Double
-  , _transferFunctionAmplitude        :: Double
-  , _transferFunctionExponent         :: Double
-  , _transferFunctionOffset           :: Double
+  { _transferFunctionDrawAttributes :: !DrawAttributes
+  , _transferFunctionFilterAttr     :: !FilterAttributes
+  , _transferFunctionType           :: TransferFunctionType
+  , _transferFunctionTableValues    :: [Double]
+  , _transferFunctionSlope          :: Double
+  , _transferFunctionIntercept      :: Double
+  , _transferFunctionAmplitude      :: Double
+  , _transferFunctionExponent       :: Double
+  , _transferFunctionOffset         :: Double
   } deriving (Eq, Show, Generic)
 
 data ChannelSelector
@@ -2647,12 +2640,12 @@ data Element
 -- | Represent a full svg document with style,
 -- geometry and named elements.
 data Document = Document
-    { _viewBox          :: Maybe (Double, Double, Double, Double)
-    , _width            :: Maybe Number
-    , _height           :: Maybe Number
-    , _elements         :: [Tree]
-    , _description      :: String
-    , _documentLocation :: FilePath
+    { _viewBox             :: Maybe (Double, Double, Double, Double)
+    , _width               :: Maybe Number
+    , _height              :: Maybe Number
+    , _elements            :: [Tree]
+    , _description         :: String
+    , _documentLocation    :: FilePath
     , _documentAspectRatio :: PreserveAspectRatio
     }
     deriving (Show, Eq, Generic)
