@@ -474,7 +474,6 @@ data DrawAttributes = DrawAttributes
       -- Correspond to the `marker-end` attribute.
     , _markerEnd        :: !(Last ElementRef)
     , _filterRef        :: !(Last ElementRef)
-    , _preRendered      :: !(Maybe String)
     }
     deriving (Eq, Show, Generic)
 
@@ -2033,7 +2032,7 @@ drawAttrOfTree v = case v of
   SvgTree _            -> mempty -- FIXME
 
 setDrawAttrOfTree :: Tree -> DrawAttributes -> Tree
-setDrawAttrOfTree v attr' = case v of
+setDrawAttrOfTree v attr = case v of
   None                 -> None
   UseTree e m          -> UseTree (e & drawAttributes .~ attr) m
   GroupTree e          -> GroupTree $ e & drawAttributes .~ attr
@@ -2057,8 +2056,6 @@ setDrawAttrOfTree v attr' = case v of
   MaskTree e           -> MaskTree $ e & drawAttributes .~ attr
   ClipPathTree e       -> ClipPathTree $ e & drawAttributes .~ attr
   SvgTree e            -> SvgTree e
-  where
-    attr = attr'{_preRendered = Nothing}
 
 instance HasDrawAttributes Tree where
   drawAttributes = lens drawAttrOfTree setDrawAttrOfTree
@@ -2603,7 +2600,6 @@ instance Semigroup DrawAttributes where
         , _markerMid = (mappend `on` _markerMid) a b
         , _markerEnd = (mappend `on` _markerEnd) a b
         , _filterRef = (mappend `on` _filterRef) a b
-        , _preRendered = Nothing
         }
       where
         opacityMappend Nothing Nothing    = Nothing
@@ -2641,7 +2637,6 @@ instance Monoid DrawAttributes where
         , _markerMid        = Last Nothing
         , _markerEnd        = Last Nothing
         , _filterRef        = Last Nothing
-        , _preRendered      = Nothing
         }
 
 instance WithDefaultSvg DrawAttributes where

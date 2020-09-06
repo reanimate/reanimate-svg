@@ -8,8 +8,7 @@ import           Data.List
 import           Graphics.SvgTree.Types     (Document (..),
                                              Tree (..), clipPathContent,
                                              groupChildren, markerElements,
-                                             maskContent, patternElements,
-                                             preRendered)
+                                             maskContent, patternElements)
 import           Graphics.SvgTree.XmlParser
 import           Text.XML.Light             hiding (showAttr)
 
@@ -22,12 +21,9 @@ ppTree t = ppTreeS t ""
 
 ppTreeS :: Tree -> ShowS
 ppTreeS tree =
-  case tree ^. preRendered of
-    Nothing ->
-      case xmlOfTree tree of
-        Just x  -> ppElementS_ (treeChildren tree) x
-        Nothing -> id
-    Just s -> showString s
+  case xmlOfTree tree of
+    Just x  -> ppElementS_ (treeChildren tree) x
+    Nothing -> id
 
 treeChildren :: Tree -> [Tree]
 treeChildren (GroupTree g)      = g^.groupChildren

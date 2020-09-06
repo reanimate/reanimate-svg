@@ -1,17 +1,14 @@
 module Graphics.SvgTree.Memo
   ( memo
-  , preRender
   ) where
 
-import           Control.Lens
-import           Data.IORef
-import           Data.Map                 (Map)
-import qualified Data.Map                 as Map
-import           Data.Maybe
-import           Data.Typeable
-import           Graphics.SvgTree.Printer
-import           Graphics.SvgTree.Types   (Tree, preRendered)
-import           System.IO.Unsafe
+import           Data.IORef             (IORef, atomicModifyIORef, newIORef)
+import           Data.Map               (Map)
+import qualified Data.Map               as Map
+import           Data.Maybe             (catMaybes, listToMaybe)
+import           Data.Typeable          (TypeRep, Typeable, cast, typeOf)
+import           Graphics.SvgTree.Types (Tree)
+import           System.IO.Unsafe       (unsafePerformIO)
 
 {-# NOINLINE intCache #-}
 intCache :: IORef (Map Int Tree)
@@ -37,7 +34,7 @@ memo fn =
 memoUsing :: Ord a => IORef (Map a Tree) -> (a -> Tree) -> (a -> Tree)
 memoUsing cache fn a = unsafePerformIO $
   atomicModifyIORef cache $ \m ->
-    let newVal = preRender $ fn a
+    let newVal = fn a
         notFound =
           (Map.insert a newVal m, newVal) in
     case Map.lookup a m of
@@ -47,15 +44,12 @@ memoUsing cache fn a = unsafePerformIO $
 memoAny :: (Typeable a, Show a) => (a -> Tree) -> (a -> Tree)
 memoAny fn a = unsafePerformIO $
   atomicModifyIORef anyCache $ \m ->
-    let newVal = preRender $ fn a
+    let newVal = fn a
         notFound =
           (Map.insert (typeOf a, show a) newVal m, newVal) in
     case Map.lookup (typeOf a, show a) m of
       Nothing -> notFound
       Just t  -> (m, t)
-
-preRender :: Tree -> Tree
-preRender t = t & preRendered .~ Just (ppTree t)
 
 -- {-# INLINE memo #-}
 -- memo :: (a -> b) -> (a -> b)
