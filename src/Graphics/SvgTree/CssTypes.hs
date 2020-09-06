@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 -- | Define the types used to describes CSS elements
 module Graphics.SvgTree.CssTypes
@@ -22,13 +21,8 @@ module Graphics.SvgTree.CssTypes
   , tserialize
   ) where
 
-#if !MIN_VERSION_base(4,8,0)
-import           Data.Monoid            (mconcat)
-#endif
-
 import           Data.Hashable          (Hashable)
 import           Data.List              (intersperse)
-import           Data.Monoid            ((<>))
 import qualified Data.Text              as T
 import qualified Data.Text.Lazy.Builder as TB
 import           GHC.Generics           (Generic)
