@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE DeriveGeneric          #-}
 {-# LANGUAGE FlexibleInstances      #-}
@@ -44,7 +43,13 @@ module Graphics.SvgTree.Types
 
       -- * Main type
     , Document( .. )
-    , HasDocument( .. )
+    , viewBox
+    , width
+    , height
+    , elements
+    , description
+    , documentLocation
+    , documentAspectRatio
     , documentSize
 
       -- * Drawing attributes
@@ -76,7 +81,11 @@ module Graphics.SvgTree.Types
       -- * SVG drawing primitives
       -- ** Rectangle
     , Rectangle( .. )
-    , HasRectangle( .. )
+    , rectDrawAttributes
+    , rectUpperLeftCorner
+    , rectWidth
+    , rectHeight
+    , rectCornerRadius
 
       -- ** Line
     , Line( .. )
@@ -635,47 +644,7 @@ data Rectangle = Rectangle
   }
   deriving (Eq, Show, Generic)
 
--- makeClassy ''Rectangle
--- | Lenses for the Rectangle type.
-class HasRectangle a where
-  rectangle :: Lens' a Rectangle
-  rectCornerRadius :: Lens' a (Maybe Number, Maybe Number)
-  {-# INLINE rectCornerRadius #-}
-  rectCornerRadius = rectangle . rectCornerRadius
-
-  rectDrawAttributes :: Lens' a DrawAttributes
-  {-# INLINE rectDrawAttributes #-}
-  rectDrawAttributes = rectangle . rectDrawAttributes
-
-  rectHeight :: Lens' a (Maybe Number)
-  {-# INLINE rectHeight #-}
-  rectHeight = rectangle . rectHeight
-
-  rectUpperLeftCorner :: Lens' a Point
-  {-# INLINE rectUpperLeftCorner #-}
-  rectUpperLeftCorner = rectangle . rectUpperLeftCorner
-
-  rectWidth :: Lens' a (Maybe Number)
-  {-# INLINE rectWidth #-}
-  rectWidth = rectangle . rectWidth
-
-instance HasRectangle Rectangle where
-  rectangle = id
-  {-# INLINE rectCornerRadius #-}
-  rectCornerRadius f attr =
-    fmap (\y -> attr { _rectCornerRadius = y }) (f $ _rectCornerRadius attr)
-  {-# INLINE rectDrawAttributes #-}
-  rectDrawAttributes f attr =
-    fmap (\y -> attr { _rectDrawAttributes = y }) (f $ _rectDrawAttributes attr)
-  {-# INLINE rectHeight #-}
-  rectHeight f attr =
-    fmap (\y -> attr { _rectHeight = y }) (f $ _rectHeight attr)
-  {-# INLINE rectUpperLeftCorner #-}
-  rectUpperLeftCorner f attr =
-    fmap (\y -> attr { _rectUpperLeftCorner = y }) (f $ _rectUpperLeftCorner attr)
-  {-# INLINE rectWidth #-}
-  rectWidth f attr =
-    fmap (\y -> attr { _rectWidth = y }) (f $ _rectWidth attr)
+makeLenses ''Rectangle
 
 instance HasDrawAttributes Rectangle where
     drawAttributes = rectDrawAttributes
@@ -2543,7 +2512,7 @@ data Document = Document
 
 
 -- | Lenses associated to a SVG document.
-makeClassy ''Document
+makeLenses ''Document
 
 -- | Calculate the document size in function of the
 -- different available attributes in the document.
