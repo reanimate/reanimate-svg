@@ -89,48 +89,74 @@ module Graphics.SvgTree.Types
 
       -- ** Line
     , Line( .. )
-    , HasLine( .. )
+    , lineDrawAttributes
+    , linePoint1
+    , linePoint2
 
       -- ** Polygon
     , Polygon( .. )
-    , HasPolygon( .. )
+    , polygonDrawAttributes
+    , polygonPoints
 
       -- ** Polyline
     , PolyLine( .. )
-    , HasPolyLine( .. )
+    , polyLineDrawAttributes
+    , polyLinePoints
 
       -- ** Path
     , Path( .. )
-    , HasPath( .. )
+    , pathDrawAttributes
+    , pathDefinition
 
       -- ** Circle
     , Circle( .. )
-    , HasCircle( .. )
+    , circleDrawAttributes
+    , circleCenter
+    , circleRadius
+
 
       -- ** Ellipse
     , Ellipse( .. )
-    , HasEllipse( .. )
+    , ellipseDrawAttributes
+    , ellipseCenter
+    , ellipseXRadius
+    , ellipseYRadius
 
       -- ** Mesh (gradient mesh)
     , GradientPathCommand( .. )
     , MeshGradientType( .. )
 
     , MeshGradient( .. )
-    , HasMeshGradient( .. )
+    , meshGradientDrawAttributes
+    , meshGradientX
+    , meshGradientY
+    , meshGradientType
+    , meshGradientUnits
+    , meshGradientTransform
+    , meshGradientRows
 
     , MeshGradientRow( .. )
-    , HasMeshGradientRow( .. )
+    , meshGradientRowPatches
 
     , MeshGradientPatch( .. )
-    , HasMeshGradientPatch( .. )
+    , meshGradientPatchStops
 
       -- ** Image
     , Image( .. )
-    , HasImage( .. )
+    , imageDrawAttributes
+    , imageCornerUpperLeft
+    , imageWidth
+    , imageHeight
+    , imageHref
+    , imageAspectRatio
 
       -- ** Use
     , Use( .. )
-    , HasUse( .. )
+    , useDrawAttributes
+    , useBase
+    , useName
+    , useWidth
+    , useHeight
 
       -- * Grouping primitives
       -- ** Group
@@ -152,13 +178,17 @@ module Graphics.SvgTree.Types
       -- * Text related types
       -- ** Text
     , Text( .. )
-    , HasText( .. )
+    , textAdjust
+    , textRoot
     , TextAnchor( .. )
     , textAt
 
       -- ** Text path
     , TextPath( .. )
-    , HasTextPath( .. )
+    , textPathStartOffset
+    , textPathName
+    , textPathMethod
+    , textPathSpacing
 
     , TextPathSpacing( .. )
     , TextPathMethod( .. )
@@ -167,10 +197,17 @@ module Graphics.SvgTree.Types
     , TextSpanContent( .. )
 
     , TextSpan( .. )
-    , HasTextSpan( .. )
+    , spanInfo
+    , spanDrawAttributes
+    , spanContent
 
     , TextInfo( .. )
-    , HasTextInfo( .. )
+    , textInfoX
+    , textInfoY
+    , textInfoDX
+    , textInfoDY
+    , textInfoRotate
+    , textInfoLength
 
     , TextAdjust( .. )
 
@@ -179,7 +216,16 @@ module Graphics.SvgTree.Types
     , Overflow( .. )
     , MarkerOrientation( .. )
     , MarkerUnit( .. )
-    , HasMarker( .. )
+    , markerDrawAttributes
+    , markerRefPoint
+    , markerWidth
+    , markerHeight
+    , markerOrient
+    , markerUnits
+    , markerViewBox
+    , markerOverflow
+    , markerAspectRatio
+    , markerElements
 
       -- * Gradient definition
     , GradientStop( .. )
@@ -195,7 +241,16 @@ module Graphics.SvgTree.Types
 
       -- * Pattern definition
     , Pattern( .. )
-    , HasPattern( .. )
+    , patternDrawAttributes
+    , patternViewBox
+    , patternWidth
+    , patternHeight
+    , patternPos
+    , patternHref
+    , patternElements
+    , patternUnit
+    , patternAspectRatio
+    , patternTransform
 
       -- * Mask definition
     , Mask( .. )
@@ -209,7 +264,9 @@ module Graphics.SvgTree.Types
     , PreserveAspectRatio( .. )
     , Alignment( .. )
     , MeetSlice( .. )
-    , HasPreserveAspectRatio( .. )
+    , aspectRatioDefer
+    , aspectRatioAlign
+    , aspectRatioMeetSlice
 
       -- * MISC functions
     , nameOfTree
@@ -507,29 +564,6 @@ instance WithDefaultSvg PolyLine where
     , _polyLinePoints = []
     }
 
--- makeClassy ''PolyLine
--- | Lenses for the PolyLine type.
-class HasPolyLine a where
-  polyLine :: Lens' a PolyLine
-  polyLineDrawAttributes :: Lens' a DrawAttributes
-  {-# INLINE polyLineDrawAttributes #-}
-  polyLineDrawAttributes = polyLine . polyLineDrawAttributes
-
-  polyLinePoints :: Lens' a [RPoint]
-  {-# INLINE polyLinePoints #-}
-  polyLinePoints = polyLine . polyLinePoints
-
-instance HasPolyLine PolyLine where
-  polyLine = id
-  {-# INLINE polyLineDrawAttributes #-}
-  polyLineDrawAttributes f p =
-    fmap (\y -> p { _polyLineDrawAttributes = y }) (f $ _polyLineDrawAttributes p)
-  {-# INLINE polyLinePoints #-}
-  polyLinePoints f p =
-    fmap (\y -> p { _polyLinePoints = y }) (f $ _polyLinePoints p)
-
-instance HasDrawAttributes PolyLine where
-    drawAttributes = polyLineDrawAttributes
 
 -- | Primitive decriving polygon composed
 -- of segements. Correspond to the `<polygon>`
@@ -543,28 +577,6 @@ data Polygon = Polygon
   }
   deriving (Eq, Show, Generic)
 
--- makeClassy ''Polygon
--- | Lenses for the Polygon type
-class HasPolygon a where
-  polygon :: Lens' a Polygon
-  polygonDrawAttributes :: Lens' a DrawAttributes
-  {-# INLINE polygonDrawAttributes #-}
-  polygonPoints :: Lens' a [RPoint]
-  {-# INLINE polygonPoints #-}
-  polygonDrawAttributes = polygon . polygonDrawAttributes
-  polygonPoints = polygon . polygonPoints
-
-instance HasPolygon Polygon where
-  polygon = id
-  {-# INLINE polygonDrawAttributes #-}
-  polygonDrawAttributes f p =
-    fmap (\y -> p { _polygonDrawAttributes = y }) (f $ _polygonDrawAttributes p)
-  {-# INLINE polygonPoints #-}
-  polygonPoints f p =
-    fmap (\y -> p { _polygonPoints = y }) (f $ _polygonPoints p)
-
-instance HasDrawAttributes Polygon where
-    drawAttributes = polygonDrawAttributes
 
 instance WithDefaultSvg Polygon where
   defaultSvg = Polygon
@@ -585,35 +597,6 @@ data Line = Line
   , _linePoint2         :: !Point
   }
   deriving (Eq, Show, Generic)
-
--- makeClassy ''Line
--- | Lenses for the Line type.
-class HasLine a where
-  line :: Lens' a Line
-  lineDrawAttributes :: Lens' a DrawAttributes
-  lineDrawAttributes = line . lineDrawAttributes
-  {-# INLINE lineDrawAttributes #-}
-  linePoint1 :: Lens' a Point
-  linePoint1 = line . linePoint1
-  {-# INLINE linePoint1 #-}
-  linePoint2 :: Lens' a Point
-  linePoint2 = line . linePoint2
-  {-# INLINE linePoint2 #-}
-
-instance HasLine Line where
-  line = id
-  {-# INLINE lineDrawAttributes #-}
-  lineDrawAttributes f l =
-      fmap (\y -> l { _lineDrawAttributes = y }) (f (_lineDrawAttributes l))
-  {-# INLINE linePoint1 #-}
-  linePoint1 f l =
-      fmap (\y -> l { _linePoint1 = y }) (f (_linePoint1 l))
-  {-# INLINE linePoint2 #-}
-  linePoint2 f l =
-      fmap (\y -> l { _linePoint2 = y }) (f (_linePoint2 l))
-
-instance HasDrawAttributes Line where
-    drawAttributes = lineDrawAttributes
 
 instance WithDefaultSvg Line where
   defaultSvg = Line
@@ -644,11 +627,6 @@ data Rectangle = Rectangle
   }
   deriving (Eq, Show, Generic)
 
-makeLenses ''Rectangle
-
-instance HasDrawAttributes Rectangle where
-    drawAttributes = rectDrawAttributes
-
 instance WithDefaultSvg Rectangle where
   defaultSvg = Rectangle
     { _rectDrawAttributes  = mempty
@@ -667,30 +645,6 @@ data Path = Path
   , _pathDefinition     :: ![PathCommand]
   }
   deriving (Eq, Show, Generic)
-
--- makeClassy ''Path
--- | Lenses for the Path type
-class HasPath c_alhy where
-  path :: Lens' c_alhy Path
-  pathDefinition :: Lens' c_alhy [PathCommand]
-  {-# INLINE pathDefinition #-}
-  pathDefinition = path . pathDefinition
-
-  pathDrawAttributes :: Lens' c_alhy DrawAttributes
-  {-# INLINE pathDrawAttributes #-}
-  pathDrawAttributes = path . pathDrawAttributes
-
-instance HasPath Path where
-  path = id
-  {-# INLINE pathDefinition #-}
-  pathDefinition f attr =
-    fmap (\y -> attr { _pathDefinition = y }) (f $ _pathDefinition attr)
-  {-# INLINE pathDrawAttributes #-}
-  pathDrawAttributes f attr =
-    fmap (\y -> attr { _pathDrawAttributes = y }) (f $ _pathDrawAttributes attr)
-
-instance HasDrawAttributes Path where
-  drawAttributes = pathDrawAttributes
 
 instance WithDefaultSvg Path where
   defaultSvg = Path
@@ -771,7 +725,6 @@ newtype Symbol a =
 instance HasGroup (Symbol a) a where
   group = groupOfSymbol
 
--- makeLenses ''Symbol
 -- | Lenses associated with the Symbol type.
 groupOfSymbol :: Lens (Symbol s) (Symbol t) (Group s) (Group t)
 {-# INLINE groupOfSymbol #-}
@@ -792,7 +745,6 @@ newtype Definitions a =
 instance HasGroup (Definitions a) a where
   group = groupOfDefinitions
 
--- makeLenses ''Definitions
 -- | Lenses associated with the Definitions type.
 groupOfDefinitions :: Lens (Definitions s) (Definitions t) (Group s) (Group t)
 {-# INLINE groupOfDefinitions #-}
@@ -832,36 +784,6 @@ data Circle = Circle
   }
   deriving (Eq, Show, Generic)
 
--- makeClassy ''Circle
--- | Lenses for the Circle type.
-class HasCircle a where
-  circle :: Lens' a Circle
-  circleCenter :: Lens' a Point
-  {-# INLINE circleCenter #-}
-  circleCenter = circle . circleCenter
-
-  circleDrawAttributes :: Lens' a DrawAttributes
-  {-# INLINE circleDrawAttributes #-}
-  circleDrawAttributes = circle . circleDrawAttributes
-
-  circleRadius :: Lens' a Number
-  {-# INLINE circleRadius #-}
-  circleRadius = circle . circleRadius
-
-instance HasCircle Circle where
-  circle = id
-  {-# INLINE circleCenter #-}
-  circleCenter f attr =
-    fmap (\y -> attr { _circleCenter = y }) (f $ _circleCenter attr)
-  {-# INLINE circleDrawAttributes #-}
-  circleDrawAttributes f attr =
-    fmap (\y -> attr { _circleDrawAttributes = y }) (f $ _circleDrawAttributes attr)
-  {-# INLINE circleRadius #-}
-  circleRadius f attr =
-    fmap (\y -> attr { _circleRadius = y }) (f $ _circleRadius attr)
-
-instance HasDrawAttributes Circle where
-    drawAttributes = circleDrawAttributes
 
 instance WithDefaultSvg Circle where
   defaultSvg = Circle
@@ -885,41 +807,6 @@ data Ellipse = Ellipse
   , _ellipseYRadius        :: !Number
   }
   deriving (Eq, Show, Generic)
-
--- makeClassy ''Ellipse
--- | Lenses for the ellipse type.
-class HasEllipse c_amWt where
-  ellipse :: Lens' c_amWt Ellipse
-  ellipseCenter :: Lens' c_amWt Point
-  {-# INLINE ellipseCenter #-}
-  ellipseDrawAttributes :: Lens' c_amWt DrawAttributes
-  {-# INLINE ellipseDrawAttributes #-}
-  ellipseXRadius :: Lens' c_amWt Number
-  {-# INLINE ellipseXRadius #-}
-  ellipseYRadius :: Lens' c_amWt Number
-  {-# INLINE ellipseYRadius #-}
-  ellipseCenter = ((.) ellipse) ellipseCenter
-  ellipseDrawAttributes = ((.) ellipse) ellipseDrawAttributes
-  ellipseXRadius = ((.) ellipse) ellipseXRadius
-  ellipseYRadius = ((.) ellipse) ellipseYRadius
-
-instance HasEllipse Ellipse where
-  {-# INLINE ellipseCenter #-}
-  {-# INLINE ellipseDrawAttributes #-}
-  {-# INLINE ellipseXRadius #-}
-  {-# INLINE ellipseYRadius #-}
-  ellipse = id
-  ellipseCenter f attr =
-    fmap (\y -> attr { _ellipseCenter = y }) (f $ _ellipseCenter attr)
-  ellipseDrawAttributes f attr =
-    fmap (\y -> attr { _ellipseDrawAttributes = y }) (f $ _ellipseDrawAttributes attr)
-  ellipseXRadius f attr =
-    fmap (\y -> attr { _ellipseXRadius = y }) (f $ _ellipseXRadius attr)
-  ellipseYRadius f attr =
-    fmap (\y -> attr { _ellipseYRadius = y }) (f $ _ellipseYRadius attr)
-
-instance HasDrawAttributes Ellipse where
-  drawAttributes = ellipseDrawAttributes
 
 instance WithDefaultSvg Ellipse where
   defaultSvg = Ellipse
@@ -993,19 +880,6 @@ data MeshGradientPatch = MeshGradientPatch
   }
   deriving (Eq, Show, Generic)
 
--- makeClassy ''MeshGradientPatch
-class HasMeshGradientPatch c_annx where
-  meshGradientPatch :: Lens' c_annx MeshGradientPatch
-  meshGradientPatchStops :: Lens' c_annx [GradientStop]
-  {-# INLINE meshGradientPatchStops #-}
-  meshGradientPatchStops =  meshGradientPatch . meshGradientPatchStops
-
-instance HasMeshGradientPatch MeshGradientPatch where
-  {-# INLINE meshGradientPatchStops #-}
-  meshGradientPatch = id
-  meshGradientPatchStops f m =
-    fmap (\y -> m { _meshGradientPatchStops = y }) . f $ _meshGradientPatchStops m
-
 instance WithDefaultSvg MeshGradientPatch where
   defaultSvg = MeshGradientPatch []
 
@@ -1016,22 +890,8 @@ data MeshGradientRow = MeshGradientRow
   }
   deriving (Eq, Show, Generic)
 
--- makeClassy ''MeshGradientRow
-class HasMeshGradientRow c_antr where
-  meshGradientRow :: Lens' c_antr MeshGradientRow
-  meshGradientRowPatches :: Lens' c_antr [MeshGradientPatch]
-  {-# INLINE meshGradientRowPatches #-}
-  meshGradientRowPatches = meshGradientRow . meshGradientRowPatches
-
-instance HasMeshGradientRow MeshGradientRow where
-  {-# INLINE meshGradientRowPatches #-}
-  meshGradientRow = id
-  meshGradientRowPatches f m =
-      fmap (\y -> m { _meshGradientRowPatches = y }) . f $ _meshGradientRowPatches m
-
 instance WithDefaultSvg MeshGradientRow where
   defaultSvg = MeshGradientRow []
-
 
 -- | Define a `<meshgradient>` tag.
 data MeshGradient = MeshGradient
@@ -1051,58 +911,6 @@ data MeshGradient = MeshGradient
   }
   deriving (Eq, Show, Generic)
 
--- makeClassy ''MeshGradient
-class HasMeshGradient c_anxG where
-  meshGradient :: Lens' c_anxG MeshGradient
-  meshGradientDrawAttributes :: Lens' c_anxG DrawAttributes
-  {-# INLINE meshGradientDrawAttributes #-}
-  meshGradientRows :: Lens' c_anxG [MeshGradientRow]
-  {-# INLINE meshGradientRows #-}
-  meshGradientTransform :: Lens' c_anxG [Transformation]
-  {-# INLINE meshGradientTransform #-}
-  meshGradientType :: Lens' c_anxG MeshGradientType
-  {-# INLINE meshGradientType #-}
-  meshGradientUnits :: Lens' c_anxG CoordinateUnits
-  {-# INLINE meshGradientUnits #-}
-  meshGradientX :: Lens' c_anxG Number
-  {-# INLINE meshGradientX #-}
-  meshGradientY :: Lens' c_anxG Number
-  {-# INLINE meshGradientY #-}
-  meshGradientDrawAttributes
-    = ((.) meshGradient) meshGradientDrawAttributes
-  meshGradientRows = ((.) meshGradient) meshGradientRows
-  meshGradientTransform = ((.) meshGradient) meshGradientTransform
-  meshGradientType = ((.) meshGradient) meshGradientType
-  meshGradientUnits = ((.) meshGradient) meshGradientUnits
-  meshGradientX = ((.) meshGradient) meshGradientX
-  meshGradientY = ((.) meshGradient) meshGradientY
-instance HasMeshGradient MeshGradient where
-  {-# INLINE meshGradientDrawAttributes #-}
-  {-# INLINE meshGradientRows #-}
-  {-# INLINE meshGradientTransform #-}
-  {-# INLINE meshGradientType #-}
-  {-# INLINE meshGradientUnits #-}
-  {-# INLINE meshGradientX #-}
-  {-# INLINE meshGradientY #-}
-  meshGradient = id
-  meshGradientDrawAttributes f attr =
-    fmap (\y -> attr { _meshGradientDrawAttributes = y }) (f $ _meshGradientDrawAttributes attr)
-  meshGradientRows f attr =
-    fmap (\y -> attr { _meshGradientRows = y }) (f $ _meshGradientRows attr)
-  meshGradientTransform f attr =
-    fmap (\y -> attr { _meshGradientTransform = y }) (f $ _meshGradientTransform attr)
-  meshGradientType f attr =
-    fmap (\y -> attr { _meshGradientType = y }) (f $ _meshGradientType attr)
-  meshGradientUnits f attr =
-    fmap (\y -> attr { _meshGradientUnits = y }) (f $ _meshGradientUnits attr)
-  meshGradientX f attr =
-    fmap (\y -> attr { _meshGradientX = y }) (f $ _meshGradientX attr)
-  meshGradientY f attr =
-    fmap (\y -> attr { _meshGradientY = y }) (f $ _meshGradientY attr)
-
-
-instance HasDrawAttributes MeshGradient where
-  drawAttributes = meshGradientDrawAttributes
 
 instance WithDefaultSvg MeshGradient where
   defaultSvg = MeshGradient
@@ -1134,53 +942,6 @@ data Image = Image
   }
   deriving (Eq, Show, Generic)
 
--- makeClassy ''Image
--- | Lenses for the Image type.
-class HasImage c_anI7 where
-  image :: Lens' c_anI7 Image
-  imageAspectRatio :: Lens' c_anI7 PreserveAspectRatio
-  {-# INLINE imageAspectRatio #-}
-  imageCornerUpperLeft :: Lens' c_anI7 Point
-  {-# INLINE imageCornerUpperLeft #-}
-  imageDrawAttributes :: Lens' c_anI7 DrawAttributes
-  {-# INLINE imageDrawAttributes #-}
-  imageHeight :: Lens' c_anI7 Number
-  {-# INLINE imageHeight #-}
-  imageHref :: Lens' c_anI7 String
-  {-# INLINE imageHref #-}
-  imageWidth :: Lens' c_anI7 Number
-  {-# INLINE imageWidth #-}
-  imageAspectRatio = ((.) image) imageAspectRatio
-  imageCornerUpperLeft = ((.) image) imageCornerUpperLeft
-  imageDrawAttributes = ((.) image) imageDrawAttributes
-  imageHeight = ((.) image) imageHeight
-  imageHref = ((.) image) imageHref
-  imageWidth = ((.) image) imageWidth
-instance HasImage Image where
-  {-# INLINE imageAspectRatio #-}
-  {-# INLINE imageCornerUpperLeft #-}
-  {-# INLINE imageDrawAttributes #-}
-  {-# INLINE imageHeight #-}
-  {-# INLINE imageHref #-}
-  {-# INLINE imageWidth #-}
-  image = id
-  imageAspectRatio f attr =
-    fmap (\y -> attr { _imageAspectRatio = y }) (f $ _imageAspectRatio attr)
-  imageCornerUpperLeft f attr =
-    fmap (\y -> attr { _imageCornerUpperLeft = y }) (f $ _imageCornerUpperLeft attr)
-  imageDrawAttributes f attr =
-    fmap (\y -> attr { _imageDrawAttributes = y }) (f $ _imageDrawAttributes attr)
-  imageHeight f attr =
-    fmap (\y -> attr { _imageHeight = y }) (f $ _imageHeight attr)
-  imageHref f attr =
-    fmap (\y -> attr { _imageHref = y }) (f $ _imageHref attr)
-  imageWidth f attr =
-    fmap (\y -> attr { _imageWidth = y }) (f $ _imageWidth attr)
-
-
-instance HasDrawAttributes Image where
-  drawAttributes = imageDrawAttributes
-
 instance WithDefaultSvg Image where
   defaultSvg = Image
     { _imageDrawAttributes = mempty
@@ -1195,9 +956,11 @@ instance WithDefaultSvg Image where
 -- Every named content can be reused in the
 -- document using this element.
 data Use = Use
-  { -- | Position where to draw the "used" element.
+  { -- | Use draw attributes.
+    _useDrawAttributes :: DrawAttributes
+    -- | Position where to draw the "used" element.
     -- Correspond to the `x` and `y` attributes.
-    _useBase           :: Point
+  , _useBase           :: Point
     -- | Referenced name, correspond to `xlink:href`
     -- attribute.
   , _useName           :: String
@@ -1209,50 +972,8 @@ data Use = Use
     -- to place the element. Map to the `height`
     -- attribute.
   , _useHeight         :: Maybe Number
-    -- | Use draw attributes.
-  , _useDrawAttributes :: DrawAttributes
   }
   deriving (Eq, Show, Generic)
-
--- makeClassy ''Use
--- | Lenses for the Use type.
-class HasUse c_anR3 where
-  use :: Lens' c_anR3 Use
-  useBase :: Lens' c_anR3 Point
-  {-# INLINE useBase #-}
-  useDrawAttributes :: Lens' c_anR3 DrawAttributes
-  {-# INLINE useDrawAttributes #-}
-  useHeight :: Lens' c_anR3 (Maybe Number)
-  {-# INLINE useHeight #-}
-  useName :: Lens' c_anR3 String
-  {-# INLINE useName #-}
-  useWidth :: Lens' c_anR3 (Maybe Number)
-  {-# INLINE useWidth #-}
-  useBase = ((.) use) useBase
-  useDrawAttributes = ((.) use) useDrawAttributes
-  useHeight = ((.) use) useHeight
-  useName = ((.) use) useName
-  useWidth = ((.) use) useWidth
-instance HasUse Use where
-  {-# INLINE useBase #-}
-  {-# INLINE useDrawAttributes #-}
-  {-# INLINE useHeight #-}
-  {-# INLINE useName #-}
-  {-# INLINE useWidth #-}
-  use = id
-  useBase f attr =
-    fmap (\y -> attr { _useBase = y }) (f $ _useBase attr)
-  useDrawAttributes f attr =
-    fmap (\y -> attr { _useDrawAttributes = y }) (f $ _useDrawAttributes attr)
-  useHeight f attr =
-    fmap (\y -> attr { _useHeight = y }) (f $ _useHeight attr)
-  useName f attr =
-    fmap (\y -> attr { _useName = y }) (f $ _useName attr)
-  useWidth f attr =
-    fmap (\y -> attr { _useWidth = y }) (f $ _useWidth attr)
-
-instance HasDrawAttributes Use where
-  drawAttributes = useDrawAttributes
 
 instance WithDefaultSvg Use where
   defaultSvg = Use
@@ -1287,49 +1008,6 @@ instance Monoid TextInfo where
   mempty = TextInfo [] [] [] [] [] Nothing
   mappend = (<>)
 
--- makeClassy ''TextInfo
--- | Lenses for the TextInfo type.
-class HasTextInfo c_ao0m where
-  textInfo :: Lens' c_ao0m TextInfo
-  textInfoDX :: Lens' c_ao0m [Number]
-  {-# INLINE textInfoDX #-}
-  textInfoDY :: Lens' c_ao0m [Number]
-  {-# INLINE textInfoDY #-}
-  textInfoLength :: Lens' c_ao0m (Maybe Number)
-  {-# INLINE textInfoLength #-}
-  textInfoRotate :: Lens' c_ao0m [Double]
-  {-# INLINE textInfoRotate #-}
-  textInfoX :: Lens' c_ao0m [Number]
-  {-# INLINE textInfoX #-}
-  textInfoY :: Lens' c_ao0m [Number]
-  {-# INLINE textInfoY #-}
-  textInfoDX = ((.) textInfo) textInfoDX
-  textInfoDY = ((.) textInfo) textInfoDY
-  textInfoLength = ((.) textInfo) textInfoLength
-  textInfoRotate = ((.) textInfo) textInfoRotate
-  textInfoX = ((.) textInfo) textInfoX
-  textInfoY = ((.) textInfo) textInfoY
-instance HasTextInfo TextInfo where
-  {-# INLINE textInfoDX #-}
-  {-# INLINE textInfoDY #-}
-  {-# INLINE textInfoLength #-}
-  {-# INLINE textInfoRotate #-}
-  {-# INLINE textInfoX #-}
-  {-# INLINE textInfoY #-}
-  textInfo = id
-  textInfoDX f attr =
-    fmap (\y -> attr { _textInfoDX = y }) (f $ _textInfoDX attr)
-  textInfoDY f attr =
-    fmap (\y -> attr { _textInfoDY = y }) (f $ _textInfoDY attr)
-  textInfoLength f attr =
-    fmap (\y -> attr { _textInfoLength = y }) (f $ _textInfoLength attr)
-  textInfoRotate f attr =
-    fmap (\y -> attr { _textInfoRotate = y }) (f $ _textInfoRotate attr)
-  textInfoX f attr =
-    fmap (\y -> attr { _textInfoX = y }) (f $ _textInfoX attr)
-  textInfoY f attr =
-    fmap (\y -> attr { _textInfoY = y }) (f $ _textInfoY attr)
-
 instance WithDefaultSvg TextInfo where
   defaultSvg = mempty
 
@@ -1350,31 +1028,6 @@ data TextSpan = TextSpan
   , _spanContent        :: ![TextSpanContent]
   }
   deriving (Eq, Show, Generic)
-
--- makeClassy ''TextSpan
--- | Lenses for the TextSpan type.
-class HasTextSpan c_aobD where
-  textSpan :: Lens' c_aobD TextSpan
-  spanContent :: Lens' c_aobD [TextSpanContent]
-  {-# INLINE spanContent #-}
-  spanDrawAttributes :: Lens' c_aobD DrawAttributes
-  {-# INLINE spanDrawAttributes #-}
-  spanInfo :: Lens' c_aobD TextInfo
-  {-# INLINE spanInfo #-}
-  spanContent = ((.) textSpan) spanContent
-  spanDrawAttributes = ((.) textSpan) spanDrawAttributes
-  spanInfo = ((.) textSpan) spanInfo
-instance HasTextSpan TextSpan where
-  {-# INLINE spanContent #-}
-  {-# INLINE spanDrawAttributes #-}
-  {-# INLINE spanInfo #-}
-  textSpan = id
-  spanContent f attr =
-    fmap (\y -> attr { _spanContent = y }) (f $ _spanContent attr)
-  spanDrawAttributes f attr =
-    fmap (\y -> attr { _spanDrawAttributes = y }) (f $ _spanDrawAttributes attr)
-  spanInfo f attr =
-    fmap (\y -> attr { _spanInfo = y }) (f $ _spanInfo attr)
 
 instance WithDefaultSvg TextSpan where
   defaultSvg = TextSpan
@@ -1411,8 +1064,6 @@ data TextPath = TextPath
   }
   deriving (Eq, Show, Generic)
 
--- -- | Lenses for the TextPath type.
-
 instance WithDefaultSvg TextPath where
   defaultSvg = TextPath
     { _textPathStartOffset = Num 0
@@ -1437,25 +1088,6 @@ data Text = Text
   }
   deriving (Eq, Show, Generic)
 
--- makeClassy ''Text
--- | Lenses for the Text type.
-class HasText c_aorD where
-  text :: Lens' c_aorD Text
-  textAdjust :: Lens' c_aorD TextAdjust
-  {-# INLINE textAdjust #-}
-  textRoot :: Lens' c_aorD TextSpan
-  {-# INLINE textRoot #-}
-  textAdjust = ((.) text) textAdjust
-  textRoot = ((.) text) textRoot
-instance HasText Text where
-  {-# INLINE textAdjust #-}
-  {-# INLINE textRoot #-}
-  text = id
-  textAdjust f attr =
-    fmap (\y -> attr { _textAdjust = y }) (f $ _textAdjust attr)
-  textRoot f attr =
-    fmap (\y -> attr { _textRoot = y }) (f $ _textRoot attr)
-
 -- | Little helper to create a SVG text at a given
 -- baseline position.
 textAt :: Point -> T.Text -> Text
@@ -1468,8 +1100,7 @@ textAt (x, y) txt = Text TextAdjustSpacing tspan where
                     }
         }
 
-instance HasDrawAttributes Text where
-  drawAttributes = textRoot . spanDrawAttributes
+
 
 instance WithDefaultSvg Text where
   defaultSvg = Text
@@ -1746,76 +1377,6 @@ data Marker = Marker
   }
   deriving (Eq, Show, Generic)
 
--- makeClassy ''Marker
--- | Lenses for the Marker type.
-class HasMarker c_aoKc where
-  marker :: Lens' c_aoKc Marker
-  markerAspectRatio :: Lens' c_aoKc PreserveAspectRatio
-  {-# INLINE markerAspectRatio #-}
-  markerDrawAttributes :: Lens' c_aoKc DrawAttributes
-  {-# INLINE markerDrawAttributes #-}
-  markerElements :: Lens' c_aoKc [Tree]
-  {-# INLINE markerElements #-}
-  markerHeight :: Lens' c_aoKc (Maybe Number)
-  {-# INLINE markerHeight #-}
-  markerOrient :: Lens' c_aoKc (Maybe MarkerOrientation)
-  {-# INLINE markerOrient #-}
-  markerOverflow :: Lens' c_aoKc (Maybe Overflow)
-  {-# INLINE markerOverflow #-}
-  markerRefPoint :: Lens' c_aoKc (Number, Number)
-  {-# INLINE markerRefPoint #-}
-  markerUnits :: Lens' c_aoKc (Maybe MarkerUnit)
-  {-# INLINE markerUnits #-}
-  markerViewBox ::
-    Lens' c_aoKc (Maybe (Double, Double, Double, Double))
-  {-# INLINE markerViewBox #-}
-  markerWidth :: Lens' c_aoKc (Maybe Number)
-  {-# INLINE markerWidth #-}
-  markerAspectRatio = ((.) marker) markerAspectRatio
-  markerDrawAttributes = ((.) marker) markerDrawAttributes
-  markerElements = ((.) marker) markerElements
-  markerHeight = ((.) marker) markerHeight
-  markerOrient = ((.) marker) markerOrient
-  markerOverflow = ((.) marker) markerOverflow
-  markerRefPoint = ((.) marker) markerRefPoint
-  markerUnits = ((.) marker) markerUnits
-  markerViewBox = ((.) marker) markerViewBox
-  markerWidth = ((.) marker) markerWidth
-instance HasMarker Marker where
-  {-# INLINE markerAspectRatio #-}
-  {-# INLINE markerDrawAttributes #-}
-  {-# INLINE markerElements #-}
-  {-# INLINE markerHeight #-}
-  {-# INLINE markerOrient #-}
-  {-# INLINE markerOverflow #-}
-  {-# INLINE markerRefPoint #-}
-  {-# INLINE markerUnits #-}
-  {-# INLINE markerViewBox #-}
-  {-# INLINE markerWidth #-}
-  marker = id
-  markerAspectRatio f attr =
-    fmap (\y -> attr { _markerAspectRatio = y }) (f $ _markerAspectRatio attr)
-  markerDrawAttributes f attr =
-    fmap (\y -> attr { _markerDrawAttributes = y }) (f $ _markerDrawAttributes attr)
-  markerElements f attr =
-    fmap (\y -> attr { _markerElements = y }) (f $ _markerElements attr)
-  markerHeight f attr =
-    fmap (\y -> attr { _markerHeight = y }) (f $ _markerHeight attr)
-  markerOrient f attr =
-    fmap (\y -> attr { _markerOrient = y }) (f $ _markerOrient attr)
-  markerOverflow f attr =
-    fmap (\y -> attr { _markerOverflow = y }) (f $ _markerOverflow attr)
-  markerRefPoint f attr =
-    fmap (\y -> attr { _markerRefPoint = y }) (f $ _markerRefPoint attr)
-  markerUnits f attr =
-    fmap (\y -> attr { _markerUnits = y }) (f $ _markerUnits attr)
-  markerViewBox f attr =
-    fmap (\y -> attr { _markerViewBox = y }) (f $ _markerViewBox attr)
-  markerWidth f attr =
-    fmap (\y -> attr { _markerWidth = y }) (f $ _markerWidth attr)
-
-instance HasDrawAttributes Marker where
-  drawAttributes = markerDrawAttributes
 
 instance WithDefaultSvg Marker where
   defaultSvg = Marker
@@ -2398,78 +1959,6 @@ data Pattern = Pattern
     }
     deriving (Eq, Show, Generic)
 
--- makeClassy ''Pattern
--- | Lenses for the Patter type.
-class HasPattern c_aq6G where
-  pattern :: Lens' c_aq6G Pattern
-  patternAspectRatio :: Lens' c_aq6G PreserveAspectRatio
-  {-# INLINE patternAspectRatio #-}
-  patternDrawAttributes :: Lens' c_aq6G DrawAttributes
-  {-# INLINE patternDrawAttributes #-}
-  patternElements :: Lens' c_aq6G [Tree]
-  {-# INLINE patternElements #-}
-  patternHeight :: Lens' c_aq6G Number
-  {-# INLINE patternHeight #-}
-  patternHref :: Lens' c_aq6G String
-  {-# INLINE patternHref #-}
-  patternPos :: Lens' c_aq6G Point
-  {-# INLINE patternPos #-}
-  patternTransform :: Lens' c_aq6G (Maybe [Transformation])
-  {-# INLINE patternTransform #-}
-  patternUnit :: Lens' c_aq6G CoordinateUnits
-  {-# INLINE patternUnit #-}
-  patternViewBox ::
-    Lens' c_aq6G (Maybe (Double, Double, Double, Double))
-  {-# INLINE patternViewBox #-}
-  patternWidth :: Lens' c_aq6G Number
-  {-# INLINE patternWidth #-}
-  patternAspectRatio = ((.) pattern) patternAspectRatio
-  patternDrawAttributes = ((.) pattern) patternDrawAttributes
-  patternElements = ((.) pattern) patternElements
-  patternHeight = ((.) pattern) patternHeight
-  patternHref = ((.) pattern) patternHref
-  patternPos = ((.) pattern) patternPos
-  patternTransform = ((.) pattern) patternTransform
-  patternUnit = ((.) pattern) patternUnit
-  patternViewBox = ((.) pattern) patternViewBox
-  patternWidth = ((.) pattern) patternWidth
-
-instance HasPattern Pattern where
-  {-# INLINE patternAspectRatio #-}
-  {-# INLINE patternDrawAttributes #-}
-  {-# INLINE patternElements #-}
-  {-# INLINE patternHeight #-}
-  {-# INLINE patternHref #-}
-  {-# INLINE patternPos #-}
-  {-# INLINE patternTransform #-}
-  {-# INLINE patternUnit #-}
-  {-# INLINE patternViewBox #-}
-  {-# INLINE patternWidth #-}
-  pattern = id
-  patternAspectRatio f attr =
-    fmap (\y -> attr { _patternAspectRatio = y }) (f $ _patternAspectRatio attr)
-  patternDrawAttributes f attr =
-    fmap (\y -> attr { _patternDrawAttributes = y }) (f $ _patternDrawAttributes attr)
-  patternElements f attr =
-    fmap (\y -> attr { _patternElements = y }) (f $ _patternElements attr)
-  patternHeight f attr =
-    fmap (\y -> attr { _patternHeight = y }) (f $ _patternHeight attr)
-  patternHref f attr =
-    fmap (\y -> attr { _patternHref = y }) (f $ _patternHref attr)
-  patternPos f attr =
-    fmap (\y -> attr { _patternPos = y }) (f $ _patternPos attr)
-  patternTransform f attr =
-    fmap (\y -> attr { _patternTransform = y }) (f $ _patternTransform attr)
-  patternUnit f attr =
-    fmap (\y -> attr { _patternUnit = y }) (f $ _patternUnit attr)
-  patternViewBox f attr =
-    fmap (\y -> attr { _patternViewBox = y }) (f $ _patternViewBox attr)
-  patternWidth f attr =
-    fmap (\y -> attr { _patternWidth = y }) (f $ _patternWidth attr)
-
-instance HasDrawAttributes Pattern where
-  drawAttributes = patternDrawAttributes
-
 instance WithDefaultSvg Pattern where
   defaultSvg = Pattern
     { _patternViewBox  = Nothing
@@ -2511,8 +2000,6 @@ data Document = Document
     deriving (Show, Eq, Generic)
 
 
--- | Lenses associated to a SVG document.
-makeLenses ''Document
 
 -- | Calculate the document size in function of the
 -- different available attributes in the document.
@@ -2617,142 +2104,101 @@ instance CssMatcheable Tree where
   cssIdOf = fmap T.pack . view (drawAttributes . attrId)
   cssNameOf = nameOfTree
 
+
 --------------------------------------------------------------------------
---- Dumped
+--- Template Haskell and HasDrawAttributes instances
 --------------------------------------------------------------------------
--- makeClassy ''PreserveAspectRatio
---
--- | Lenses for the PreserveAspectRatio type
-class HasPreserveAspectRatio a where
-  preserveAspectRatio :: Lens' a PreserveAspectRatio
-  aspectRatioAlign :: Lens' a Alignment
-  {-# INLINE aspectRatioAlign #-}
-  aspectRatioAlign = preserveAspectRatio . aspectRatioAlign
 
-  aspectRatioDefer :: Lens' a Bool
-  {-# INLINE aspectRatioDefer #-}
-  aspectRatioDefer = preserveAspectRatio . aspectRatioDefer
-
-  aspectRatioMeetSlice :: Lens' a (Maybe MeetSlice)
-  {-# INLINE aspectRatioMeetSlice #-}
-  aspectRatioMeetSlice = preserveAspectRatio . aspectRatioMeetSlice
-
-instance HasPreserveAspectRatio PreserveAspectRatio where
-  preserveAspectRatio = id
-  {-# INLINE aspectRatioAlign #-}
-  aspectRatioAlign f attr =
-    fmap (\y -> attr { _aspectRatioAlign = y }) (f $ _aspectRatioAlign attr)
-
-  {-# INLINE aspectRatioDefer #-}
-  aspectRatioDefer f attr =
-    fmap (\y -> attr { _aspectRatioDefer = y }) (f $ _aspectRatioDefer attr)
-
-  {-# INLINE aspectRatioMeetSlice #-}
-  aspectRatioMeetSlice f attr =
-    fmap (\y -> attr { _aspectRatioMeetSlice = y }) (f $ _aspectRatioMeetSlice attr)
-
--- makeClassy ''FilterAttributes
--- | Lenses for the FilterAttributes type.
-class HasFilterAttributes c_asYk where
-  filterAttributes :: Lens' c_asYk FilterAttributes
-  filterHeight :: Lens' c_asYk (Last Number)
-  {-# INLINE filterHeight #-}
-  filterResult :: Lens' c_asYk (Maybe String)
-  {-# INLINE filterResult #-}
-  filterWidth :: Lens' c_asYk (Last Number)
-  {-# INLINE filterWidth #-}
-  filterX :: Lens' c_asYk (Last Number)
-  {-# INLINE filterX #-}
-  filterY :: Lens' c_asYk (Last Number)
-  {-# INLINE filterY #-}
-  filterHeight = ((.) filterAttributes) filterHeight
-  filterResult = ((.) filterAttributes) filterResult
-  filterWidth = ((.) filterAttributes) filterWidth
-  filterX = ((.) filterAttributes) filterX
-  filterY = ((.) filterAttributes) filterY
-instance HasFilterAttributes FilterAttributes where
-  {-# INLINE filterHeight #-}
-  {-# INLINE filterResult #-}
-  {-# INLINE filterWidth #-}
-  {-# INLINE filterX #-}
-  {-# INLINE filterY #-}
-  filterAttributes = id
-  filterHeight
-    f_asYl
-    (FilterAttributes x1_asYm x2_asYn x3_asYo x4_asYp x5_asYq)
-    = (fmap
-         (\ y1_asYr
-            -> ((((FilterAttributes y1_asYr) x2_asYn) x3_asYo) x4_asYp)
-                 x5_asYq))
-        (f_asYl x1_asYm)
-  filterResult
-    f_asYs
-    (FilterAttributes x1_asYt x2_asYu x3_asYv x4_asYw x5_asYx)
-    = (fmap
-         (\ y1_asYy
-            -> ((((FilterAttributes x1_asYt) y1_asYy) x3_asYv) x4_asYw)
-                 x5_asYx))
-        (f_asYs x2_asYu)
-  filterWidth
-    f_asYz
-    (FilterAttributes x1_asYA x2_asYB x3_asYC x4_asYD x5_asYE)
-    = (fmap
-         (\ y1_asYF
-            -> ((((FilterAttributes x1_asYA) x2_asYB) y1_asYF) x4_asYD)
-                 x5_asYE))
-        (f_asYz x3_asYC)
-  filterX
-    f_asYG
-    (FilterAttributes x1_asYH x2_asYI x3_asYJ x4_asYK x5_asYL)
-    = (fmap
-         (\ y1_asYM
-            -> ((((FilterAttributes x1_asYH) x2_asYI) x3_asYJ) y1_asYM)
-                 x5_asYL))
-        (f_asYG x4_asYK)
-  filterY
-    f_asYN
-    (FilterAttributes x1_asYO x2_asYP x3_asYQ x4_asYR x5_asYS)
-    = (fmap
-         (\ y1_asYT
-            -> ((((FilterAttributes x1_asYO) x2_asYP) x3_asYQ) x4_asYR)
-                 y1_asYT))
-        (f_asYN x5_asYS)
-
-
-makeClassy ''TextPath
-
--- | Lenses for the DrawAttributes type.
--- makeClassy ''DrawAttributes
-
+makeLenses ''Rectangle
+makeLenses ''Pattern
+makeLenses ''Document
 makeLenses ''Filter
+makeLenses ''Line
+makeLenses ''Polygon
+makeLenses ''PolyLine
+makeLenses ''PreserveAspectRatio
+makeLenses ''Path
+makeLenses ''Circle
+makeLenses ''Text
+makeLenses ''TextPath
+makeLenses ''Ellipse
+makeLenses ''MeshGradientPatch
+makeLenses ''MeshGradientRow
+makeLenses ''MeshGradient
+makeLenses ''Image
+makeLenses ''Use
+makeLenses ''TextSpan
+makeLenses ''TextInfo
+makeLenses ''Marker
 
-instance HasDrawAttributes Filter where
-  drawAttributes = filterDrawAttributes
-
-instance HasFilterAttributes Filter where
-  filterAttributes = filterSelfAttributes
-
+makeClassy ''FilterAttributes
 makeClassy ''Composite
 makeClassy ''ColorMatrix
 makeClassy ''GaussianBlur
 makeClassy ''Turbulence
 makeClassy ''DisplacementMap
 
-instance HasDrawAttributes Composite where
-    drawAttributes = compositeDrawAttributes
+instance HasDrawAttributes Marker where
+  drawAttributes = markerDrawAttributes
 
+instance HasDrawAttributes Use where
+  drawAttributes = useDrawAttributes
+
+instance HasDrawAttributes Image where
+  drawAttributes = imageDrawAttributes
+
+instance HasDrawAttributes MeshGradient where
+  drawAttributes = meshGradientDrawAttributes
+
+instance HasDrawAttributes Ellipse where
+  drawAttributes = ellipseDrawAttributes
+
+instance HasDrawAttributes PolyLine where
+  drawAttributes = polyLineDrawAttributes
+
+instance HasDrawAttributes Polygon where
+  drawAttributes = polygonDrawAttributes
+
+instance HasDrawAttributes Line where
+  drawAttributes = lineDrawAttributes
+
+instance HasDrawAttributes Rectangle where
+  drawAttributes = rectDrawAttributes
+
+instance HasDrawAttributes Pattern where
+  drawAttributes = patternDrawAttributes
+
+instance HasDrawAttributes Filter where
+  drawAttributes = filterDrawAttributes
+
+instance HasDrawAttributes Composite where
+  drawAttributes = compositeDrawAttributes
 
 instance HasDrawAttributes ColorMatrix where
-    drawAttributes = colorMatrixDrawAttributes
+  drawAttributes = colorMatrixDrawAttributes
 
 instance HasDrawAttributes GaussianBlur where
-    drawAttributes = gaussianBlurDrawAttributes
+  drawAttributes = gaussianBlurDrawAttributes
 
 instance HasDrawAttributes Turbulence where
-    drawAttributes = turbulenceDrawAttributes
+  drawAttributes = turbulenceDrawAttributes
 
 instance HasDrawAttributes DisplacementMap where
-    drawAttributes = displacementMapDrawAttributes
+  drawAttributes = displacementMapDrawAttributes
+
+instance HasDrawAttributes Path where
+  drawAttributes = pathDrawAttributes
+
+instance HasDrawAttributes Circle where
+  drawAttributes = circleDrawAttributes
+
+instance HasDrawAttributes Text where
+  drawAttributes = textRoot . spanDrawAttributes
+
+
+
+instance HasFilterAttributes Filter where
+  filterAttributes = filterSelfAttributes
 
 instance HasFilterAttributes Composite where
   filterAttributes = compositeFilterAttr
