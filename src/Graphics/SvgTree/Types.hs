@@ -24,7 +24,6 @@ module Graphics.SvgTree.Types
     , CoordinateUnits( .. )
 
       -- ** Building helpers
-    , toPoint
     , serializeNumber
     , serializeTransformation
     , serializeTransformations
@@ -204,8 +203,6 @@ module Graphics.SvgTree.Types
     , HasPreserveAspectRatio( .. )
 
       -- * MISC functions
-    , isPathArc
-    , isPathWithArc
     , nameOfTree
     , zipTree
     , mapTree
@@ -220,7 +217,6 @@ import           Control.Lens              (Lens, Lens', lens, view, (&), (.~),
 import           Control.Lens.TH
 import qualified Data.Foldable             as F
 import           Data.Function             (on)
-import           Data.Hashable             (Hashable)
 import           Data.List                 (inits)
 import           Data.Monoid               (Last (..))
 import qualified Data.Text                 as T
@@ -229,14 +225,7 @@ import           Graphics.SvgTree.CssTypes
 import           Graphics.SvgTree.Misc
 import           Linear                    hiding (angle)
 
-import           Text.Printf
-
-
--- Orphan instances :(
-instance Hashable a => Hashable (Last a)
-
-deriving instance Generic PixelRGBA8
-instance Hashable PixelRGBA8
+import Text.Printf ( printf )
 
 -- | Basic coordinate type.
 type Coord = Double
@@ -245,6 +234,7 @@ type Coord = Double
 -- dependant of the rendering context.
 type RPoint = V2 Coord
 
+-- FIXME: Use 'V2 Number' instead of tuple
 -- | Possibly context dependant point.
 type Point = (Number, Number)
 
@@ -296,19 +286,6 @@ data GradientPathCommand
       -- | 'Z' command
     | GClose
     deriving (Eq, Show, Generic)
-
--- | Little helper function to build a point.
-toPoint :: Number -> Number -> Point
-toPoint = (,)
-
--- | Tell if the path command is an EllipticalArc.
-isPathArc :: PathCommand -> Bool
-isPathArc (EllipticalArc _ _) = True
-isPathArc _                   = False
-
--- | Tell if a full path contain an EllipticalArc.
-isPathWithArc :: Foldable f => f PathCommand -> Bool
-isPathWithArc = F.any isPathArc
 
 -- | Define the possible values of various *units attributes
 -- used in the definition of the gradients and masks.

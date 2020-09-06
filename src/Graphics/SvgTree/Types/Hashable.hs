@@ -1,10 +1,20 @@
 {-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -Wno-orphans -O0 #-}
 module Graphics.SvgTree.Types.Hashable where
 
+import           Codec.Picture          (PixelRGBA8 (..))
 import           Data.Hashable          (Hashable)
+import           Data.Monoid
+import           GHC.Generics           (Generic)
 import           Graphics.SvgTree.Types
+
+-- Orphan instances :(
+instance Hashable a => Hashable (Last a)
+
+deriving instance Generic PixelRGBA8
+instance Hashable PixelRGBA8
 
 deriving instance Hashable DrawAttributes
 deriving instance Hashable Pattern
