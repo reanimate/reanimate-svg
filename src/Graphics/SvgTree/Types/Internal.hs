@@ -112,6 +112,7 @@ module Graphics.SvgTree.Types.Internal
 
     -- ** Rectangle
     Rectangle (..),
+    rectangleDrawAttributes,
     rectUpperLeftCorner,
     rectWidth,
     rectHeight,
@@ -119,28 +120,34 @@ module Graphics.SvgTree.Types.Internal
 
     -- ** Line
     Line (..),
+    lineDrawAttributes,
     linePoint1,
     linePoint2,
 
     -- ** Polygon
     Polygon (..),
+    polygonDrawAttributes,
     polygonPoints,
 
     -- ** Polyline
     PolyLine (..),
+    polyLineDrawAttributes,
     polyLinePoints,
 
     -- ** Path
     Path (..),
+    pathDrawAttributes,
     pathDefinition,
 
     -- ** Circle
     Circle (..),
+    circleDrawAttributes,
     circleCenter,
     circleRadius,
 
     -- ** Ellipse
     Ellipse (..),
+    ellipseDrawAttributes,
     ellipseCenter,
     ellipseXRadius,
     ellipseYRadius,
@@ -149,6 +156,7 @@ module Graphics.SvgTree.Types.Internal
     GradientPathCommand (..),
     MeshGradientType (..),
     MeshGradient (..),
+    meshGradientDrawAttributes,
     meshGradientX,
     meshGradientY,
     meshGradientType,
@@ -162,6 +170,7 @@ module Graphics.SvgTree.Types.Internal
 
     -- ** Image
     Image (..),
+    imageDrawAttributes,
     imageCornerUpperLeft,
     imageWidth,
     imageHeight,
@@ -170,6 +179,7 @@ module Graphics.SvgTree.Types.Internal
 
     -- ** Use
     Use (..),
+    useDrawAttributes,
     useBase,
     useName,
     useWidth,
@@ -191,6 +201,8 @@ module Graphics.SvgTree.Types.Internal
 
     -- ** Filter
     Filter (..),
+    filterDrawAttributes,
+    filterSelfAttributes,
     filterChildren,
 
     -- * Text related types
@@ -231,6 +243,7 @@ module Graphics.SvgTree.Types.Internal
     Overflow (..),
     MarkerOrientation (..),
     MarkerUnit (..),
+    markerDrawAttributes,
     markerRefPoint,
     markerWidth,
     markerHeight,
@@ -250,6 +263,7 @@ module Graphics.SvgTree.Types.Internal
 
     -- ** Linear Gradient
     LinearGradient (..),
+    linearGradientDrawAttributes,
     linearGradientUnits,
     linearGradientStart,
     linearGradientStop,
@@ -259,6 +273,7 @@ module Graphics.SvgTree.Types.Internal
 
     -- ** Radial Gradient
     RadialGradient (..),
+    radialGradientDrawAttributes,
     radialGradientUnits,
     radialGradientCenter,
     radialGradientRadius,
@@ -270,6 +285,7 @@ module Graphics.SvgTree.Types.Internal
 
     -- * Pattern definition
     Pattern (..),
+    patternDrawAttributes,
     patternViewBox,
     patternWidth,
     patternHeight,
@@ -282,6 +298,7 @@ module Graphics.SvgTree.Types.Internal
 
     -- * Mask definition
     Mask (..),
+    maskDrawAttributes,
     maskContentUnits,
     maskUnits,
     maskPosition,
@@ -291,6 +308,7 @@ module Graphics.SvgTree.Types.Internal
 
     -- * Clip path definition
     ClipPath (..),
+    clipPathDrawAttributes,
     clipPathUnits,
     clipPathContent,
 
@@ -310,7 +328,6 @@ module Graphics.SvgTree.Types.Internal
 where
 
 import Codec.Picture (PixelRGBA8 (..))
-import Control.Lens (lens, (&), (.~), (^.))
 import Control.Lens.TH (makeClassy, makeLenses)
 import Data.Function (on)
 import Data.Monoid (Last (..))
@@ -638,7 +655,8 @@ data Line = Line
 instance WithDefaultSvg Line where
   defaultSvg =
     Line
-      { _linePoint1 = zeroPoint,
+      { _lineDrawAttributes = mempty,
+        _linePoint1 = zeroPoint,
         _linePoint2 = zeroPoint
       }
     where
@@ -667,7 +685,8 @@ data Rectangle = Rectangle
 instance WithDefaultSvg Rectangle where
   defaultSvg =
     Rectangle
-      { _rectUpperLeftCorner = (Num 0, Num 0),
+      { _rectangleDrawAttributes = mempty,
+        _rectUpperLeftCorner = (Num 0, Num 0),
         _rectWidth = Nothing,
         _rectHeight = Nothing,
         _rectCornerRadius = (Nothing, Nothing)
@@ -701,7 +720,8 @@ data Group = Group
 instance WithDefaultSvg Group where
   defaultSvg =
     Group
-      { _groupChildren = [],
+      { _groupDrawAttributes = mempty,
+        _groupChildren = [],
         _groupViewBox = Nothing,
         _groupAspectRatio = defaultSvg
       }
@@ -733,7 +753,8 @@ data Filter = Filter
 instance WithDefaultSvg Filter where
   defaultSvg =
     Filter
-      { _filterSelfAttributes = defaultSvg,
+      { _filterDrawAttributes = mempty,
+        _filterSelfAttributes = defaultSvg,
         _filterChildren = []
       }
 
@@ -752,7 +773,8 @@ data Circle = Circle
 instance WithDefaultSvg Circle where
   defaultSvg =
     Circle
-      { _circleCenter = (Num 0, Num 0),
+      { _circleDrawAttributes = mempty,
+        _circleCenter = (Num 0, Num 0),
         _circleRadius = Num 0
       }
 
@@ -774,7 +796,8 @@ data Ellipse = Ellipse
 instance WithDefaultSvg Ellipse where
   defaultSvg =
     Ellipse
-      { _ellipseCenter = (Num 0, Num 0),
+      { _ellipseDrawAttributes = mempty,
+        _ellipseCenter = (Num 0, Num 0),
         _ellipseXRadius = Num 0,
         _ellipseYRadius = Num 0
       }
@@ -845,7 +868,8 @@ data MeshGradient = MeshGradient
 instance WithDefaultSvg MeshGradient where
   defaultSvg =
     MeshGradient
-      { _meshGradientX = Percent 0,
+      { _meshGradientDrawAttributes = mempty,
+        _meshGradientX = Percent 0,
         _meshGradientY = Percent 0,
         _meshGradientType = GradientBilinear,
         _meshGradientUnits = CoordBoundingBox,
@@ -873,7 +897,8 @@ data Image = Image
 instance WithDefaultSvg Image where
   defaultSvg =
     Image
-      { _imageCornerUpperLeft = (Num 0, Num 0),
+      { _imageDrawAttributes = mempty,
+        _imageCornerUpperLeft = (Num 0, Num 0),
         _imageWidth = Num 0,
         _imageHeight = Num 0,
         _imageHref = "",
@@ -905,7 +930,8 @@ data Use = Use
 instance WithDefaultSvg Use where
   defaultSvg =
     Use
-      { _useBase = (Num 0, Num 0),
+      { _useDrawAttributes = mempty,
+        _useBase = (Num 0, Num 0),
         _useName = "",
         _useWidth = Nothing,
         _useHeight = Nothing
@@ -1065,13 +1091,6 @@ data Tree = CachedTree
     _treeHash :: Int
   }
   deriving (Eq, Show, Generic)
-
-instance WithDefaultSvg Tree where
-  defaultSvg =
-    CachedTree
-      { _treeBranch = defaultSvg,
-        _treeHash = 0
-      }
 
 data TreeBranch
   = None
@@ -1364,7 +1383,8 @@ data Marker = Marker
 instance WithDefaultSvg Marker where
   defaultSvg =
     Marker
-      { _markerRefPoint = (Num 0, Num 0),
+      { _markerDrawAttributes = mempty,
+        _markerRefPoint = (Num 0, Num 0),
         _markerWidth = Just (Num 3),
         _markerHeight = Just (Num 3),
         _markerOrient = Nothing, -- MarkerOrientation
@@ -1443,7 +1463,8 @@ data LinearGradient = LinearGradient
 instance WithDefaultSvg LinearGradient where
   defaultSvg =
     LinearGradient
-      { _linearGradientUnits = CoordBoundingBox,
+      { _linearGradientDrawAttributes = mempty,
+        _linearGradientUnits = CoordBoundingBox,
         _linearGradientStart = (Percent 0, Percent 0),
         _linearGradientStop = (Percent 1, Percent 0),
         _linearGradientSpread = SpreadPad,
@@ -1485,7 +1506,8 @@ data RadialGradient = RadialGradient
 instance WithDefaultSvg RadialGradient where
   defaultSvg =
     RadialGradient
-      { _radialGradientUnits = CoordBoundingBox,
+      { _radialGradientDrawAttributes = mempty,
+        _radialGradientUnits = CoordBoundingBox,
         _radialGradientCenter = (Percent 0.5, Percent 0.5),
         _radialGradientRadius = Percent 0.5,
         _radialGradientFocusX = Nothing,
@@ -1516,7 +1538,8 @@ data Mask = Mask
 instance WithDefaultSvg Mask where
   defaultSvg =
     Mask
-      { _maskContentUnits = CoordUserSpace,
+      { _maskDrawAttributes = mempty,
+        _maskContentUnits = CoordUserSpace,
         _maskUnits = CoordBoundingBox,
         _maskPosition = (Percent (-0.1), Percent (-0.1)),
         _maskWidth = Percent 1.2,
@@ -1537,7 +1560,8 @@ data ClipPath = ClipPath
 instance WithDefaultSvg ClipPath where
   defaultSvg =
     ClipPath
-      { _clipPathUnits = CoordUserSpace,
+      { _clipPathDrawAttributes = mempty,
+        _clipPathUnits = CoordUserSpace,
         _clipPathContent = mempty
       }
 
@@ -1574,7 +1598,8 @@ data Pattern = Pattern
 instance WithDefaultSvg Pattern where
   defaultSvg =
     Pattern
-      { _patternViewBox = Nothing,
+      { _patternDrawAttributes = mempty,
+        _patternViewBox = Nothing,
         _patternWidth = Num 0,
         _patternHeight = Num 0,
         _patternPos = (Num 0, Num 0),
@@ -1763,238 +1788,3 @@ makeLenses ''Definitions
 
 makeClassy ''Group
 makeClassy ''FilterAttributes
-
-{-
-= None
-  | UseTree
-      { useInformation :: !Use,
-        useSubTree :: !(Maybe Tree)
-      }
-  | GroupTree !(Group Tree)
-  | SymbolTree !(Symbol Tree)
-  | DefinitionTree !(Definitions Tree)
-  | FilterTree !Filter
-  | PathTree !Path
-  | CircleTree !Circle
-  | PolyLineTree !PolyLine
-  | PolygonTree !Polygon
-  | EllipseTree !Ellipse
-  | LineTree !Line
-  | RectangleTree !Rectangle
-  | TextTree !(Maybe TextPath) !Text
-  | ImageTree !Image
-  | LinearGradientTree !LinearGradient
-  | RadialGradientTree !RadialGradient
-  | MeshGradientTree !MeshGradient
-  | PatternTree !Pattern
-  | MarkerTree !Marker
-  | MaskTree !Mask
-  | ClipPathTree !ClipPath
-  | SvgTree !Document
--}
-
-instance HasDrawAttributes TreeBranch where
-  drawAttributes = lens getter setter
-    where
-      getter b = case b of
-        None -> defaultSvg
-        UseTree use _subTree -> use ^. drawAttributes
-        GroupTree t -> t ^. drawAttributes
-        SymbolTree t -> t ^. drawAttributes
-        DefinitionTree t -> t ^. drawAttributes
-        FilterTree t -> t ^. drawAttributes
-        PathTree t -> t ^. drawAttributes
-        CircleTree t -> t ^. drawAttributes
-        PolyLineTree t -> t ^. drawAttributes
-        PolygonTree t -> t ^. drawAttributes
-        EllipseTree t -> t ^. drawAttributes
-        LineTree t -> t ^. drawAttributes
-        RectangleTree t -> t ^. drawAttributes
-        TextTree _ t -> t ^. drawAttributes
-        ImageTree t -> t ^. drawAttributes
-        LinearGradientTree t -> t ^. drawAttributes
-        RadialGradientTree t -> t ^. drawAttributes
-        MeshGradientTree t -> t ^. drawAttributes
-        PatternTree t -> t ^. drawAttributes
-        MarkerTree t -> t ^. drawAttributes
-        MaskTree t -> t ^. drawAttributes
-        ClipPathTree t -> t ^. drawAttributes
-        SvgTree t -> defaultSvg
-      setter b attr = case b of
-        None -> b
-        UseTree use subTree -> UseTree (use & drawAttributes .~ attr) subTree
-        GroupTree t -> GroupTree $ t & drawAttributes .~ attr
-        SymbolTree t -> SymbolTree $ t & drawAttributes .~ attr
-        DefinitionTree t -> DefinitionTree $ t & drawAttributes .~ attr
-        FilterTree t -> FilterTree $ t & drawAttributes .~ attr
-        PathTree t -> PathTree $ t & drawAttributes .~ attr
-        CircleTree t -> CircleTree $ t & drawAttributes .~ attr
-        PolyLineTree t -> PolyLineTree $ t & drawAttributes .~ attr
-        PolygonTree t -> PolygonTree $ t & drawAttributes .~ attr
-        EllipseTree t -> EllipseTree $ t & drawAttributes .~ attr
-        LineTree t -> LineTree $ t & drawAttributes .~ attr
-        RectangleTree t -> RectangleTree $ t & drawAttributes .~ attr
-        TextTree path t -> TextTree path $ t & drawAttributes .~ attr
-        ImageTree t -> ImageTree $ t & drawAttributes .~ attr
-        LinearGradientTree t -> LinearGradientTree $ t & drawAttributes .~ attr
-        RadialGradientTree t -> RadialGradientTree $ t & drawAttributes .~ attr
-        MeshGradientTree t -> MeshGradientTree $ t & drawAttributes .~ attr
-        PatternTree t -> PatternTree $ t & drawAttributes .~ attr
-        MarkerTree t -> MarkerTree $ t & drawAttributes .~ attr
-        MaskTree t -> MaskTree $ t & drawAttributes .~ attr
-        ClipPathTree t -> ClipPathTree $ t & drawAttributes .~ attr
-        SvgTree t -> b
-
-instance HasDrawAttributes Filter where
-  drawAttributes = filterDrawAttributes
-
-instance HasDrawAttributes Use where
-  drawAttributes = useDrawAttributes
-
-instance HasDrawAttributes Group where
-  drawAttributes = groupDrawAttributes
-
-instance HasDrawAttributes Definitions where
-  drawAttributes = group . drawAttributes
-
-instance HasDrawAttributes Symbol where
-  drawAttributes = group . drawAttributes
-
-instance HasDrawAttributes Rectangle where
-  drawAttributes = rectangleDrawAttributes
-
-instance HasDrawAttributes Line where
-  drawAttributes = lineDrawAttributes
-
-instance HasDrawAttributes Ellipse where
-  drawAttributes = ellipseDrawAttributes
-
-instance HasDrawAttributes Polygon where
-  drawAttributes = polygonDrawAttributes
-
-instance HasDrawAttributes PolyLine where
-  drawAttributes = polyLineDrawAttributes
-
-instance HasDrawAttributes Circle where
-  drawAttributes = circleDrawAttributes
-
-instance HasDrawAttributes Path where
-  drawAttributes = pathDrawAttributes
-
-instance HasDrawAttributes ClipPath where
-  drawAttributes = clipPathDrawAttributes
-
-instance HasDrawAttributes Mask where
-  drawAttributes = maskDrawAttributes
-
-instance HasDrawAttributes Marker where
-  drawAttributes = markerDrawAttributes
-
-instance HasDrawAttributes Image where
-  drawAttributes = imageDrawAttributes
-
-instance HasDrawAttributes Pattern where
-  drawAttributes = patternDrawAttributes
-
-instance HasDrawAttributes MeshGradient where
-  drawAttributes = meshGradientDrawAttributes
-
-instance HasDrawAttributes RadialGradient where
-  drawAttributes = radialGradientDrawAttributes
-
-instance HasDrawAttributes LinearGradient where
-  drawAttributes = linearGradientDrawAttributes
-
-instance HasDrawAttributes Composite where
-  drawAttributes = compositeDrawAttributes
-
-instance HasDrawAttributes ColorMatrix where
-  drawAttributes = colorMatrixDrawAttributes
-
-instance HasDrawAttributes GaussianBlur where
-  drawAttributes = gaussianBlurDrawAttributes
-
-instance HasDrawAttributes Turbulence where
-  drawAttributes = turbulenceDrawAttributes
-
-instance HasDrawAttributes DisplacementMap where
-  drawAttributes = displacementMapDrawAttributes
-
-instance HasDrawAttributes Text where
-  drawAttributes = textRoot . spanDrawAttributes
-
-instance HasGroup Definitions where
-  group = groupOfDefinitions
-
-instance HasGroup Symbol where
-  group = groupOfSymbol
-
-instance HasFilterAttributes Filter where
-  filterAttributes = filterSelfAttributes
-
-instance HasFilterAttributes Composite where
-  filterAttributes = compositeFilterAttr
-
-instance HasFilterAttributes ColorMatrix where
-  filterAttributes = colorMatrixFilterAttr
-
-instance HasFilterAttributes GaussianBlur where
-  filterAttributes = gaussianBlurFilterAttr
-
-instance HasFilterAttributes Turbulence where
-  filterAttributes = turbulenceFilterAttr
-
-instance HasFilterAttributes DisplacementMap where
-  filterAttributes = displacementMapFilterAttr
-
-instance HasFilterAttributes FilterElement where
-  filterAttributes = lens getter setter
-    where
-      getter fe = case fe of
-        FEBlend -> defaultSvg
-        FEColorMatrix m -> m ^. filterAttributes
-        FEComponentTransfer -> defaultSvg
-        FEComposite c -> c ^. filterAttributes
-        FEConvolveMatrix -> defaultSvg
-        FEDiffuseLighting -> defaultSvg
-        FEDisplacementMap d -> d ^. filterAttributes
-        FEDropShadow -> defaultSvg
-        FEFlood -> defaultSvg
-        FEFuncA -> defaultSvg
-        FEFuncB -> defaultSvg
-        FEFuncG -> defaultSvg
-        FEFuncR -> defaultSvg
-        FEGaussianBlur g -> g ^. filterAttributes
-        FEImage -> defaultSvg
-        FEMerge -> defaultSvg
-        FEMergeNode -> defaultSvg
-        FEMorphology -> defaultSvg
-        FEOffset -> defaultSvg
-        FESpecularLighting -> defaultSvg
-        FETile -> defaultSvg
-        FETurbulence t -> t ^. filterAttributes
-        FENone -> defaultSvg
-      setter fe attr = case fe of
-        FEBlend -> fe
-        FEColorMatrix m -> FEColorMatrix $ m & filterAttributes .~ attr
-        FEComponentTransfer -> fe
-        FEComposite c -> FEComposite $ c & filterAttributes .~ attr
-        FEConvolveMatrix -> fe
-        FEDiffuseLighting -> fe
-        FEDisplacementMap d -> FEDisplacementMap $ d & filterAttributes .~ attr
-        FEDropShadow -> fe
-        FEFlood -> fe
-        FEFuncA -> fe
-        FEFuncB -> fe
-        FEFuncG -> fe
-        FEFuncR -> fe
-        FEGaussianBlur g -> FEGaussianBlur $ g & filterAttributes .~ attr
-        FEImage -> fe
-        FEMerge -> fe
-        FEMergeNode -> fe
-        FEMorphology -> fe
-        FEOffset -> fe
-        FESpecularLighting -> fe
-        FETile -> fe
-        FETurbulence t -> FETurbulence $ t & filterAttributes .~ attr
-        FENone -> fe

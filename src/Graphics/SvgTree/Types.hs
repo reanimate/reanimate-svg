@@ -335,3 +335,4 @@ import Graphics.SvgTree.Types.Internal
 import Graphics.SvgTree.Types.Hashable
 import Graphics.SvgTree.Types.Fold
 import Graphics.SvgTree.Types.Constructors
+import Graphics.SvgTree.Types.Instances ()

@@ -1,6 +1,5 @@
 module Graphics.SvgTree.Types.Constructors where
 
-import Control.Lens
 import Graphics.SvgTree.Types.Internal
 import Graphics.SvgTree.Types.Hashable
 

@@ -46,6 +46,7 @@ library
                , Graphics.SvgTree.Types.Fold
                , Graphics.SvgTree.Types.Internal
                , Graphics.SvgTree.Types.Constructors
+               , Graphics.SvgTree.Types.Instances
 
   build-depends: base              >= 4.5 && < 6
                , JuicyPixels       >= 3.2
