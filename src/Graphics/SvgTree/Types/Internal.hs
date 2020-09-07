@@ -189,15 +189,10 @@ module Graphics.SvgTree.Types.Internal
 
     -- ** Group
     Group (..),
-    HasGroup (..),
-
-    -- ** Symbol
-    Symbol (..),
-    groupOfSymbol,
-
-    -- ** Definitions
-    Definitions (..),
-    groupOfDefinitions,
+    groupDrawAttributes,
+    groupChildren,
+    groupViewBox,
+    groupAspectRatio,
 
     -- ** Filter
     Filter (..),
@@ -726,22 +721,6 @@ instance WithDefaultSvg Group where
         _groupAspectRatio = defaultSvg
       }
 
--- | Define the `<symbol>` tag, equivalent to
--- a hidden named group.
-newtype Symbol = Symbol {_groupOfSymbol :: Group}
-  deriving (Eq, Show, Generic)
-
-instance WithDefaultSvg Symbol where
-  defaultSvg = Symbol defaultSvg
-
--- | Define the `<defs>` tag, equivalent to
--- a named symbol.
-newtype Definitions = Definitions {_groupOfDefinitions :: Group}
-  deriving (Eq, Show, Generic)
-
-instance WithDefaultSvg Definitions where
-  defaultSvg = Definitions defaultSvg
-
 -- | Define the `<filter>` tag.
 data Filter = Filter
   { _filterDrawAttributes :: DrawAttributes,
@@ -1053,7 +1032,7 @@ data TextAdjust
     TextAdjustSpacingAndGlyphs
   deriving (Eq, Show, Generic)
 
--- | Define the global `<tag>` SVG tag.
+-- | Define the global `<text>` SVG tag.
 data Text = Text
   { -- | Define the `lengthAdjust` attribute.
     _textAdjust :: !TextAdjust,
@@ -1093,36 +1072,36 @@ data Tree = CachedTree
   deriving (Eq, Show, Generic)
 
 data TreeBranch
-  = None
-  | UseTree
+  = NoNode
+  | UseNode
       { useInformation :: !Use,
         useSubTree :: !(Maybe Tree)
       }
-  | GroupTree !Group
-  | SymbolTree !Symbol
-  | DefinitionTree !Definitions
-  | FilterTree !Filter
-  | PathTree !Path
-  | CircleTree !Circle
-  | PolyLineTree !PolyLine
-  | PolygonTree !Polygon
-  | EllipseTree !Ellipse
-  | LineTree !Line
-  | RectangleTree !Rectangle
-  | TextTree !(Maybe TextPath) !Text
-  | ImageTree !Image
-  | LinearGradientTree !LinearGradient
-  | RadialGradientTree !RadialGradient
-  | MeshGradientTree !MeshGradient
-  | PatternTree !Pattern
-  | MarkerTree !Marker
-  | MaskTree !Mask
-  | ClipPathTree !ClipPath
-  | SvgTree !Document
+  | GroupNode !Group
+  | SymbolNode !Group
+  | DefinitionNode !Group
+  | FilterNode !Filter
+  | PathNode !Path
+  | CircleNode !Circle
+  | PolyLineNode !PolyLine
+  | PolygonNode !Polygon
+  | EllipseNode !Ellipse
+  | LineNode !Line
+  | RectangleNode !Rectangle
+  | TextNode !(Maybe TextPath) !Text
+  | ImageNode !Image
+  | LinearGradientNode !LinearGradient
+  | RadialGradientNode !RadialGradient
+  | MeshGradientNode !MeshGradient
+  | PatternNode !Pattern
+  | MarkerNode !Marker
+  | MaskNode !Mask
+  | ClipPathNode !ClipPath
+  | SvgNode !Document
   deriving (Eq, Show, Generic)
 
 instance WithDefaultSvg TreeBranch where
-  defaultSvg = None
+  defaultSvg = NoNode
 
 data FilterElement
   = FEBlend
@@ -1400,29 +1379,29 @@ instance WithDefaultSvg Marker where
 nameOfTree :: Tree -> T.Text
 nameOfTree v =
   case _treeBranch v of
-    None -> ""
-    UseTree _ _ -> "use"
-    GroupTree _ -> "g"
-    SymbolTree _ -> "symbol"
-    DefinitionTree _ -> "defs"
-    FilterTree _ -> "filter"
-    PathTree _ -> "path"
-    CircleTree _ -> "circle"
-    PolyLineTree _ -> "polyline"
-    PolygonTree _ -> "polygon"
-    EllipseTree _ -> "ellipse"
-    LineTree _ -> "line"
-    RectangleTree _ -> "rectangle"
-    TextTree _ _ -> "text"
-    ImageTree _ -> "image"
-    LinearGradientTree _ -> "lineargradient"
-    RadialGradientTree _ -> "radialgradient"
-    MeshGradientTree _ -> "meshgradient"
-    PatternTree _ -> "pattern"
-    MarkerTree _ -> "marker"
-    MaskTree _ -> "mask"
-    ClipPathTree _ -> "clipPath"
-    SvgTree {} -> "svg"
+    NoNode -> ""
+    UseNode _ _ -> "use"
+    GroupNode _ -> "g"
+    SymbolNode _ -> "symbol"
+    DefinitionNode _ -> "defs"
+    FilterNode _ -> "filter"
+    PathNode _ -> "path"
+    CircleNode _ -> "circle"
+    PolyLineNode _ -> "polyline"
+    PolygonNode _ -> "polygon"
+    EllipseNode _ -> "ellipse"
+    LineNode _ -> "line"
+    RectangleNode _ -> "rectangle"
+    TextNode _ _ -> "text"
+    ImageNode _ -> "image"
+    LinearGradientNode _ -> "lineargradient"
+    RadialGradientNode _ -> "radialgradient"
+    MeshGradientNode _ -> "meshgradient"
+    PatternNode _ -> "pattern"
+    MarkerNode _ -> "marker"
+    MaskNode _ -> "mask"
+    ClipPathNode _ -> "clipPath"
+    SvgNode {} -> "svg"
 
 -- | Define the possible values for the `spreadMethod`
 -- values used for the gradient definitions.
@@ -1783,8 +1762,6 @@ makeLenses ''Composite
 makeLenses ''GaussianBlur
 makeLenses ''Turbulence
 makeLenses ''DisplacementMap
-makeLenses ''Symbol
-makeLenses ''Definitions
+makeLenses ''Group
 
-makeClassy ''Group
 makeClassy ''FilterAttributes

@@ -37,10 +37,6 @@ deriving instance Hashable TreeBranch
 
 deriving instance Hashable Group
 
-deriving instance Hashable Symbol
-
-deriving instance Hashable Definitions
-
 deriving instance Hashable PreserveAspectRatio
 
 deriving instance Hashable Alignment
@@ -166,7 +162,7 @@ treeBranch :: Lens' Tree TreeBranch
 treeBranch = lens _treeBranch $ const Tree
 
 instance WithDefaultSvg Tree where
-  defaultSvg = Tree None
+  defaultSvg = Tree NoNode
 
 unpack :: Tree -> TreeBranch
 unpack t = (_treeBranch t)
@@ -180,3 +176,72 @@ pattern Tree branch <-
         { _treeBranch = branch,
           _treeHash = hash branch
         }
+
+pattern GroupTree :: Group -> Tree
+pattern GroupTree g = Tree (GroupNode g)
+
+pattern SymbolTree :: Group -> Tree
+pattern SymbolTree g = Tree (SymbolNode g)
+
+pattern DefinitionTree :: Group -> Tree
+pattern DefinitionTree g = Tree (DefinitionNode g)
+
+pattern None :: Tree
+pattern None = Tree NoNode
+
+pattern UseTree :: Use -> Maybe Tree -> Tree
+pattern UseTree info sub = Tree (UseNode info sub)
+
+pattern FilterTree :: Filter -> Tree
+pattern FilterTree f = Tree (FilterNode f)
+
+pattern PathTree :: Path -> Tree
+pattern PathTree f = Tree (PathNode f)
+
+pattern CircleTree :: Circle -> Tree
+pattern CircleTree f = Tree (CircleNode f)
+
+pattern PolyLineTree :: PolyLine -> Tree
+pattern PolyLineTree f = Tree (PolyLineNode f)
+
+pattern PolygonTree :: Polygon -> Tree
+pattern PolygonTree f = Tree (PolygonNode f)
+
+pattern EllipseTree :: Ellipse -> Tree
+pattern EllipseTree f = Tree (EllipseNode f)
+
+pattern LineTree :: Line -> Tree
+pattern LineTree f = Tree (LineNode f)
+
+pattern RectangleTree :: Rectangle -> Tree
+pattern RectangleTree f = Tree (RectangleNode f)
+
+pattern TextTree :: Maybe TextPath -> Text -> Tree
+pattern TextTree p t = Tree (TextNode p t)
+
+pattern ImageTree :: Image -> Tree
+pattern ImageTree n = Tree (ImageNode n)
+
+pattern LinearGradientTree :: LinearGradient -> Tree
+pattern LinearGradientTree n = Tree (LinearGradientNode n)
+
+pattern RadialGradientTree :: RadialGradient -> Tree
+pattern RadialGradientTree n = Tree (RadialGradientNode n)
+
+pattern MeshGradientTree :: MeshGradient -> Tree
+pattern MeshGradientTree n = Tree (MeshGradientNode n)
+
+pattern PatternTree :: Pattern -> Tree
+pattern PatternTree n = Tree (PatternNode n)
+
+pattern MarkerTree :: Marker -> Tree
+pattern MarkerTree n = Tree (MarkerNode n)
+
+pattern MaskTree :: Mask -> Tree
+pattern MaskTree n = Tree (MaskNode n)
+
+pattern ClipPathTree :: ClipPath -> Tree
+pattern ClipPathTree n = Tree (ClipPathNode n)
+
+pattern SvgTree :: Document -> Tree
+pattern SvgTree n = Tree (SvgNode n)

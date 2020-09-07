@@ -1,6 +1,6 @@
 module Graphics.SvgTree.Types.Fold where
 
-import           Control.Lens           ((%~), (&), (.~), (^.))
+import           Control.Lens           ((%~), (&), (^.))
 import qualified Data.Foldable          as F
 import           Data.List              (inits)
 import           Graphics.SvgTree.Types.Internal
@@ -18,36 +18,34 @@ appNode (curr:above) e = (e:curr) : above
 zipTree :: ([[Tree]] -> Tree) -> Tree -> Tree
 zipTree f = dig [] where
   dig prev e = case e ^. treeBranch of
-    None -> f $ appNode prev e
-    UseTree _ Nothing -> f $ appNode prev e
-    UseTree nfo (Just u) ->
-      f $ appNode prev $ e & treeBranch .~ UseTree nfo (Just $ dig ([] : appNode prev e) u)
-    GroupTree g ->
-      f $ appNode prev $ e & treeBranch .~ GroupTree (zipGroup (appNode prev e) g)
-    SymbolTree g ->
-      f $ appNode prev $ e & treeBranch .~ (SymbolTree . Symbol .
-            zipGroup (appNode prev e) $ _groupOfSymbol g)
-    DefinitionTree g ->
-      f $ appNode prev $ e & treeBranch .~ (DefinitionTree . Definitions .
-            zipGroup (appNode prev e) $ _groupOfDefinitions g)
-    FilterTree{} -> f $ appNode prev e
-    PathTree{} -> f $ appNode prev e
-    CircleTree{} -> f $ appNode prev e
-    PolyLineTree{} -> f $ appNode prev e
-    PolygonTree{} -> f $ appNode prev e
-    EllipseTree{} -> f $ appNode prev e
-    LineTree{} -> f $ appNode prev e
-    RectangleTree{} -> f $ appNode prev e
-    TextTree{} -> f $ appNode prev e
-    ImageTree{} -> f $ appNode prev e
-    MeshGradientTree{} -> f $ appNode prev e
-    LinearGradientTree{} -> f $ appNode prev e
-    RadialGradientTree{} -> f $ appNode prev e
-    PatternTree{} -> f $ appNode prev e
-    MarkerTree{} -> f $ appNode prev e
-    MaskTree{} -> f $ appNode prev e
-    ClipPathTree{} -> f $ appNode prev e
-    SvgTree{} -> f $ appNode prev e
+    NoNode -> f $ appNode prev e
+    UseNode _ Nothing -> f $ appNode prev e
+    UseNode nfo (Just u) ->
+      f $ appNode prev $ UseTree nfo (Just $ dig ([] : appNode prev e) u)
+    GroupNode g ->
+      f $ appNode prev $ GroupTree $ zipGroup (appNode prev e) g
+    SymbolNode g ->
+      f $ appNode prev $ SymbolTree $ zipGroup (appNode prev e) g
+    DefinitionNode g ->
+      f $ appNode prev $ DefinitionTree $ zipGroup (appNode prev e) g
+    FilterNode{} -> f $ appNode prev e
+    PathNode{} -> f $ appNode prev e
+    CircleNode{} -> f $ appNode prev e
+    PolyLineNode{} -> f $ appNode prev e
+    PolygonNode{} -> f $ appNode prev e
+    EllipseNode{} -> f $ appNode prev e
+    LineNode{} -> f $ appNode prev e
+    RectangleNode{} -> f $ appNode prev e
+    TextNode{} -> f $ appNode prev e
+    ImageNode{} -> f $ appNode prev e
+    MeshGradientNode{} -> f $ appNode prev e
+    LinearGradientNode{} -> f $ appNode prev e
+    RadialGradientNode{} -> f $ appNode prev e
+    PatternNode{} -> f $ appNode prev e
+    MarkerNode{} -> f $ appNode prev e
+    MaskNode{} -> f $ appNode prev e
+    ClipPathNode{} -> f $ appNode prev e
+    SvgNode{} -> f $ appNode prev e
 
   zipGroup prev g = g { _groupChildren = updatedChildren }
     where
@@ -59,30 +57,11 @@ zipTree f = dig [] where
 -- | Fold all nodes of a SVG tree.
 foldTree :: (a -> Tree -> a) -> a -> Tree -> a
 foldTree f = go where
-  go acc e = case e ^. treeBranch of
-    None                 -> f acc e
-    UseTree{}            -> f acc e
-    PathTree{}           -> f acc e
-    CircleTree{}         -> f acc e
-    PolyLineTree{}       -> f acc e
-    PolygonTree{}        -> f acc e
-    EllipseTree{}        -> f acc e
-    LineTree{}           -> f acc e
-    RectangleTree{}      -> f acc e
-    TextTree{}           -> f acc e
-    ImageTree{}          -> f acc e
-    LinearGradientTree{} -> f acc e
-    RadialGradientTree{} -> f acc e
-    MeshGradientTree{}   -> f acc e
-    PatternTree{}        -> f acc e
-    MarkerTree{}         -> f acc e
-    MaskTree{}           -> f acc e
-    ClipPathTree{}       -> f acc e
-    DefinitionTree g     -> foldGroup (_groupOfDefinitions g)
-    FilterTree{}         -> f acc e
-    GroupTree g          -> foldGroup g
-    SymbolTree s         -> foldGroup (_groupOfSymbol s)
-    SvgTree{}            -> f acc e
+  go acc e = case e of
+    DefinitionTree g   -> foldGroup g
+    GroupTree g        -> foldGroup g
+    SymbolTree g       -> foldGroup g
+    _                  -> f acc e
     where
       foldGroup g =
         let subAcc = F.foldl' go acc $ _groupChildren g in
@@ -93,31 +72,34 @@ mapTree :: (Tree -> Tree) -> Tree -> Tree
 mapTree f = worker where
   worker t = f $ t & treeBranch %~ go
   go e = case e of
-    None -> e
-    UseTree{}    -> e
-    GroupTree g  -> GroupTree $ mapGroup g
-    SymbolTree g ->
-      SymbolTree . Symbol . mapGroup $ _groupOfSymbol g
-    DefinitionTree defs ->
-      DefinitionTree . Definitions . mapGroup $ _groupOfDefinitions defs
-    FilterTree{} -> e
-    PathTree{} -> e
-    CircleTree{} -> e
-    PolyLineTree{} -> e
-    PolygonTree{} -> e
-    EllipseTree{} -> e
-    LineTree{} -> e
-    RectangleTree{} -> e
-    TextTree{} -> e
-    ImageTree{} -> e
-    LinearGradientTree{} -> e
-    RadialGradientTree{} -> e
-    MeshGradientTree{} -> e
-    PatternTree{} -> e
-    MarkerTree{} -> e
-    MaskTree{} -> e
-    ClipPathTree{} -> e
-    SvgTree{} -> e
+    NoNode -> e
+    UseNode{}    -> e
+    GroupNode g  -> GroupNode $ mapGroup g
+    SymbolNode g ->
+      SymbolNode $ mapGroup g
+    DefinitionNode g ->
+      DefinitionNode $ mapGroup g
+    FilterNode{} -> e
+    PathNode{} -> e
+    CircleNode{} -> e
+    PolyLineNode{} -> e
+    PolygonNode{} -> e
+    EllipseNode{} -> e
+    LineNode{} -> e
+    RectangleNode{} -> e
+    TextNode{} -> e
+    ImageNode{} -> e
+    LinearGradientNode{} -> e
+    RadialGradientNode{} -> e
+    MeshGradientNode{} -> e
+    PatternNode{} -> e
+    MarkerNode{} -> e
+    MaskNode{} -> e
+    ClipPathNode{} -> e
+    SvgNode{} -> e
 
   mapGroup g =
       g { _groupChildren = map worker $ _groupChildren g }
+
+mapBranch :: (TreeBranch -> TreeBranch) -> Tree -> Tree
+mapBranch f = mapTree (treeBranch %~ f)

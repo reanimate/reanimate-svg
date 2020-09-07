@@ -24,6 +24,7 @@ module Graphics.SvgTree.Types
     , LineJoin( .. )
     , Tree
     , pattern Tree
+    , pattern None
     , treeBranch
     , TreeBranch(..)
     , Number( .. )
@@ -38,6 +39,7 @@ module Graphics.SvgTree.Types
 
       -- * Main type
     , Document( .. )
+    , pattern SvgTree
     , svgTree
     , viewBox
     , width
@@ -106,6 +108,7 @@ module Graphics.SvgTree.Types
       -- * SVG drawing primitives
       -- ** Rectangle
     , Rectangle( .. )
+    , pattern RectangleTree
     , rectangleTree
     , rectUpperLeftCorner
     , rectWidth
@@ -114,27 +117,32 @@ module Graphics.SvgTree.Types
 
       -- ** Line
     , Line( .. )
+    , pattern LineTree
     , lineTree
     , linePoint1
     , linePoint2
 
       -- ** Polygon
     , Polygon( .. )
+    , pattern PolygonTree
     , polygonTree
     , polygonPoints
 
       -- ** Polyline
     , PolyLine( .. )
+    , pattern PolyLineTree
     , polyLineTree
     , polyLinePoints
 
       -- ** Path
     , Path( .. )
+    , pattern PathTree
     , pathTree
     , pathDefinition
 
       -- ** Circle
     , Circle( .. )
+    , pattern CircleTree
     , circleTree
     , circleCenter
     , circleRadius
@@ -142,6 +150,7 @@ module Graphics.SvgTree.Types
 
       -- ** Ellipse
     , Ellipse( .. )
+    , pattern EllipseTree
     , ellipseTree
     , ellipseCenter
     , ellipseXRadius
@@ -152,6 +161,7 @@ module Graphics.SvgTree.Types
     , MeshGradientType( .. )
 
     , MeshGradient( .. )
+    , pattern MeshGradientTree
     , meshGradientTree
     , meshGradientX
     , meshGradientY
@@ -168,6 +178,7 @@ module Graphics.SvgTree.Types
 
       -- ** Image
     , Image( .. )
+    , pattern ImageTree
     , imageTree
     , imageCornerUpperLeft
     , imageWidth
@@ -177,6 +188,7 @@ module Graphics.SvgTree.Types
 
       -- ** Use
     , Use( .. )
+    , pattern UseTree
     , useTree
     , useBase
     , useName
@@ -186,27 +198,31 @@ module Graphics.SvgTree.Types
       -- * Grouping primitives
       -- ** Group
     , Group( .. )
+    , pattern GroupTree
     , groupTree
-    , HasGroup( .. )
+    , groupDrawAttributes
+    , groupChildren
+    , groupViewBox
+    , groupAspectRatio
 
       -- ** Symbol
-    , Symbol( .. )
+    , pattern SymbolTree
     , symbolTree
-    , groupOfSymbol
 
       -- ** Definitions
-    , Definitions( .. )
+    , pattern DefinitionTree
     , definitionTree
-    , groupOfDefinitions
 
     -- ** Filter
     , Filter( .. )
+    , pattern FilterTree
     , filterTree
     , filterChildren
 
       -- * Text related types
       -- ** Text
     , Text( .. )
+    , pattern TextTree
     , textTree
     , textAdjust
     , textRoot
@@ -243,6 +259,7 @@ module Graphics.SvgTree.Types
 
       -- * Marker definition
     , Marker( .. )
+    , pattern MarkerTree
     , markerTree
     , Overflow( .. )
     , MarkerOrientation( .. )
@@ -266,6 +283,7 @@ module Graphics.SvgTree.Types
 
       -- ** Linear Gradient
     , LinearGradient( .. )
+    , pattern LinearGradientTree
     , linearGradientTree
     , linearGradientUnits
     , linearGradientStart
@@ -276,6 +294,7 @@ module Graphics.SvgTree.Types
 
       -- ** Radial Gradient
     , RadialGradient( .. )
+    , pattern RadialGradientTree
     , radialGradientTree
     , radialGradientUnits
     , radialGradientCenter
@@ -288,6 +307,7 @@ module Graphics.SvgTree.Types
 
       -- * Pattern definition
     , Pattern( .. )
+    , pattern PatternTree
     , patternTree
     , patternViewBox
     , patternWidth
@@ -301,6 +321,7 @@ module Graphics.SvgTree.Types
 
       -- * Mask definition
     , Mask( .. )
+    , pattern MaskTree
     , maskTree
     , maskContentUnits
     , maskUnits
@@ -311,6 +332,7 @@ module Graphics.SvgTree.Types
 
       -- * Clip path definition
     , ClipPath( .. )
+    , pattern ClipPathTree
     , clipPathTree
     , clipPathUnits
     , clipPathContent
@@ -327,6 +349,7 @@ module Graphics.SvgTree.Types
     , zipTree
     , foldTree
     , mapTree
+    , mapBranch
     , nameOfTree
     , toUserUnit
     , mapNumber

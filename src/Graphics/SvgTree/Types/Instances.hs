@@ -25,12 +25,6 @@ instance HasDrawAttributes Use where
 instance HasDrawAttributes Group where
   drawAttributes = groupDrawAttributes
 
-instance HasDrawAttributes Definitions where
-  drawAttributes = group . drawAttributes
-
-instance HasDrawAttributes Symbol where
-  drawAttributes = group . drawAttributes
-
 instance HasDrawAttributes Rectangle where
   drawAttributes = rectangleDrawAttributes
 
@@ -93,12 +87,6 @@ instance HasDrawAttributes DisplacementMap where
 
 instance HasDrawAttributes Text where
   drawAttributes = textRoot . spanDrawAttributes
-
-instance HasGroup Definitions where
-  group = groupOfDefinitions
-
-instance HasGroup Symbol where
-  group = groupOfSymbol
 
 instance HasFilterAttributes Filter where
   filterAttributes = filterSelfAttributes
@@ -174,50 +162,50 @@ instance HasDrawAttributes TreeBranch where
   drawAttributes = lens getter setter
     where
       getter b = case b of
-        None -> defaultSvg
-        UseTree use _subTree -> use ^. drawAttributes
-        GroupTree t -> t ^. drawAttributes
-        SymbolTree t -> t ^. drawAttributes
-        DefinitionTree t -> t ^. drawAttributes
-        FilterTree t -> t ^. drawAttributes
-        PathTree t -> t ^. drawAttributes
-        CircleTree t -> t ^. drawAttributes
-        PolyLineTree t -> t ^. drawAttributes
-        PolygonTree t -> t ^. drawAttributes
-        EllipseTree t -> t ^. drawAttributes
-        LineTree t -> t ^. drawAttributes
-        RectangleTree t -> t ^. drawAttributes
-        TextTree _ t -> t ^. drawAttributes
-        ImageTree t -> t ^. drawAttributes
-        LinearGradientTree t -> t ^. drawAttributes
-        RadialGradientTree t -> t ^. drawAttributes
-        MeshGradientTree t -> t ^. drawAttributes
-        PatternTree t -> t ^. drawAttributes
-        MarkerTree t -> t ^. drawAttributes
-        MaskTree t -> t ^. drawAttributes
-        ClipPathTree t -> t ^. drawAttributes
-        SvgTree{} -> defaultSvg
+        NoNode -> defaultSvg
+        UseNode use _subNode -> use ^. drawAttributes
+        GroupNode t -> t ^. drawAttributes
+        SymbolNode t -> t ^. drawAttributes
+        DefinitionNode t -> t ^. drawAttributes
+        FilterNode t -> t ^. drawAttributes
+        PathNode t -> t ^. drawAttributes
+        CircleNode t -> t ^. drawAttributes
+        PolyLineNode t -> t ^. drawAttributes
+        PolygonNode t -> t ^. drawAttributes
+        EllipseNode t -> t ^. drawAttributes
+        LineNode t -> t ^. drawAttributes
+        RectangleNode t -> t ^. drawAttributes
+        TextNode _ t -> t ^. drawAttributes
+        ImageNode t -> t ^. drawAttributes
+        LinearGradientNode t -> t ^. drawAttributes
+        RadialGradientNode t -> t ^. drawAttributes
+        MeshGradientNode t -> t ^. drawAttributes
+        PatternNode t -> t ^. drawAttributes
+        MarkerNode t -> t ^. drawAttributes
+        MaskNode t -> t ^. drawAttributes
+        ClipPathNode t -> t ^. drawAttributes
+        SvgNode{} -> defaultSvg
       setter b attr = case b of
-        None -> b
-        UseTree use subTree -> UseTree (use & drawAttributes .~ attr) subTree
-        GroupTree t -> GroupTree $ t & drawAttributes .~ attr
-        SymbolTree t -> SymbolTree $ t & drawAttributes .~ attr
-        DefinitionTree t -> DefinitionTree $ t & drawAttributes .~ attr
-        FilterTree t -> FilterTree $ t & drawAttributes .~ attr
-        PathTree t -> PathTree $ t & drawAttributes .~ attr
-        CircleTree t -> CircleTree $ t & drawAttributes .~ attr
-        PolyLineTree t -> PolyLineTree $ t & drawAttributes .~ attr
-        PolygonTree t -> PolygonTree $ t & drawAttributes .~ attr
-        EllipseTree t -> EllipseTree $ t & drawAttributes .~ attr
-        LineTree t -> LineTree $ t & drawAttributes .~ attr
-        RectangleTree t -> RectangleTree $ t & drawAttributes .~ attr
-        TextTree path t -> TextTree path $ t & drawAttributes .~ attr
-        ImageTree t -> ImageTree $ t & drawAttributes .~ attr
-        LinearGradientTree t -> LinearGradientTree $ t & drawAttributes .~ attr
-        RadialGradientTree t -> RadialGradientTree $ t & drawAttributes .~ attr
-        MeshGradientTree t -> MeshGradientTree $ t & drawAttributes .~ attr
-        PatternTree t -> PatternTree $ t & drawAttributes .~ attr
-        MarkerTree t -> MarkerTree $ t & drawAttributes .~ attr
-        MaskTree t -> MaskTree $ t & drawAttributes .~ attr
-        ClipPathTree t -> ClipPathTree $ t & drawAttributes .~ attr
-        SvgTree {} -> GroupTree $ defaultSvg & groupChildren .~ [Tree b] & drawAttributes .~ attr
+        NoNode -> b
+        UseNode use subNode -> UseNode (use & drawAttributes .~ attr) subNode
+        GroupNode t -> GroupNode $ t & drawAttributes .~ attr
+        SymbolNode t -> SymbolNode $ t & drawAttributes .~ attr
+        DefinitionNode t -> DefinitionNode $ t & drawAttributes .~ attr
+        FilterNode t -> FilterNode $ t & drawAttributes .~ attr
+        PathNode t -> PathNode $ t & drawAttributes .~ attr
+        CircleNode t -> CircleNode $ t & drawAttributes .~ attr
+        PolyLineNode t -> PolyLineNode $ t & drawAttributes .~ attr
+        PolygonNode t -> PolygonNode $ t & drawAttributes .~ attr
+        EllipseNode t -> EllipseNode $ t & drawAttributes .~ attr
+        LineNode t -> LineNode $ t & drawAttributes .~ attr
+        RectangleNode t -> RectangleNode $ t & drawAttributes .~ attr
+        TextNode path t -> TextNode path $ t & drawAttributes .~ attr
+        ImageNode t -> ImageNode $ t & drawAttributes .~ attr
+        LinearGradientNode t -> LinearGradientNode $ t & drawAttributes .~ attr
+        RadialGradientNode t -> RadialGradientNode $ t & drawAttributes .~ attr
+        MeshGradientNode t -> MeshGradientNode $ t & drawAttributes .~ attr
+        PatternNode t -> PatternNode $ t & drawAttributes .~ attr
+        MarkerNode t -> MarkerNode $ t & drawAttributes .~ attr
+        MaskNode t -> MaskNode $ t & drawAttributes .~ attr
+        ClipPathNode t -> ClipPathNode $ t & drawAttributes .~ attr
+        SvgNode {} -> GroupNode $ defaultSvg & groupChildren .~ [Tree b] & drawAttributes .~ attr

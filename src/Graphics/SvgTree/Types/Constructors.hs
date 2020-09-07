@@ -4,67 +4,67 @@ import Graphics.SvgTree.Types.Internal
 import Graphics.SvgTree.Types.Hashable
 
 useTree :: Use -> Tree
-useTree u = Tree $ UseTree u Nothing
+useTree u = UseTree u Nothing
 
 groupTree :: Group -> Tree
-groupTree = Tree . GroupTree
+groupTree = GroupTree
 
-symbolTree :: Symbol -> Tree
-symbolTree = Tree . SymbolTree
+symbolTree :: Group -> Tree
+symbolTree = SymbolTree
 
-definitionTree :: Definitions -> Tree
-definitionTree = Tree . DefinitionTree
+definitionTree :: Group -> Tree
+definitionTree = DefinitionTree
 
 filterTree :: Filter -> Tree
-filterTree = Tree . FilterTree
+filterTree = FilterTree
 
 pathTree :: Path -> Tree
-pathTree = Tree . PathTree
+pathTree = PathTree
 
 circleTree :: Circle -> Tree
-circleTree = Tree . CircleTree
+circleTree = CircleTree
 
 polyLineTree :: PolyLine -> Tree
-polyLineTree = Tree . PolyLineTree
+polyLineTree = PolyLineTree
 
 polygonTree :: Polygon -> Tree
-polygonTree = Tree . PolygonTree
+polygonTree = PolygonTree
 
 ellipseTree :: Ellipse -> Tree
-ellipseTree = Tree . EllipseTree
+ellipseTree = EllipseTree
 
 lineTree :: Line -> Tree
-lineTree = Tree . LineTree
+lineTree = LineTree
 
 rectangleTree :: Rectangle -> Tree
-rectangleTree = Tree . RectangleTree
+rectangleTree = RectangleTree
 
 textTree :: Maybe TextPath -> Text -> Tree
-textTree a b = Tree $ TextTree a b
+textTree = TextTree
 
 imageTree :: Image -> Tree
-imageTree = Tree . ImageTree
+imageTree = ImageTree
 
 linearGradientTree :: LinearGradient -> Tree
-linearGradientTree = Tree . LinearGradientTree
+linearGradientTree = LinearGradientTree
 
 radialGradientTree :: RadialGradient -> Tree
-radialGradientTree = Tree . RadialGradientTree
+radialGradientTree = RadialGradientTree
 
 meshGradientTree :: MeshGradient -> Tree
-meshGradientTree = Tree . MeshGradientTree
+meshGradientTree = MeshGradientTree
 
 patternTree :: Pattern -> Tree
-patternTree = Tree . PatternTree
+patternTree = PatternTree
 
 markerTree :: Marker -> Tree
-markerTree = Tree . MarkerTree
+markerTree = MarkerTree
 
 maskTree :: Mask -> Tree
-maskTree = Tree . MaskTree
+maskTree = MaskTree
 
 clipPathTree :: ClipPath -> Tree
-clipPathTree = Tree . ClipPathTree
+clipPathTree = ClipPathTree
 
 svgTree :: Document -> Tree
-svgTree = Tree . SvgTree
+svgTree = SvgTree

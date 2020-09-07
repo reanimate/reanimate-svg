@@ -5,7 +5,6 @@ module Graphics.SvgTree
     loadSvgFile,
     parseSvgFile,
     unparse,
-    unparseTree,
     xmlOfDocument,
     xmlOfTree,
     saveXmlFile,
