@@ -44,11 +44,11 @@ module Graphics.SvgTree.Types.Internal
 
     -- * Main type
     Document (..),
-    viewBox,
-    width,
-    height,
-    elements,
-    description,
+    documentViewBox,
+    documentWidth,
+    documentHeight,
+    documentElements,
+    documentDescription,
     documentLocation,
     documentAspectRatio,
     documentSize,
@@ -1605,11 +1605,11 @@ data Element
 -- | Represent a full svg document with style,
 -- geometry and named elements.
 data Document = Document
-  { _viewBox :: Maybe (Double, Double, Double, Double),
-    _width :: Maybe Number,
-    _height :: Maybe Number,
-    _elements :: [Tree],
-    _description :: String,
+  { _documentViewBox :: Maybe (Double, Double, Double, Double),
+    _documentWidth :: Maybe Number,
+    _documentHeight :: Maybe Number,
+    _documentElements :: [Tree],
+    _documentDescription :: String,
     _documentLocation :: FilePath,
     _documentAspectRatio :: PreserveAspectRatio
   }
@@ -1621,9 +1621,9 @@ documentSize :: Dpi -> Document -> (Int, Int)
 documentSize
   _
   Document
-    { _viewBox = Just (x1, y1, x2, y2),
-      _width = Just (Percent pw),
-      _height = Just (Percent ph)
+    { _documentViewBox = Just (x1, y1, x2, y2),
+      _documentWidth = Just (Percent pw),
+      _documentHeight = Just (Percent ph)
     } =
     (floor $ dx * pw, floor $ dy * ph)
     where
@@ -1632,22 +1632,22 @@ documentSize
 documentSize
   _
   Document
-    { _width = Just (Num w),
-      _height = Just (Num h)
+    { _documentWidth = Just (Num w),
+      _documentHeight = Just (Num h)
     } = (floor w, floor h)
 documentSize
   dpi
   doc@( Document
-          { _width = Just w,
-            _height = Just h
+          { _documentWidth = Just w,
+            _documentHeight = Just h
           }
         ) =
     documentSize dpi $
       doc
-        { _width = Just $ toUserUnit dpi w,
-          _height = Just $ toUserUnit dpi h
+        { _documentWidth = Just $ toUserUnit dpi w,
+          _documentHeight = Just $ toUserUnit dpi h
         }
-documentSize _ Document {_viewBox = Just (x1, y1, x2, y2)} =
+documentSize _ Document {_documentViewBox = Just (x1, y1, x2, y2)} =
   (floor . abs $ x2 - x1, floor . abs $ y2 - y1)
 documentSize _ _ = (1, 1)
 

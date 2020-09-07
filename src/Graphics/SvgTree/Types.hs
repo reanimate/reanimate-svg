@@ -41,14 +41,14 @@ module Graphics.SvgTree.Types
     , Document( .. )
     , pattern SvgTree
     , svgTree
-    , viewBox
-    , width
-    , height
-    , elements
-    , description
-    , documentLocation
-    , documentAspectRatio
-    , documentSize
+    ,documentViewBox,
+    documentWidth,
+    documentHeight,
+    documentElements,
+    documentDescription,
+    documentLocation,
+    documentAspectRatio,
+    documentSize
 
       -- * Drawing attributes
     , DrawAttributes( .. )

@@ -12,7 +12,7 @@ import Text.XML.Light hiding (showAttr)
 
 ppDocument :: Document -> String
 ppDocument doc =
-  ppElementS_ (_elements doc) (xmlOfDocument doc) ""
+  ppElementS_ (_documentElements doc) (xmlOfDocument doc) ""
 
 ppTree :: Tree -> String
 ppTree t = ppTreeS t ""

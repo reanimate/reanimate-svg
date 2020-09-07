@@ -1262,12 +1262,12 @@ unparse e = case nodeName e of
 
 unparseDocument :: FilePath -> X.Element -> Maybe Document
 unparseDocument rootLocation e@(nodeName -> "svg") = Just Document
-    { _viewBox =
+    { _documentViewBox =
         attributeFinder "viewBox" e >>= parse viewBoxParser
-    , _elements = parsedElements
-    , _width = lengthFind "width"
-    , _height = lengthFind "height"
-    , _description = ""
+    , _documentElements = parsedElements
+    , _documentWidth = lengthFind "width"
+    , _documentHeight = lengthFind "height"
+    , _documentDescription = ""
     , _documentLocation = rootLocation
     , _documentAspectRatio =
         fromMaybe defaultSvg $
@@ -1285,13 +1285,13 @@ xmlOfDocument doc =
     X.node (X.unqual "svg") (attrs, descTag ++ children)
   where
     attr name = X.Attr (X.unqual name)
-    children = catMaybes [serializeTreeNode el | el <- _elements doc]
+    children = catMaybes [serializeTreeNode el | el <- _documentElements doc]
 
-    docViewBox = case _viewBox doc of
+    docViewBox = case _documentViewBox doc of
         Nothing -> []
         Just b  -> [attr "viewBox" $ serializeViewBox b]
 
-    descTag = case _description doc of
+    descTag = case _documentDescription doc of
         ""  -> []
         txt -> [X.node (X.unqual "desc") txt]
 
@@ -1300,8 +1300,8 @@ xmlOfDocument doc =
         [attr "xmlns" "http://www.w3.org/2000/svg"
         ,attr "xmlns:xlink" "http://www.w3.org/1999/xlink"
         ,attr "version" "1.1"] ++
-        catMaybes [attr "width" . serializeNumber <$> _width doc
-                  ,attr "height" . serializeNumber <$> _height doc
+        catMaybes [attr "width" . serializeNumber <$> _documentWidth doc
+                  ,attr "height" . serializeNumber <$> _documentHeight doc
                   ] ++
         catMaybes [attr "preserveAspectRatio" <$>  aserialize (_documentAspectRatio doc)
                   | _documentAspectRatio doc /= defaultSvg ]
