@@ -727,7 +727,7 @@ styleAttribute styleAttrs = SvgAttributeLens
 
 instance XMLUpdatable Rectangle where
   xmlTagName _ = "rect"
-  serializeTreeNode = genericSerializeNode
+  serializeTreeNode = genericSerializeWithDrawAttr
   attributes =
     ["width" `parseIn` rectWidth
     ,"height" `parseIn` rectHeight
@@ -739,7 +739,7 @@ instance XMLUpdatable Rectangle where
 
 instance XMLUpdatable Image where
   xmlTagName _ = "image"
-  serializeTreeNode = genericSerializeNode
+  serializeTreeNode = genericSerializeWithDrawAttr
   attributes =
     ["width" `parseIn` imageWidth
     ,"height" `parseIn` imageHeight
@@ -751,7 +751,7 @@ instance XMLUpdatable Image where
 
 instance XMLUpdatable Line where
   xmlTagName _ = "line"
-  serializeTreeNode = genericSerializeNode
+  serializeTreeNode = genericSerializeWithDrawAttr
   attributes =
     ["x1" `parseIn` (linePoint1._1)
     ,"y1" `parseIn` (linePoint1._2)
@@ -761,7 +761,7 @@ instance XMLUpdatable Line where
 
 instance XMLUpdatable Ellipse where
   xmlTagName _ = "ellipse"
-  serializeTreeNode = genericSerializeNode
+  serializeTreeNode = genericSerializeWithDrawAttr
   attributes =
     ["cx" `parseIn` (ellipseCenter._1)
     ,"cy" `parseIn` (ellipseCenter._2)
@@ -771,7 +771,7 @@ instance XMLUpdatable Ellipse where
 
 instance XMLUpdatable Circle where
   xmlTagName _ = "circle"
-  serializeTreeNode = genericSerializeNode
+  serializeTreeNode = genericSerializeWithDrawAttr
   attributes =
     ["cx" `parseIn` (circleCenter._1)
     ,"cy" `parseIn` (circleCenter._2)
@@ -782,7 +782,7 @@ instance XMLUpdatable Mask where
   xmlTagName _ = "mask"
   serializeTreeNode node =
       updateWithAccessor _maskContent node $
-          genericSerializeNode node
+          genericSerializeWithDrawAttr node
 
   attributes =
     ["x" `parseIn` (maskPosition._1)
@@ -797,23 +797,23 @@ instance XMLUpdatable ClipPath where
   xmlTagName _ = "clipPath"
   serializeTreeNode node =
       updateWithAccessor _clipPathContent node $
-          genericSerializeNode node
+          genericSerializeWithDrawAttr node
   attributes =
     ["clipPathUnits" `parseIn` clipPathUnits]
 
 instance XMLUpdatable Polygon where
   xmlTagName _ = "polygon"
-  serializeTreeNode = genericSerializeNode
+  serializeTreeNode = genericSerializeWithDrawAttr
   attributes = ["points" `parseIn` polygonPoints]
 
 instance XMLUpdatable PolyLine where
   xmlTagName _ =  "polyline"
-  serializeTreeNode = genericSerializeNode
+  serializeTreeNode = genericSerializeWithDrawAttr
   attributes = ["points" `parseIn` polyLinePoints]
 
 instance XMLUpdatable Path where
   xmlTagName _ =  "path"
-  serializeTreeNode = genericSerializeNode
+  serializeTreeNode = genericSerializeWithDrawAttr
   attributes = ["d" `parseIn` pathDefinition]
 
 instance XMLUpdatable MeshGradientPatch where
@@ -831,7 +831,7 @@ instance XMLUpdatable MeshGradientRow where
 instance XMLUpdatable MeshGradient where
   xmlTagName _ = "meshgradient"
   serializeTreeNode node =
-     updateWithAccessor _meshGradientRows node $ genericSerializeNode node
+     updateWithAccessor _meshGradientRows node $ genericSerializeWithDrawAttr node
   attributes =
     ["x" `parseIn` meshGradientX
     ,"y" `parseIn` meshGradientY
@@ -1210,7 +1210,7 @@ unparseFE _ = FENone
 
 unparse :: X.Element -> Tree
 unparse e@(nodeName -> "pattern") =
-  PatternTree $ xmlUnparseWithDrawAttr e & patternElements .~ map unparse (elChildren e)
+  PatternTree $ xmlUnparse e & patternElements .~ map unparse (elChildren e)
 unparse e@(nodeName -> "marker") =
   MarkerTree $ xmlUnparseWithDrawAttr e & markerElements .~ map unparse (elChildren e)
 unparse e@(nodeName -> "mask") =
