@@ -3,6 +3,9 @@ module Graphics.SvgTree.Types.Constructors where
 import Graphics.SvgTree.Types.Internal
 import Graphics.SvgTree.Types.Hashable
 
+useTree :: Use -> Tree
+useTree u = Tree $ UseTree u Nothing
+
 groupTree :: Group -> Tree
 groupTree = Tree . GroupTree
 

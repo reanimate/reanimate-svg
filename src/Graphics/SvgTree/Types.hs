@@ -177,6 +177,7 @@ module Graphics.SvgTree.Types
 
       -- ** Use
     , Use( .. )
+    , useTree
     , useBase
     , useName
     , useWidth
