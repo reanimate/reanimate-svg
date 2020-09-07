@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE PatternSynonyms    #-}
+{-# LANGUAGE ViewPatterns       #-}
 {-# OPTIONS_GHC -Wno-orphans -O0 #-}
 module Graphics.SvgTree.Types.Hashable where
 
@@ -26,9 +28,9 @@ deriving instance Hashable ClipPath
 deriving instance Hashable Mask
 deriving instance Hashable CoordinateUnits
 deriving instance Hashable TreeBranch
-deriving instance Hashable a => Hashable (Group a)
-deriving instance Hashable a => Hashable (Symbol a)
-deriving instance Hashable a => Hashable (Definitions a)
+deriving instance Hashable Group
+deriving instance Hashable Symbol
+deriving instance Hashable Definitions
 deriving instance Hashable PreserveAspectRatio
 deriving instance Hashable Alignment
 deriving instance Hashable MeetSlice
@@ -95,21 +97,27 @@ instance Hashable Tree where
 
 updTreeHash :: Tree -> Tree
 updTreeHash t = t
-  { _treeHash = hash (_treeDrawAttributes t, _treeBranch t) }
+  { _treeHash = hash (_treeBranch t) }
 
 treeBranch :: Lens' Tree TreeBranch
 treeBranch = lens _treeBranch $ \obj val ->
   updTreeHash $ obj { _treeBranch = val }
 
-treeDrawAttributes :: Lens' Tree DrawAttributes
-treeDrawAttributes = lens _treeDrawAttributes $ \obj val ->
-  updTreeHash $ obj { _treeDrawAttributes = val }
-
 instance HasDrawAttributes Tree where
-  drawAttributes = treeDrawAttributes
+  drawAttributes = treeBranch . drawAttributes
 
 instance CssMatcheable Tree where
   cssAttribOf _ _ = Nothing
   cssClassOf = view (drawAttributes . attrClass)
   cssIdOf = fmap T.pack . view (drawAttributes . attrId)
   cssNameOf = nameOfTree
+
+unpack :: Tree -> TreeBranch
+unpack t = (_treeBranch t)
+
+pattern Tree :: TreeBranch -> Tree
+pattern Tree branch <- (unpack -> branch)
+  where
+    Tree branch = updTreeHash $ CachedTree
+      { _treeBranch = branch
+      , _treeHash = 0 }

@@ -7,6 +7,7 @@ module Graphics.SvgTree.XmlParser
   ( xmlOfDocument
   , unparseDocument
   , unparse
+  , unparseTree
   , xmlOfTree
 
   , SvgAttributeLens( .. )
@@ -856,36 +857,35 @@ instance XMLUpdatable LinearGradient where
 instance XMLUpdatable Tree where
   xmlTagName _ = "TREE"
   attributes = []
-  serializeTreeNode e = mergeAttributes <$> (case e ^. treeBranch of
+  serializeTreeNode e = case e ^. treeBranch of
     None -> Nothing
-    UseTree u _ -> serializeTreeNode u
-    GroupTree g -> serializeTreeNode g
-    SymbolTree s -> serializeTreeNode s
-    DefinitionTree d -> serializeTreeNode d
-    FilterTree g -> serializeTreeNode g
-    PathTree p -> serializeTreeNode p
-    CircleTree c -> serializeTreeNode c
-    PolyLineTree p -> serializeTreeNode p
-    PolygonTree p -> serializeTreeNode p
-    EllipseTree el -> serializeTreeNode el
-    LineTree l -> serializeTreeNode l
-    RectangleTree r -> serializeTreeNode r
-    TextTree Nothing t -> serializeTreeNode t
-    ImageTree i -> serializeTreeNode i
-    LinearGradientTree l -> serializeTreeNode l
-    RadialGradientTree r -> serializeTreeNode r
-    MeshGradientTree m -> serializeTreeNode m
-    PatternTree p -> serializeTreeNode p
-    MarkerTree m -> serializeTreeNode m
-    MaskTree m -> serializeTreeNode m
-    ClipPathTree c -> serializeTreeNode c
+    UseTree u _ -> genericSerializeWithDrawAttr u
+    GroupTree g -> genericSerializeWithDrawAttr g
+    SymbolTree s -> genericSerializeWithDrawAttr s
+    DefinitionTree d -> genericSerializeWithDrawAttr d
+    FilterTree g -> genericSerializeWithDrawAttr g
+    PathTree p -> genericSerializeWithDrawAttr p
+    CircleTree c -> genericSerializeWithDrawAttr c
+    PolyLineTree p -> genericSerializeWithDrawAttr p
+    PolygonTree p -> genericSerializeWithDrawAttr p
+    EllipseTree el -> genericSerializeWithDrawAttr el
+    LineTree l -> genericSerializeWithDrawAttr l
+    RectangleTree r -> genericSerializeWithDrawAttr r
+    TextTree Nothing t -> genericSerializeWithDrawAttr t
+    ImageTree i -> genericSerializeWithDrawAttr i
+    LinearGradientTree l -> genericSerializeWithDrawAttr l
+    RadialGradientTree r -> genericSerializeWithDrawAttr r
+    MeshGradientTree m -> genericSerializeWithDrawAttr m
+    PatternTree p -> genericSerializeWithDrawAttr p
+    MarkerTree m -> genericSerializeWithDrawAttr m
+    MaskTree m -> genericSerializeWithDrawAttr m
+    ClipPathTree c -> genericSerializeWithDrawAttr c
     TextTree (Just p) t -> do
        textNode <- serializeTreeNode t
        pathNode <- serializeTreeNode p
        let sub = [X.Elem . setChildren pathNode $ X.elContent textNode]
        return $ setChildren textNode sub
-    SvgTree doc -> Just $ xmlOfDocument doc)
-    <*> (genericSerializeNode $ e ^. treeDrawAttributes)
+    SvgTree doc -> Just $ xmlOfDocument doc
 
 
 isNotNone :: Tree -> Bool
@@ -893,14 +893,14 @@ isNotNone t = case t ^. treeBranch of
   None -> False
   _    -> True
 
-instance XMLUpdatable (Group Tree) where
+instance XMLUpdatable Group where
   xmlTagName _ = "g"
   serializeTreeNode node =
      updateWithAccessor (filter isNotNone . _groupChildren) node $
         genericSerializeNode node
   attributes = []
 
-instance XMLUpdatable (Symbol Tree) where
+instance XMLUpdatable Symbol where
   xmlTagName _ = "symbol"
   serializeTreeNode node =
      updateWithAccessor (filter isNotNone . _groupChildren . _groupOfSymbol) node $
@@ -910,7 +910,7 @@ instance XMLUpdatable (Symbol Tree) where
      ,"preserveAspectRatio" `parseIn` (groupOfSymbol . groupAspectRatio)
      ]
 
-instance XMLUpdatable (Definitions Tree) where
+instance XMLUpdatable Definitions where
   xmlTagName _ = "defs"
   serializeTreeNode node =
      updateWithAccessor (filter isNotNone . _groupChildren . _groupOfDefinitions) node $
@@ -1240,14 +1240,14 @@ unparse (nodeName -> "style") = None -- XXX: Create a style node?
 unparse e@(nodeName -> "defs") =
   DefinitionTree . Definitions $ groupNode & groupChildren .~ map unparseTree (elChildren e)
   where
-    groupNode :: Group Tree
+    groupNode :: Group
     groupNode = _groupOfSymbol $ xmlUnparse e
 unparse e@(nodeName -> "filter") =
   FilterTree $ xmlUnparse e & filterChildren .~ map unparseFE (elChildren e)
 unparse e@(nodeName -> "symbol") =
   SymbolTree . Symbol $ groupNode & groupChildren .~ map unparseTree (elChildren e)
   where
-    groupNode :: Group Tree
+    groupNode :: Group
     groupNode = _groupOfSymbol $ xmlUnparse e
 unparse e@(nodeName -> "g") =
   GroupTree $ xmlUnparse e & groupChildren .~ map unparseTree (elChildren e)
