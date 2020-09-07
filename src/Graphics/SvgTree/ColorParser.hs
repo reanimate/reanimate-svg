@@ -7,22 +7,24 @@ module Graphics.SvgTree.ColorParser
   , urlRef
   ) where
 
-import           Control.Applicative      ((<|>))
-import           Data.Attoparsec.Text     (Parser, char, digit, inClass, letter,
-                                           many1, option, satisfy, scientific,
-                                           skipSpace, string, takeWhile1)
-import           Data.Bits                (unsafeShiftL, (.|.))
+import           Control.Applicative          ((<|>))
+import           Data.Attoparsec.Text         (Parser, char, digit, inClass,
+                                               letter, many1, option, satisfy,
+                                               scientific, skipSpace, string,
+                                               takeWhile1)
+import           Data.Bits                    (unsafeShiftL, (.|.))
 
-import           Codec.Picture            (PixelRGBA8 (..))
-import qualified Data.Map                 as M
-import           Data.Scientific          (toRealFloat)
-import           Data.Word                (Word8)
+import           Codec.Picture                (PixelRGBA8 (..))
+import           Data.Functor
+import qualified Data.Map                     as M
+import           Data.Scientific              (toRealFloat)
+import           Data.Word                    (Word8)
 import           Graphics.SvgTree.NamedColors
 import           Graphics.SvgTree.Types
-import           Text.Printf              (printf)
+import           Text.Printf                  (printf)
 
 commaWsp :: Parser ()
-commaWsp = skipSpace *> option () (string "," *> return ())
+commaWsp = skipSpace *> option () (string "," $> ())
                      <* skipSpace
 
 

@@ -208,7 +208,6 @@ mapNumber f nu = case nu of
   Point n   -> Point $ f n
   Inches n  -> Inches $ f n
 
--- XXX: Compress unused precision.
 -- | Encode the number to string which can be used in a
 -- CSS or a svg attributes.
 serializeNumber :: Number -> String

@@ -45,6 +45,9 @@ import           Text.Printf                  (printf)
 nodeName :: X.Element -> String
 nodeName = X.qName . X.elName
 
+setName :: String -> X.Element -> X.Element
+setName name elt = elt{ X.elName = X.unqual name }
+
 attributeFinder :: String -> X.Element -> Maybe String
 attributeFinder str =
     findAttrBy (\a -> X.qName a == str)
@@ -528,7 +531,7 @@ opacitySetter attribute elLens =
     serializer a = printf "%s" . ppF <$> a ^. elLens
     updater el str = case parseMayStartDot num str of
         Nothing -> el
-        Just v  -> el & elLens .~ Just (realToFrac v)
+        Just v  -> el & elLens ?~ realToFrac v
 
 type Serializer e = e -> Maybe String
 
@@ -574,7 +577,7 @@ classSetter :: SvgAttributeLens DrawAttributes
 classSetter = SvgAttributeLens "class" updater serializer
   where
     updater el str =
-      el & attrClass .~ (T.split (== ' ') $ T.pack str)
+      el & attrClass .~ T.split (== ' ') (T.pack str)
 
     serializer a = case a ^. attrClass of
       []  -> Nothing
@@ -591,7 +594,7 @@ cssUniqueFloat :: (Fractional n)
                => ASetter el el a (Maybe n)
                -> CssUpdater el
 cssUniqueFloat setter attr ((CssNumber (Num n):_):_) =
-    attr & setter .~ Just (realToFrac n)
+    attr & setter ?~ realToFrac n
 cssUniqueFloat _ attr _ = attr
 
 cssUniqueMayFloat :: ASetter el el a (Last Double)
@@ -642,9 +645,9 @@ cssElementRefSetter _ attr _ = attr
 
 cssMayStringSetter :: ASetter el el a (Maybe String) -> CssUpdater el
 cssMayStringSetter setter attr ((CssIdent i:_):_) =
-    attr & setter .~ Just (T.unpack i)
+    attr & setter ?~ T.unpack i
 cssMayStringSetter setter attr ((CssString i:_):_) =
-    attr & setter .~ Just (T.unpack i)
+    attr & setter ?~ T.unpack i
 cssMayStringSetter _ attr _ = attr
 
 cssNullSetter :: CssUpdater a
@@ -856,66 +859,49 @@ instance XMLUpdatable LinearGradient where
 instance XMLUpdatable Tree where
   xmlTagName _ = "TREE"
   attributes = []
-  serializeTreeNode e = case e of
-    None -> Nothing
-    UseTree u _ -> serializeTreeNode u
-    GroupTree g -> serializeTreeNode g
-    SymbolTree s -> serializeTreeNode s
-    DefinitionTree d -> serializeTreeNode d
-    FilterTree g -> serializeTreeNode g
-    PathTree p -> serializeTreeNode p
-    CircleTree c -> serializeTreeNode c
-    PolyLineTree p -> serializeTreeNode p
-    PolygonTree p -> serializeTreeNode p
-    EllipseTree el -> serializeTreeNode el
-    LineTree l -> serializeTreeNode l
-    RectangleTree r -> serializeTreeNode r
-    TextTree Nothing t -> serializeTreeNode t
-    ImageTree i -> serializeTreeNode i
-    LinearGradientTree l -> serializeTreeNode l
-    RadialGradientTree r -> serializeTreeNode r
-    MeshGradientTree m -> serializeTreeNode m
-    PatternTree p -> serializeTreeNode p
-    MarkerTree m -> serializeTreeNode m
-    MaskTree m -> serializeTreeNode m
-    ClipPathTree c -> serializeTreeNode c
-    TextTree (Just p) t -> do
+  serializeTreeNode e = case e ^. treeBranch of
+    NoNode -> Nothing
+    UseNode u _ -> serializeTreeNode u
+    GroupNode g -> serializeTreeNode g
+    SymbolNode s -> setName "symbol" <$> serializeTreeNode s
+    DefinitionNode d -> setName "defs" <$> serializeTreeNode d
+    FilterNode g -> serializeTreeNode g
+    PathNode p -> serializeTreeNode p
+    CircleNode c -> serializeTreeNode c
+    PolyLineNode p -> serializeTreeNode p
+    PolygonNode p -> serializeTreeNode p
+    EllipseNode el -> serializeTreeNode el
+    LineNode l -> serializeTreeNode l
+    RectangleNode r -> serializeTreeNode r
+    TextNode Nothing t -> serializeTreeNode t
+    ImageNode i -> serializeTreeNode i
+    LinearGradientNode l -> serializeTreeNode l
+    RadialGradientNode r -> serializeTreeNode r
+    MeshGradientNode m -> serializeTreeNode m
+    PatternNode p -> serializeTreeNode p
+    MarkerNode m -> serializeTreeNode m
+    MaskNode m -> serializeTreeNode m
+    ClipPathNode c -> serializeTreeNode c
+    TextNode (Just p) t -> do
        textNode <- serializeTreeNode t
        pathNode <- serializeTreeNode p
        let sub = [X.Elem . setChildren pathNode $ X.elContent textNode]
        return $ setChildren textNode sub
-    SvgTree doc -> Just $ xmlOfDocument doc
+    SvgNode doc -> Just $ xmlOfDocument doc
 
 
 isNotNone :: Tree -> Bool
 isNotNone None = False
-isNotNone _    = True
+isNotNone _ = True
 
-instance XMLUpdatable (Group Tree) where
+instance XMLUpdatable Group where
   xmlTagName _ = "g"
   serializeTreeNode node =
      updateWithAccessor (filter isNotNone . _groupChildren) node $
         genericSerializeWithDrawAttr node
-  attributes = []
-
-instance XMLUpdatable (Symbol Tree) where
-  xmlTagName _ = "symbol"
-  serializeTreeNode node =
-     updateWithAccessor (filter isNotNone . _groupChildren . _groupOfSymbol) node $
-        genericSerializeWithDrawAttr node
   attributes =
-     ["viewBox" `parseIn` (groupOfSymbol . groupViewBox)
-     ,"preserveAspectRatio" `parseIn` (groupOfSymbol . groupAspectRatio)
-     ]
-
-instance XMLUpdatable (Definitions Tree) where
-  xmlTagName _ = "defs"
-  serializeTreeNode node =
-     updateWithAccessor (filter isNotNone . _groupChildren . _groupOfDefinitions) node $
-        genericSerializeWithDrawAttr node
-  attributes =
-     ["viewBox" `parseIn` (groupOfDefinitions . groupViewBox)
-     ,"preserveAspectRatio" `parseIn` (groupOfDefinitions . groupAspectRatio)
+     ["viewBox" `parseIn` groupViewBox
+     ,"preserveAspectRatio" `parseIn` groupAspectRatio
      ]
 
 instance XMLUpdatable Filter where
@@ -931,7 +917,7 @@ instance XMLUpdatable Filter where
 
 instance XMLUpdatable FilterElement where
   xmlTagName _ = "FilterElement"
-  serializeTreeNode fe = flip mergeAttributes <$> (genericSerializeNode fe) <*>
+  serializeTreeNode fe = flip mergeAttributes <$> genericSerializeNode fe <*>
     case fe of
       FEColorMatrix m     -> serializeTreeNode m
       FEComposite c       -> serializeTreeNode c
@@ -1193,7 +1179,7 @@ instance XMLUpdatable GradientStop where
     attributes = styleAttribute cssAvailable : fmap fst cssAvailable ++ lst where
       cssAvailable :: [(SvgAttributeLens GradientStop, CssUpdater GradientStop)]
       cssAvailable =
-          [(opacitySetter "stop-opacity" gradientOpacity, (cssUniqueFloat gradientOpacity))
+          [(opacitySetter "stop-opacity" gradientOpacity, cssUniqueFloat gradientOpacity)
           ,("stop-color" `parseIn` gradientColor, cssUniqueColor gradientColor)
           ]
 
@@ -1233,23 +1219,15 @@ unparse e@(nodeName -> "clipPath") =
   ClipPathTree $ xmlUnparseWithDrawAttr e & clipPathContent .~ map unparse (elChildren e)
 unparse (nodeName -> "style") = None -- XXX: Create a style node?
 unparse e@(nodeName -> "defs") =
-  DefinitionTree . Definitions $ groupNode & groupChildren .~ map unparse (elChildren e)
-  where
-    groupNode :: Group Tree
-    groupNode = _groupOfSymbol $ xmlUnparseWithDrawAttr e
+  DefinitionTree $ xmlUnparseWithDrawAttr e & groupChildren .~ map unparse (elChildren e)
 unparse e@(nodeName -> "filter") =
   FilterTree $ xmlUnparseWithDrawAttr e & filterChildren .~ map unparseFE (elChildren e)
 unparse e@(nodeName -> "symbol") =
-  SymbolTree . Symbol $ groupNode & groupChildren .~ map unparse (elChildren e)
-  where
-    groupNode :: Group Tree
-    groupNode = _groupOfSymbol $ xmlUnparseWithDrawAttr e
+  SymbolTree $ xmlUnparseWithDrawAttr e & groupChildren .~ map unparse (elChildren e)
 unparse e@(nodeName -> "g") =
   GroupTree $ xmlUnparseWithDrawAttr e & groupChildren .~ map unparse (elChildren e)
 unparse e@(nodeName -> "svg") =
-  case unparseDocument "" e of
-    Nothing  -> None
-    Just doc -> SvgTree doc
+  maybe None SvgTree $ unparseDocument "" e
 unparse e@(nodeName -> "text") =
   TextTree tPath $ xmlUnparse e & textRoot .~ root
     where
@@ -1284,12 +1262,12 @@ unparse e = case nodeName e of
 
 unparseDocument :: FilePath -> X.Element -> Maybe Document
 unparseDocument rootLocation e@(nodeName -> "svg") = Just Document
-    { _viewBox =
+    { _documentViewBox =
         attributeFinder "viewBox" e >>= parse viewBoxParser
-    , _elements = parsedElements
-    , _width = lengthFind "width"
-    , _height = lengthFind "height"
-    , _description = ""
+    , _documentElements = parsedElements
+    , _documentWidth = lengthFind "width"
+    , _documentHeight = lengthFind "height"
+    , _documentDescription = ""
     , _documentLocation = rootLocation
     , _documentAspectRatio =
         fromMaybe defaultSvg $
@@ -1307,13 +1285,13 @@ xmlOfDocument doc =
     X.node (X.unqual "svg") (attrs, descTag ++ children)
   where
     attr name = X.Attr (X.unqual name)
-    children = catMaybes [serializeTreeNode el | el <- _elements doc]
+    children = catMaybes [serializeTreeNode el | el <- _documentElements doc]
 
-    docViewBox = case _viewBox doc of
+    docViewBox = case _documentViewBox doc of
         Nothing -> []
         Just b  -> [attr "viewBox" $ serializeViewBox b]
 
-    descTag = case _description doc of
+    descTag = case _documentDescription doc of
         ""  -> []
         txt -> [X.node (X.unqual "desc") txt]
 
@@ -1322,8 +1300,8 @@ xmlOfDocument doc =
         [attr "xmlns" "http://www.w3.org/2000/svg"
         ,attr "xmlns:xlink" "http://www.w3.org/1999/xlink"
         ,attr "version" "1.1"] ++
-        catMaybes [attr "width" . serializeNumber <$> _width doc
-                  ,attr "height" . serializeNumber <$> _height doc
+        catMaybes [attr "width" . serializeNumber <$> _documentWidth doc
+                  ,attr "height" . serializeNumber <$> _documentHeight doc
                   ] ++
         catMaybes [attr "preserveAspectRatio" <$>  aserialize (_documentAspectRatio doc)
                   | _documentAspectRatio doc /= defaultSvg ]

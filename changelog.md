@@ -3,6 +3,7 @@
 v0.11.0.0
 
  * Drop support for GHC 7.
+ * Remove toPoint, isPathArc, isPathWithArc
 
 v0.10.3.0 September 2020
 
