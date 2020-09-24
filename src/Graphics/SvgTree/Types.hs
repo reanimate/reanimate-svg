@@ -59,6 +59,15 @@ module Graphics.SvgTree.Types
     , FilterAttributes(..)
     , HasFilterAttributes(..)
     , FilterSource(..)
+
+    , Blend (..)
+    , BlendMode (..)
+    , blendDrawAttributes
+    , blendFilterAttr
+    , blendIn
+    , blendIn2
+    , blendMode
+
     , ColorMatrixType(..)
     , colorMatrixDrawAttributes
     , colorMatrixFilterAttr
