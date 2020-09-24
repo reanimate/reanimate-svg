@@ -4,3 +4,4 @@ cabal.sandbox.config
 gen_test
 *.nix
 .stack-work
+*.DS_Store
