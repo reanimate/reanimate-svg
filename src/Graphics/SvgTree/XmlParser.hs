@@ -1253,7 +1253,17 @@ parseMeshGradientRows = foldMap unRows . elChildren where
   unRows _ = []
 
 unparseFE :: X.Element -> FilterElement
-unparseFE _ = FENone
+unparseFE e = case nodeName e of
+    "feBlend"           -> FEBlend parsed
+    "feColorMatrix"     -> FEColorMatrix parsed
+    "feComposite"       -> FEComposite parsed
+    "feDisplacementMap" -> FEDisplacementMap parsed
+    "feGaussianBlur"    -> FEGaussianBlur parsed
+    "feTurbulence"      -> FETurbulence parsed
+    _                   -> FENone
+  where
+    parsed :: (WithDefaultSvg a, XMLUpdatable a, HasDrawAttributes a) => a
+    parsed = xmlUnparseWithDrawAttr e
 
 unparse :: X.Element -> Tree
 unparse e@(nodeName -> "pattern") =
