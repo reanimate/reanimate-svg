@@ -62,6 +62,15 @@ module Graphics.SvgTree.Types.Internal
     FilterAttributes (..),
     HasFilterAttributes (..),
     FilterSource (..),
+
+    Blend (..),
+    BlendMode (..),
+    blendDrawAttributes,
+    blendFilterAttr,
+    blendIn,
+    blendIn2,
+    blendMode,
+
     ColorMatrixType (..),
     colorMatrixDrawAttributes,
     colorMatrixFilterAttr,
@@ -1104,7 +1113,7 @@ instance WithDefaultSvg TreeBranch where
   defaultSvg = NoNode
 
 data FilterElement
-  = FEBlend
+  = FEBlend Blend
   | FEColorMatrix ColorMatrix
   | FEComponentTransfer -- Need
   | FEComposite Composite
@@ -1182,6 +1191,44 @@ instance WithDefaultSvg DisplacementMap where
         _displacementMapXChannelSelector = ChannelA,
         _displacementMapYChannelSelector = ChannelA
       }
+
+data BlendMode
+  = Normal
+  | Multiply
+  | Screen
+  | Overlay
+  | Darken
+  | Lighten
+  | ColorDodge
+  | ColorBurn
+  | HardLight
+  | SoftLight
+  | Difference
+  | Exclusion
+  | Hue
+  | Saturation
+  | Color
+  | Luminosity
+  deriving (Eq, Show, Generic)
+
+data Blend = Blend
+  { _blendDrawAttributes :: !DrawAttributes,
+    _blendFilterAttr :: !FilterAttributes,
+    _blendIn :: !(Last FilterSource),
+    _blendIn2 :: !(Last FilterSource),
+    _blendMode :: !BlendMode
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg Blend where
+  defaultSvg =
+    Blend
+    { _blendDrawAttributes = defaultSvg,
+      _blendFilterAttr = defaultSvg,
+      _blendIn = Last Nothing,
+      _blendIn2 = Last Nothing,
+      _blendMode = Normal
+    }
 
 data ColorMatrixType
   = Matrix
@@ -1757,6 +1804,7 @@ makeLenses ''LinearGradient
 makeLenses ''RadialGradient
 makeLenses ''Mask
 makeLenses ''ClipPath
+makeLenses ''Blend
 makeLenses ''ColorMatrix
 makeLenses ''Composite
 makeLenses ''GaussianBlur

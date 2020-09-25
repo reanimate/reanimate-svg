@@ -73,6 +73,9 @@ instance HasDrawAttributes LinearGradient where
 instance HasDrawAttributes Composite where
   drawAttributes = compositeDrawAttributes
 
+instance HasDrawAttributes Blend where
+  drawAttributes = blendDrawAttributes
+
 instance HasDrawAttributes ColorMatrix where
   drawAttributes = colorMatrixDrawAttributes
 
@@ -88,8 +91,12 @@ instance HasDrawAttributes DisplacementMap where
 instance HasDrawAttributes Text where
   drawAttributes = textRoot . spanDrawAttributes
 
+
 instance HasFilterAttributes Filter where
   filterAttributes = filterSelfAttributes
+
+instance HasFilterAttributes Blend where
+  filterAttributes = blendFilterAttr
 
 instance HasFilterAttributes Composite where
   filterAttributes = compositeFilterAttr
@@ -110,7 +117,7 @@ instance HasFilterAttributes FilterElement where
   filterAttributes = lens getter setter
     where
       getter fe = case fe of
-        FEBlend -> defaultSvg
+        FEBlend b -> b ^. filterAttributes
         FEColorMatrix m -> m ^. filterAttributes
         FEComponentTransfer -> defaultSvg
         FEComposite c -> c ^. filterAttributes
@@ -134,7 +141,7 @@ instance HasFilterAttributes FilterElement where
         FETurbulence t -> t ^. filterAttributes
         FENone -> defaultSvg
       setter fe attr = case fe of
-        FEBlend -> fe
+        FEBlend b -> FEBlend $ b & filterAttributes .~ attr
         FEColorMatrix m -> FEColorMatrix $ m & filterAttributes .~ attr
         FEComponentTransfer -> fe
         FEComposite c -> FEComposite $ c & filterAttributes .~ attr

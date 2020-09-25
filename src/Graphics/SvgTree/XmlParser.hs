@@ -369,6 +369,44 @@ instance ParseableAttribute FilterSource where
     StrokePaint     -> "StrokePaint"
     SourceRef s     -> s
 
+instance ParseableAttribute BlendMode where
+  aparse s = case s of
+    "normal"      -> Just Normal
+    "multiply"    -> Just Multiply
+    "screen"      -> Just Screen
+    "overlay"     -> Just Overlay
+    "darken"      -> Just Darken
+    "lighten"     -> Just Lighten
+    "color-dodge" -> Just ColorDodge
+    "color-burn"  -> Just ColorBurn
+    "hard-light"  -> Just HardLight
+    "soft-light"  -> Just SoftLight
+    "difference"  -> Just Difference
+    "exclusion"   -> Just Exclusion
+    "hue"         -> Just Hue
+    "saturation"  -> Just Saturation
+    "color"       -> Just Color
+    "luminosity"  -> Just Luminosity
+    _             -> Nothing
+
+  aserialize v = Just $ case v of
+    Normal     -> "normal"
+    Multiply   -> "multiply"
+    Screen     -> "screen"
+    Overlay    -> "overlay"
+    Darken     -> "darken"
+    Lighten    -> "lighten"
+    ColorDodge -> "color-dodge"
+    ColorBurn  -> "color-burn"
+    HardLight  -> "hard-light"
+    SoftLight  -> "soft-light"
+    Difference -> "difference"
+    Exclusion  -> "exclusion"
+    Hue        -> "hue"
+    Saturation -> "saturation"
+    Color      -> "color"
+    Luminosity -> "luminosity"
+
 instance ParseableAttribute ColorMatrixType where
   aparse s = case s of
     "matrix"           -> Just Matrix
@@ -919,6 +957,7 @@ instance XMLUpdatable FilterElement where
   xmlTagName _ = "FilterElement"
   serializeTreeNode fe = flip mergeAttributes <$> genericSerializeNode fe <*>
     case fe of
+      FEBlend b           -> serializeTreeNode b
       FEColorMatrix m     -> serializeTreeNode m
       FEComposite c       -> serializeTreeNode c
       FEGaussianBlur b    -> serializeTreeNode b
@@ -928,6 +967,14 @@ instance XMLUpdatable FilterElement where
         "Unsupported element: " ++ show fe ++ ". Please submit bug on github."
   attributes =
     [ "result" `parseIn` (filterAttributes . filterResult)]
+
+instance XMLUpdatable Blend where
+  xmlTagName _ = "feBlend"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "in" `parseIn` blendIn
+    , "in2" `parseIn` blendIn2
+    , "mode"  `parseIn` blendMode ]
 
 instance XMLUpdatable ColorMatrix where
   xmlTagName _ = "feColorMatrix"
@@ -1206,7 +1253,17 @@ parseMeshGradientRows = foldMap unRows . elChildren where
   unRows _ = []
 
 unparseFE :: X.Element -> FilterElement
-unparseFE _ = FENone
+unparseFE e = case nodeName e of
+    "feBlend"           -> FEBlend parsed
+    "feColorMatrix"     -> FEColorMatrix parsed
+    "feComposite"       -> FEComposite parsed
+    "feDisplacementMap" -> FEDisplacementMap parsed
+    "feGaussianBlur"    -> FEGaussianBlur parsed
+    "feTurbulence"      -> FETurbulence parsed
+    _                   -> FENone
+  where
+    parsed :: (WithDefaultSvg a, XMLUpdatable a, HasDrawAttributes a) => a
+    parsed = xmlUnparseWithDrawAttr e
 
 unparse :: X.Element -> Tree
 unparse e@(nodeName -> "pattern") =
