@@ -76,6 +76,9 @@ instance HasDrawAttributes Composite where
 instance HasDrawAttributes Blend where
   drawAttributes = blendDrawAttributes
 
+instance HasDrawAttributes Tile where
+  drawAttributes = tileDrawAttributes
+
 instance HasDrawAttributes ColorMatrix where
   drawAttributes = colorMatrixDrawAttributes
 
@@ -97,6 +100,9 @@ instance HasFilterAttributes Filter where
 
 instance HasFilterAttributes Blend where
   filterAttributes = blendFilterAttr
+
+instance HasFilterAttributes Tile where
+  filterAttributes = tileFilterAttr
 
 instance HasFilterAttributes Composite where
   filterAttributes = compositeFilterAttr
@@ -137,7 +143,7 @@ instance HasFilterAttributes FilterElement where
         FEMorphology -> defaultSvg
         FEOffset -> defaultSvg
         FESpecularLighting -> defaultSvg
-        FETile -> defaultSvg
+        FETile t -> t ^. filterAttributes
         FETurbulence t -> t ^. filterAttributes
         FENone -> defaultSvg
       setter fe attr = case fe of
@@ -161,7 +167,7 @@ instance HasFilterAttributes FilterElement where
         FEMorphology -> fe
         FEOffset -> fe
         FESpecularLighting -> fe
-        FETile -> fe
+        FETile t -> FETile $ t & filterAttributes .~ attr
         FETurbulence t -> FETurbulence $ t & filterAttributes .~ attr
         FENone -> fe
 

@@ -71,6 +71,11 @@ module Graphics.SvgTree.Types.Internal
     blendIn2,
     blendMode,
 
+    Tile (..),
+    tileDrawAttributes,
+    tileFilterAttr,
+    tileIn,
+
     ColorMatrixType (..),
     colorMatrixDrawAttributes,
     colorMatrixFilterAttr,
@@ -1113,27 +1118,27 @@ instance WithDefaultSvg TreeBranch where
   defaultSvg = NoNode
 
 data FilterElement
-  = FEBlend Blend
-  | FEColorMatrix ColorMatrix
-  | FEComponentTransfer -- Need
-  | FEComposite Composite
+  = FEBlend Blend               -- SVG Basic
+  | FEColorMatrix ColorMatrix   -- SVG Basic
+  | FEComponentTransfer -- Need -- SVG Basic
+  | FEComposite Composite       -- SVG Basic
   | FEConvolveMatrix
   | FEDiffuseLighting
   | FEDisplacementMap DisplacementMap
   | FEDropShadow
-  | FEFlood
+  | FEFlood                     -- SVG Basic
   | FEFuncA -- Need
   | FEFuncB
   | FEFuncG
   | FEFuncR
-  | FEGaussianBlur GaussianBlur
-  | FEImage
-  | FEMerge
+  | FEGaussianBlur GaussianBlur -- SVG Basic
+  | FEImage                     -- SVG Basic
+  | FEMerge                     -- SVG Basic
   | FEMergeNode
   | FEMorphology
-  | FEOffset
+  | FEOffset                    -- SVG Basic
   | FESpecularLighting
-  | FETile
+  | FETile Tile                 -- SVG Basic
   | FETurbulence Turbulence
   | FENone
   deriving (Eq, Show, Generic)
@@ -1228,6 +1233,21 @@ instance WithDefaultSvg Blend where
       _blendIn = Last Nothing,
       _blendIn2 = Last Nothing,
       _blendMode = Normal
+    }
+
+data Tile = Tile
+  { _tileDrawAttributes :: !DrawAttributes,
+    _tileFilterAttr :: !FilterAttributes,
+    _tileIn :: !(Last FilterSource)
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg Tile where
+  defaultSvg =
+    Tile
+    { _tileDrawAttributes = defaultSvg,
+      _tileFilterAttr = defaultSvg,
+      _tileIn = Last Nothing
     }
 
 data ColorMatrixType
@@ -1805,6 +1825,7 @@ makeLenses ''RadialGradient
 makeLenses ''Mask
 makeLenses ''ClipPath
 makeLenses ''Blend
+makeLenses ''Tile
 makeLenses ''ColorMatrix
 makeLenses ''Composite
 makeLenses ''GaussianBlur

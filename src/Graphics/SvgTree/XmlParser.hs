@@ -407,6 +407,7 @@ instance ParseableAttribute BlendMode where
     Color      -> "color"
     Luminosity -> "luminosity"
 
+
 instance ParseableAttribute ColorMatrixType where
   aparse s = case s of
     "matrix"           -> Just Matrix
@@ -963,6 +964,7 @@ instance XMLUpdatable FilterElement where
       FEGaussianBlur b    -> serializeTreeNode b
       FETurbulence t      -> serializeTreeNode t
       FEDisplacementMap d -> serializeTreeNode d
+      FETile t            -> serializeTreeNode t
       _                   -> error $
         "Unsupported element: " ++ show fe ++ ". Please submit bug on github."
   attributes =
@@ -975,6 +977,12 @@ instance XMLUpdatable Blend where
     [ "in" `parseIn` blendIn
     , "in2" `parseIn` blendIn2
     , "mode"  `parseIn` blendMode ]
+
+instance XMLUpdatable Tile where
+  xmlTagName _ = "feTile"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "in" `parseIn` tileIn]
 
 instance XMLUpdatable ColorMatrix where
   xmlTagName _ = "feColorMatrix"
@@ -1260,6 +1268,7 @@ unparseFE e = case nodeName e of
     "feDisplacementMap" -> FEDisplacementMap parsed
     "feGaussianBlur"    -> FEGaussianBlur parsed
     "feTurbulence"      -> FETurbulence parsed
+    "feTile"            -> FETile parsed
     _                   -> FENone
   where
     parsed :: (WithDefaultSvg a, XMLUpdatable a, HasDrawAttributes a) => a
