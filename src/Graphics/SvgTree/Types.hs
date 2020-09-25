@@ -68,6 +68,12 @@ module Graphics.SvgTree.Types
     , blendIn2
     , blendMode
 
+    , Flood (..)
+    , floodDrawAttributes
+    , floodFilterAttr
+    , floodColor
+    , floodOpacity
+
     , Tile (..)
     , tileDrawAttributes
     , tileFilterAttr

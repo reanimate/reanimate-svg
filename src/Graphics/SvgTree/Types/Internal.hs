@@ -76,6 +76,12 @@ module Graphics.SvgTree.Types.Internal
     tileFilterAttr,
     tileIn,
 
+    Flood (..),
+    floodDrawAttributes,
+    floodFilterAttr,
+    floodColor,
+    floodOpacity,
+
     ColorMatrixType (..),
     colorMatrixDrawAttributes,
     colorMatrixFilterAttr,
@@ -1118,27 +1124,27 @@ instance WithDefaultSvg TreeBranch where
   defaultSvg = NoNode
 
 data FilterElement
-  = FEBlend Blend               -- SVG Basic
-  | FEColorMatrix ColorMatrix   -- SVG Basic
+  = FEBlend Blend               -- SVG Basic --DONE
+  | FEColorMatrix ColorMatrix   -- SVG Basic --DONE
   | FEComponentTransfer -- Need -- SVG Basic
-  | FEComposite Composite       -- SVG Basic
+  | FEComposite Composite       -- SVG Basic --DONE
   | FEConvolveMatrix
   | FEDiffuseLighting
-  | FEDisplacementMap DisplacementMap
+  | FEDisplacementMap DisplacementMap        --DONE
   | FEDropShadow
-  | FEFlood                     -- SVG Basic
+  | FEFlood Flood               -- SVG Basic --DONE
   | FEFuncA -- Need
   | FEFuncB
   | FEFuncG
   | FEFuncR
-  | FEGaussianBlur GaussianBlur -- SVG Basic
+  | FEGaussianBlur GaussianBlur -- SVG Basic --DONE
   | FEImage                     -- SVG Basic
   | FEMerge                     -- SVG Basic
   | FEMergeNode
   | FEMorphology
   | FEOffset                    -- SVG Basic
   | FESpecularLighting
-  | FETile Tile                 -- SVG Basic
+  | FETile Tile                 -- SVG Basic --DONE
   | FETurbulence Turbulence
   | FENone
   deriving (Eq, Show, Generic)
@@ -1234,6 +1240,25 @@ instance WithDefaultSvg Blend where
       _blendIn2 = Last Nothing,
       _blendMode = Normal
     }
+
+data Flood = Flood
+  { _floodDrawAttributes :: !DrawAttributes,
+    _floodFilterAttr :: !FilterAttributes,
+    _floodColor :: !PixelRGBA8,
+    _floodOpacity :: !(Maybe Double)
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg Flood where
+  defaultSvg =
+    Flood
+    { _floodDrawAttributes = defaultSvg,
+      _floodFilterAttr = defaultSvg,
+      _floodColor = PixelRGBA8 0 0 0 255,
+      _floodOpacity = Just 1.0
+    }
+
+
 
 data Tile = Tile
   { _tileDrawAttributes :: !DrawAttributes,
@@ -1825,6 +1850,7 @@ makeLenses ''RadialGradient
 makeLenses ''Mask
 makeLenses ''ClipPath
 makeLenses ''Blend
+makeLenses ''Flood
 makeLenses ''Tile
 makeLenses ''ColorMatrix
 makeLenses ''Composite
