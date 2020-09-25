@@ -66,6 +66,8 @@ deriving instance Hashable FilterElement
 deriving instance Hashable Blend
 deriving instance Hashable BlendMode
 
+deriving instance Hashable Tile
+
 deriving instance Hashable ColorMatrix
 
 deriving instance Hashable FilterSource

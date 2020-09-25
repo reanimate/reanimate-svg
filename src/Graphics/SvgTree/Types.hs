@@ -68,6 +68,11 @@ module Graphics.SvgTree.Types
     , blendIn2
     , blendMode
 
+    , Tile (..)
+    , tileDrawAttributes
+    , tileFilterAttr
+    , tileIn
+
     , ColorMatrixType(..)
     , colorMatrixDrawAttributes
     , colorMatrixFilterAttr
