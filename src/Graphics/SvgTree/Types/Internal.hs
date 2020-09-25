@@ -82,6 +82,13 @@ module Graphics.SvgTree.Types.Internal
     floodColor,
     floodOpacity,
 
+    Offset (..),
+    offsetDrawAttributes,
+    offsetFilterAttr,
+    offsetIn,
+    offsetDX,
+    offsetDY,
+
     ColorMatrixType (..),
     colorMatrixDrawAttributes,
     colorMatrixFilterAttr,
@@ -1142,7 +1149,7 @@ data FilterElement
   | FEMerge                     -- SVG Basic
   | FEMergeNode
   | FEMorphology
-  | FEOffset                    -- SVG Basic
+  | FEOffset Offset             -- SVG Basic
   | FESpecularLighting
   | FETile Tile                 -- SVG Basic --DONE
   | FETurbulence Turbulence
@@ -1258,7 +1265,24 @@ instance WithDefaultSvg Flood where
       _floodOpacity = Just 1.0
     }
 
+data Offset = Offset
+  { _offsetDrawAttributes :: !DrawAttributes,
+    _offsetFilterAttr :: !FilterAttributes,
+    _offsetIn :: !(Last FilterSource),
+    _offsetDX :: !Number,
+    _offsetDY :: !Number
+  }
+  deriving (Eq, Show, Generic)
 
+instance WithDefaultSvg Offset where
+  defaultSvg =
+    Offset
+    { _offsetDrawAttributes = defaultSvg,
+      _offsetFilterAttr = defaultSvg,
+      _offsetIn = Last Nothing,
+      _offsetDX = Num 0,
+      _offsetDY = Num 0
+    }
 
 data Tile = Tile
   { _tileDrawAttributes :: !DrawAttributes,
@@ -1852,6 +1876,7 @@ makeLenses ''ClipPath
 makeLenses ''Blend
 makeLenses ''Flood
 makeLenses ''Tile
+makeLenses ''Offset
 makeLenses ''ColorMatrix
 makeLenses ''Composite
 makeLenses ''GaussianBlur

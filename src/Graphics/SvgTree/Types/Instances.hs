@@ -82,6 +82,9 @@ instance HasDrawAttributes Flood where
 instance HasDrawAttributes Tile where
   drawAttributes = tileDrawAttributes
 
+instance HasDrawAttributes Offset where
+  drawAttributes = offsetDrawAttributes
+
 instance HasDrawAttributes ColorMatrix where
   drawAttributes = colorMatrixDrawAttributes
 
@@ -109,6 +112,9 @@ instance HasFilterAttributes Flood where
 
 instance HasFilterAttributes Tile where
   filterAttributes = tileFilterAttr
+
+instance HasFilterAttributes Offset where
+  filterAttributes = offsetFilterAttr
 
 instance HasFilterAttributes Composite where
   filterAttributes = compositeFilterAttr
@@ -147,7 +153,7 @@ instance HasFilterAttributes FilterElement where
         FEMerge -> defaultSvg
         FEMergeNode -> defaultSvg
         FEMorphology -> defaultSvg
-        FEOffset -> defaultSvg
+        FEOffset o -> o ^. filterAttributes
         FESpecularLighting -> defaultSvg
         FETile t -> t ^. filterAttributes
         FETurbulence t -> t ^. filterAttributes
@@ -171,7 +177,7 @@ instance HasFilterAttributes FilterElement where
         FEMerge -> fe
         FEMergeNode -> fe
         FEMorphology -> fe
-        FEOffset -> fe
+        FEOffset o -> FEOffset $ o & filterAttributes .~ attr
         FESpecularLighting -> fe
         FETile t -> FETile $ t & filterAttributes .~ attr
         FETurbulence t -> FETurbulence $ t & filterAttributes .~ attr

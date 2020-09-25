@@ -79,6 +79,13 @@ module Graphics.SvgTree.Types
     , tileFilterAttr
     , tileIn
 
+    , Offset (..)
+    , offsetDrawAttributes
+    , offsetFilterAttr
+    , offsetIn
+    , offsetDX
+    , offsetDY
+
     , ColorMatrixType(..)
     , colorMatrixDrawAttributes
     , colorMatrixFilterAttr
