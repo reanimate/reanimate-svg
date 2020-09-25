@@ -965,6 +965,7 @@ instance XMLUpdatable FilterElement where
       FETurbulence t      -> serializeTreeNode t
       FEDisplacementMap d -> serializeTreeNode d
       FETile t            -> serializeTreeNode t
+      FEFlood f           -> serializeTreeNode f
       _                   -> error $
         "Unsupported element: " ++ show fe ++ ". Please submit bug on github."
   attributes =
@@ -977,6 +978,13 @@ instance XMLUpdatable Blend where
     [ "in" `parseIn` blendIn
     , "in2" `parseIn` blendIn2
     , "mode"  `parseIn` blendMode ]
+
+instance XMLUpdatable Flood where
+  xmlTagName _ = "feFlood"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "flood-color" `parseIn` floodColor
+    , "flood-opacity" `parseIn` floodOpacity]
 
 instance XMLUpdatable Tile where
   xmlTagName _ = "feTile"
@@ -1269,6 +1277,7 @@ unparseFE e = case nodeName e of
     "feGaussianBlur"    -> FEGaussianBlur parsed
     "feTurbulence"      -> FETurbulence parsed
     "feTile"            -> FETile parsed
+    "feFlood"           -> FEFlood parsed
     _                   -> FENone
   where
     parsed :: (WithDefaultSvg a, XMLUpdatable a, HasDrawAttributes a) => a

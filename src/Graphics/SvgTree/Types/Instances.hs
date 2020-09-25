@@ -76,6 +76,9 @@ instance HasDrawAttributes Composite where
 instance HasDrawAttributes Blend where
   drawAttributes = blendDrawAttributes
 
+instance HasDrawAttributes Flood where
+  drawAttributes = floodDrawAttributes
+
 instance HasDrawAttributes Tile where
   drawAttributes = tileDrawAttributes
 
@@ -100,6 +103,9 @@ instance HasFilterAttributes Filter where
 
 instance HasFilterAttributes Blend where
   filterAttributes = blendFilterAttr
+
+instance HasFilterAttributes Flood where
+  filterAttributes = floodFilterAttr
 
 instance HasFilterAttributes Tile where
   filterAttributes = tileFilterAttr
@@ -131,7 +137,7 @@ instance HasFilterAttributes FilterElement where
         FEDiffuseLighting -> defaultSvg
         FEDisplacementMap d -> d ^. filterAttributes
         FEDropShadow -> defaultSvg
-        FEFlood -> defaultSvg
+        FEFlood f -> f ^. filterAttributes
         FEFuncA -> defaultSvg
         FEFuncB -> defaultSvg
         FEFuncG -> defaultSvg
@@ -155,7 +161,7 @@ instance HasFilterAttributes FilterElement where
         FEDiffuseLighting -> fe
         FEDisplacementMap d -> FEDisplacementMap $ d & filterAttributes .~ attr
         FEDropShadow -> fe
-        FEFlood -> fe
+        FEFlood f -> FEFlood $ f & filterAttributes .~ attr
         FEFuncA -> fe
         FEFuncB -> fe
         FEFuncG -> fe
