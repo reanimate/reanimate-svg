@@ -70,6 +70,8 @@ deriving instance Hashable Flood
 
 deriving instance Hashable Tile
 
+deriving instance Hashable Offset
+
 deriving instance Hashable ColorMatrix
 
 deriving instance Hashable FilterSource
