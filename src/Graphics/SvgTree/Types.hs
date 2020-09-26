@@ -306,7 +306,6 @@ module Graphics.SvgTree.Types
     , markerOrient
     , markerUnits
     , markerViewBox
-    , markerOverflow
     , markerAspectRatio
     , markerElements
 

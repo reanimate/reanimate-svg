@@ -77,7 +77,7 @@ test-suite w3c-spec
     filepath,
     bytestring, process,
     reanimate-svg,
-    Diff,
+    Diff, xml,
     vector, linear,
     QuickCheck >= 2.1.0, text,
     temporary,

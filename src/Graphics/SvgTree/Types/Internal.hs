@@ -45,6 +45,7 @@ module Graphics.SvgTree.Types.Internal
     -- * Main type
     Document (..),
     documentViewBox,
+    documentId,
     documentWidth,
     documentHeight,
     documentElements,
@@ -54,6 +55,7 @@ module Graphics.SvgTree.Types.Internal
     documentSize,
 
     -- * Drawing attributes
+    Overflow (..),
     DrawAttributes (..),
     HasDrawAttributes (..),
 
@@ -271,7 +273,6 @@ module Graphics.SvgTree.Types.Internal
 
     -- * Marker definition
     Marker (..),
-    Overflow (..),
     MarkerOrientation (..),
     MarkerUnit (..),
     markerDrawAttributes,
@@ -281,7 +282,6 @@ module Graphics.SvgTree.Types.Internal
     markerOrient,
     markerUnits,
     markerViewBox,
-    markerOverflow,
     markerAspectRatio,
     markerElements,
 
@@ -563,6 +563,19 @@ instance WithDefaultSvg FilterAttributes where
         _filterY = Last Nothing
       }
 
+-- | The overflow attribute sets what to do when an element's content is too big
+--   to fit in its block formatting context.
+data Overflow
+  = -- | Value `visible`
+    OverflowVisible
+  | -- | Value `hidden`
+    OverflowHidden
+  | -- | Value `scroll`
+    OverflowScroll
+  | -- | Value `auto`
+    OverflowAuto
+  deriving (Eq, Show, Generic)
+
 -- | This type define how to draw any primitives,
 -- which color to use, how to stroke the primitives
 -- and the potential transformations to use.
@@ -637,7 +650,8 @@ data DrawAttributes = DrawAttributes
     -- | Define the marker used for the end of the line.
     -- Correspond to the `marker-end` attribute.
     _markerEnd :: !(Last ElementRef),
-    _filterRef :: !(Last ElementRef)
+    _filterRef :: !(Last ElementRef),
+    _overflow  :: !(Last Overflow)
   }
   deriving (Eq, Show, Generic)
 
@@ -1477,15 +1491,6 @@ data MarkerUnit
     MarkerUnitUserSpaceOnUse
   deriving (Eq, Show, Generic)
 
--- | Define the content of the `markerUnits` attribute
--- on the Marker.
-data Overflow
-  = -- | Value `visible`
-    OverflowVisible
-  | -- | Value `hidden`
-    OverflowHidden
-  deriving (Eq, Show, Generic)
-
 -- | Define the `<marker>` tag.
 data Marker = Marker
   { _markerDrawAttributes :: DrawAttributes,
@@ -1504,8 +1509,6 @@ data Marker = Marker
     _markerUnits :: !(Maybe MarkerUnit),
     -- | Optional viewbox
     _markerViewBox :: !(Maybe (Double, Double, Double, Double)),
-    -- | Elements defining the marker.
-    _markerOverflow :: !(Maybe Overflow),
     -- | preserveAspectRatio attribute
     _markerAspectRatio :: !PreserveAspectRatio,
     -- | Elements defining the marker.
@@ -1523,7 +1526,6 @@ instance WithDefaultSvg Marker where
         _markerOrient = Nothing, -- MarkerOrientation
         _markerUnits = Nothing, -- MarkerUnitStrokeWidth
         _markerViewBox = Nothing,
-        _markerOverflow = Nothing,
         _markerElements = mempty,
         _markerAspectRatio = defaultSvg
       }
@@ -1760,6 +1762,7 @@ data Element
 -- geometry and named elements.
 data Document = Document
   { _documentViewBox :: Maybe (Double, Double, Double, Double),
+    _documentId :: !(Maybe String),
     _documentWidth :: Maybe Number,
     _documentHeight :: Maybe Number,
     _documentElements :: [Tree],
@@ -1838,7 +1841,8 @@ instance Semigroup DrawAttributes where
         _markerStart = (mappend `on` _markerStart) a b,
         _markerMid = (mappend `on` _markerMid) a b,
         _markerEnd = (mappend `on` _markerEnd) a b,
-        _filterRef = (mappend `on` _filterRef) a b
+        _filterRef = (mappend `on` _filterRef) a b,
+        _overflow = (mappend `on` _overflow) a b
       }
     where
       opacityMappend Nothing Nothing = Nothing
@@ -1875,7 +1879,8 @@ instance Monoid DrawAttributes where
         _markerStart = Last Nothing,
         _markerMid = Last Nothing,
         _markerEnd = Last Nothing,
-        _filterRef = Last Nothing
+        _filterRef = Last Nothing,
+        _overflow = Last Nothing
       }
 
 instance WithDefaultSvg DrawAttributes where

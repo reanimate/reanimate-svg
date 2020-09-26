@@ -293,11 +293,15 @@ instance ParseableAttribute Overflow where
   aparse s = case s of
     "visible" -> Just OverflowVisible
     "hidden"  -> Just OverflowHidden
+    "scroll"  -> Just OverflowScroll
+    "auto"    -> Just OverflowAuto
     _         -> Nothing
 
   aserialize u = Just $ case u of
     OverflowVisible -> "visible"
     OverflowHidden  -> "hidden"
+    OverflowAuto    -> "auto"
+    OverflowScroll  -> "scroll"
 
 instance ParseableAttribute MarkerOrientation where
   aparse s = case (s, readMaybe s) of
@@ -732,6 +736,7 @@ drawAttributesList =
   ,("marker-start" `parseIn` markerStart, cssElementRefSetter markerStart)
   ,("marker-mid" `parseIn` markerMid, cssElementRefSetter markerMid)
   ,("filter" `parseIn` filterRef, cssNullSetter)
+  ,("overflow" `parseIn` overflow, cssNullSetter)
   ]
   where
     commaSeparate =
@@ -1160,7 +1165,6 @@ instance XMLUpdatable Marker where
     ,"patternUnits" `parseIn` markerUnits
     ,"orient" `parseIn` markerOrient
     ,"viewBox" `parseIn` markerViewBox
-    ,"overflow" `parseIn` markerOverflow
     ,"preserveAspectRatio" `parseIn` markerAspectRatio
     ]
 
@@ -1373,6 +1377,7 @@ unparseDocument :: FilePath -> X.Element -> Maybe Document
 unparseDocument rootLocation e@(nodeName -> "svg") = Just Document
     { _documentViewBox =
         attributeFinder "viewBox" e >>= parse viewBoxParser
+    , _documentId = attributeFinder "id" e
     , _documentElements = parsedElements
     , _documentWidth = lengthFind "width"
     , _documentHeight = lengthFind "height"
@@ -1411,6 +1416,7 @@ xmlOfDocument doc =
         ,attr "version" "1.1"] ++
         catMaybes [attr "width" . serializeNumber <$> _documentWidth doc
                   ,attr "height" . serializeNumber <$> _documentHeight doc
+                  ,attr "id" <$> _documentId doc
                   ] ++
         catMaybes [attr "preserveAspectRatio" <$>  aserialize (_documentAspectRatio doc)
                   | _documentAspectRatio doc /= defaultSvg ]
