@@ -85,6 +85,12 @@ instance HasDrawAttributes Tile where
 instance HasDrawAttributes Offset where
   drawAttributes = offsetDrawAttributes
 
+instance HasDrawAttributes Merge where
+  drawAttributes = mergeDrawAttributes
+
+instance HasDrawAttributes MergeNode where
+  drawAttributes = mergeNodeDrawAttributes
+
 instance HasDrawAttributes ColorMatrix where
   drawAttributes = colorMatrixDrawAttributes
 
@@ -131,6 +137,9 @@ instance HasFilterAttributes Turbulence where
 instance HasFilterAttributes DisplacementMap where
   filterAttributes = displacementMapFilterAttr
 
+instance HasFilterAttributes Merge where
+  filterAttributes = mergeFilterAttributes
+
 instance HasFilterAttributes FilterElement where
   filterAttributes = lens getter setter
     where
@@ -150,8 +159,8 @@ instance HasFilterAttributes FilterElement where
         FEFuncR -> defaultSvg
         FEGaussianBlur g -> g ^. filterAttributes
         FEImage -> defaultSvg
-        FEMerge -> defaultSvg
-        FEMergeNode -> defaultSvg
+        FEMergeNode _ -> defaultSvg --MergeNode has no filterAttributes!
+        FEMerge m -> m ^. filterAttributes
         FEMorphology -> defaultSvg
         FEOffset o -> o ^. filterAttributes
         FESpecularLighting -> defaultSvg
@@ -174,8 +183,8 @@ instance HasFilterAttributes FilterElement where
         FEFuncR -> fe
         FEGaussianBlur g -> FEGaussianBlur $ g & filterAttributes .~ attr
         FEImage -> fe
-        FEMerge -> fe
-        FEMergeNode -> fe
+        FEMerge m -> FEMerge $ m & filterAttributes .~ attr
+        FEMergeNode _ -> fe --MergeNode has no filterAttributes!
         FEMorphology -> fe
         FEOffset o -> FEOffset $ o & filterAttributes .~ attr
         FESpecularLighting -> fe

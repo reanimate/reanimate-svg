@@ -967,6 +967,8 @@ instance XMLUpdatable FilterElement where
       FETile t            -> serializeTreeNode t
       FEFlood f           -> serializeTreeNode f
       FEOffset o          -> serializeTreeNode o
+      FEMerge m           -> serializeTreeNode m
+      FEMergeNode n       -> serializeTreeNode n
       _                   -> error $
         "Unsupported element: " ++ show fe ++ ". Please submit bug on github."
   attributes =
@@ -1000,6 +1002,19 @@ instance XMLUpdatable Offset where
     [ "in" `parseIn` offsetIn
     , "dx" `parseIn` offsetDX
     , "dy" `parseIn` offsetDY ]
+
+instance XMLUpdatable Merge where
+  xmlTagName _ = "feMerge"
+  serializeTreeNode node =
+     updateWithAccessor _mergeChildren node $
+        genericSerializeWithDrawAttr node
+  attributes = []
+
+instance XMLUpdatable MergeNode where
+  xmlTagName _ = "feMergeNode"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "in" `parseIn` mergeNodeIn ]
 
 instance XMLUpdatable ColorMatrix where
   xmlTagName _ = "feColorMatrix"
@@ -1277,7 +1292,15 @@ parseMeshGradientRows = foldMap unRows . elChildren where
   unRows e@(nodeName -> "meshrow") = [MeshGradientRow $ parseMeshGradientPatches e]
   unRows _ = []
 
+-- This is to guarantee there will be only "feMergeNode" elements inside any "feMerge" element.
+unparseMergeNode :: X.Element -> FilterElement
+unparseMergeNode e@(nodeName -> "feMergeNode") =
+  FEMergeNode $ xmlUnparseWithDrawAttr e
+unparseMergeNode _ = FENone
+
 unparseFE :: X.Element -> FilterElement
+unparseFE e@(nodeName -> "feMerge") =
+    FEMerge $ xmlUnparseWithDrawAttr e & mergeChildren .~ map unparseMergeNode (elChildren e)
 unparseFE e = case nodeName e of
     "feBlend"           -> FEBlend parsed
     "feColorMatrix"     -> FEColorMatrix parsed
@@ -1288,6 +1311,7 @@ unparseFE e = case nodeName e of
     "feTile"            -> FETile parsed
     "feFlood"           -> FEFlood parsed
     "feOffset"          -> FEOffset parsed
+    "feMergeNode"       -> FEMergeNode parsed -- Potential bug: allow the "feMergeNode" element to appear outside a "feMerge" element.
     _                   -> FENone
   where
     parsed :: (WithDefaultSvg a, XMLUpdatable a, HasDrawAttributes a) => a
