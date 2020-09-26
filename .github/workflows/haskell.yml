@@ -42,6 +42,8 @@ jobs:
       run: |
         cabal v2-update
         cabal v2-build --only-dependencies --enable-tests --enable-benchmarks
+        sudo npm install -g svgo
+        sudo apt-get install librsvg2-bin
     - name: Build
       run: cabal v2-build
     - name: Test
