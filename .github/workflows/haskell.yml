@@ -42,12 +42,13 @@ jobs:
       run: |
         cabal v2-update
         cabal v2-build --only-dependencies --enable-tests --enable-benchmarks
-        sudo npm install -g svgo
-        sudo apt-get install librsvg2-bin
     - name: Build
       run: cabal v2-build
-    - name: Test
-      run: |
-        cabal v2-test --test-show-details=always
+    - if: matrix.os == 'ubuntu-latest'
+        name: Test
+        run: |
+          sudo npm install -g svgo
+          sudo apt-get install librsvg2-bin
+          cabal v2-test --test-show-details=always
     - name: Check documentation syntax
       run: cabal v2-haddock
