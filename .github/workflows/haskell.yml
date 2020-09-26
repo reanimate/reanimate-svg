@@ -45,10 +45,10 @@ jobs:
     - name: Build
       run: cabal v2-build
     - if: matrix.os == 'ubuntu-latest'
-        name: Test
-        run: |
-          sudo npm install -g svgo
-          sudo apt-get install librsvg2-bin
-          cabal v2-test --test-show-details=always
+      name: Test
+      run: |
+        sudo npm install -g svgo
+        sudo apt-get install librsvg2-bin
+        cabal v2-test --test-show-details=always
     - name: Check documentation syntax
       run: cabal v2-haddock
