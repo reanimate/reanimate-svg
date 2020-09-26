@@ -86,6 +86,15 @@ module Graphics.SvgTree.Types
     , offsetDX
     , offsetDY
 
+    , MergeNode (..)
+    , mergeNodeDrawAttributes
+    , mergeNodeIn
+
+    , Merge (..)
+    , mergeDrawAttributes
+    , mergeFilterAttributes
+    , mergeChildren
+
     , ColorMatrixType(..)
     , colorMatrixDrawAttributes
     , colorMatrixFilterAttr

@@ -89,6 +89,15 @@ module Graphics.SvgTree.Types.Internal
     offsetDX,
     offsetDY,
 
+    Merge (..),
+    mergeDrawAttributes,
+    mergeFilterAttributes,
+    mergeChildren,
+
+    MergeNode (..),
+    mergeNodeDrawAttributes,
+    mergeNodeIn,
+
     ColorMatrixType (..),
     colorMatrixDrawAttributes,
     colorMatrixFilterAttr,
@@ -1146,10 +1155,10 @@ data FilterElement
   | FEFuncR
   | FEGaussianBlur GaussianBlur -- SVG Basic --DONE
   | FEImage                     -- SVG Basic
-  | FEMerge                     -- SVG Basic
-  | FEMergeNode
+  | FEMerge Merge               -- SVG Basic --DONE
+  | FEMergeNode MergeNode       -- SVG Basic --DONE
   | FEMorphology
-  | FEOffset Offset             -- SVG Basic
+  | FEOffset Offset             -- SVG Basic --DONE
   | FESpecularLighting
   | FETile Tile                 -- SVG Basic --DONE
   | FETurbulence Turbulence
@@ -1297,6 +1306,35 @@ instance WithDefaultSvg Tile where
     { _tileDrawAttributes = defaultSvg,
       _tileFilterAttr = defaultSvg,
       _tileIn = Last Nothing
+    }
+
+data Merge = Merge
+  { _mergeDrawAttributes :: !DrawAttributes,
+    _mergeFilterAttributes :: !FilterAttributes,
+    _mergeChildren :: ![FilterElement]
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg Merge where
+  defaultSvg =
+    Merge
+    { _mergeDrawAttributes = defaultSvg,
+      _mergeFilterAttributes = defaultSvg,
+      _mergeChildren = []
+    }
+
+data MergeNode = MergeNode
+  { _mergeNodeDrawAttributes :: !DrawAttributes,
+    --Does not have filter attributes!
+    _mergeNodeIn :: !(Last FilterSource)
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg MergeNode where
+  defaultSvg =
+    MergeNode
+    { _mergeNodeDrawAttributes = defaultSvg,
+      _mergeNodeIn = Last Nothing
     }
 
 data ColorMatrixType
@@ -1882,6 +1920,8 @@ makeLenses ''Composite
 makeLenses ''GaussianBlur
 makeLenses ''Turbulence
 makeLenses ''DisplacementMap
+makeLenses ''Merge
+makeLenses ''MergeNode
 makeLenses ''Group
 
 makeClassy ''FilterAttributes
