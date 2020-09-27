@@ -974,6 +974,7 @@ instance XMLUpdatable FilterElement where
       FEOffset o          -> serializeTreeNode o
       FEMerge m           -> serializeTreeNode m
       FEMergeNode n       -> serializeTreeNode n
+      FENone              -> Nothing
       _                   -> error $
         "Unsupported element: " ++ show fe ++ ". Please submit bug on github."
   attributes =

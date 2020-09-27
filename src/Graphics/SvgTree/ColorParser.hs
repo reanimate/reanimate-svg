@@ -15,6 +15,7 @@ import Data.Attoparsec.Text
   ( Parser,
     char,
     digit,
+    inClass,
     letter,
     many1,
     option,
@@ -22,12 +23,15 @@ import Data.Attoparsec.Text
     scientific,
     skipSpace,
     string,
+    takeWhile1,
   )
 import Data.Bits (unsafeShiftL, (.|.))
-import Data.Functor ( ($>) )
+import Data.Functor (($>))
+import qualified Data.Map as M
 import Data.Scientific (toRealFloat)
 import Data.Word (Word8)
-import Graphics.SvgTree.Types ( Texture(..) )
+import Graphics.SvgTree.NamedColors (svgNamedColors)
+import Graphics.SvgTree.Types (Texture (..))
 import Text.Printf (printf)
 
 commaWsp :: Parser ()
@@ -53,9 +57,15 @@ colorParser :: Parser PixelRGBA8
 colorParser =
   rgbColor
     <|> (string "#" *> (color <|> colorReduced))
+    <|> namedColor
   where
     charRange c1 c2 =
       (\c -> fromIntegral $ fromEnum c - fromEnum c1) <$> satisfy (\v -> c1 <= v && v <= c2)
+
+    black = PixelRGBA8 0 0 0 255 -- FIXME: Throw exception?
+    namedColor = do
+      str <- takeWhile1 (inClass "a-z")
+      return $ M.findWithDefault black str svgNamedColors
 
     hexChar :: Parser Word8
     hexChar =
@@ -88,7 +98,6 @@ colorParser =
 
 textureSerializer :: Texture -> String
 textureSerializer (ColorRef px) = colorSerializer px
-textureSerializer (ColorNamed name) = name
 textureSerializer (TextureRef str) = printf "url(#%s)" str
 textureSerializer FillNone = "none"
 
@@ -105,6 +114,5 @@ textureParser :: Parser Texture
 textureParser =
   none <|> (TextureRef <$> urlRef)
     <|> (ColorRef <$> colorParser)
-    <|> (ColorNamed <$> many1 letter)
   where
     none = FillNone <$ string "none"

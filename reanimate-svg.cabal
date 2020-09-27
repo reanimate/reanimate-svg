@@ -75,7 +75,7 @@ test-suite w3c-spec
     base,
     directory,
     filepath,
-    bytestring, process,
+    bytestring, process, typed-process,
     reanimate-svg,
     Diff, xml,
     vector, linear,

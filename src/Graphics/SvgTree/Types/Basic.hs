@@ -83,7 +83,6 @@ data LineJoin
 -- in the `fill` or `stroke` attributes.
 data Texture
   = ColorRef   PixelRGBA8 -- ^ Direct solid color (#rrggbb, #rgb)
-  | ColorNamed String     -- ^ Named color such as "black" or "fuchsia"
   | TextureRef String     -- ^ Link to a complex texture (url(#name))
   | FillNone              -- ^ Equivalent to the `none` value.
   deriving (Eq, Show, Generic)
