@@ -98,6 +98,12 @@ module Graphics.SvgTree.Types.Internal
     mergeNodeDrawAttributes,
     mergeNodeIn,
 
+    ImageF (..),
+    imageFDrawAttributes,
+    imageFFilterAttr,
+    imageFHref,
+    imageFAspectRatio,
+
     ColorMatrixType (..),
     colorMatrixDrawAttributes,
     colorMatrixFilterAttr,
@@ -1154,7 +1160,7 @@ data FilterElement
   | FEFuncG
   | FEFuncR
   | FEGaussianBlur GaussianBlur -- SVG Basic --DONE
-  | FEImage                     -- SVG Basic
+  | FEImage ImageF              -- SVG Basic
   | FEMerge Merge               -- SVG Basic --DONE
   | FEMergeNode MergeNode       -- SVG Basic --DONE
   | FEMorphology
@@ -1167,6 +1173,23 @@ data FilterElement
 
 instance WithDefaultSvg FilterElement where
   defaultSvg = FENone
+
+data ImageF = ImageF
+  { _imageFDrawAttributes :: DrawAttributes,
+    _imageFFilterAttr :: !FilterAttributes,
+    _imageFHref :: !String,
+    _imageFAspectRatio :: !PreserveAspectRatio
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg ImageF where
+  defaultSvg =
+    ImageF
+      { _imageFDrawAttributes = defaultSvg,
+        _imageFFilterAttr = defaultSvg,
+        _imageFHref = "",
+        _imageFAspectRatio = defaultSvg
+      }
 
 data TransferFunctionType
   = TFIdentity
@@ -1923,5 +1946,6 @@ makeLenses ''DisplacementMap
 makeLenses ''Merge
 makeLenses ''MergeNode
 makeLenses ''Group
+makeLenses ''ImageF
 
 makeClassy ''FilterAttributes

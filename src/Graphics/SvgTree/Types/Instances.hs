@@ -88,6 +88,9 @@ instance HasDrawAttributes Offset where
 instance HasDrawAttributes Merge where
   drawAttributes = mergeDrawAttributes
 
+instance HasDrawAttributes ImageF where
+  drawAttributes = imageFDrawAttributes
+
 instance HasDrawAttributes MergeNode where
   drawAttributes = mergeNodeDrawAttributes
 
@@ -140,6 +143,10 @@ instance HasFilterAttributes DisplacementMap where
 instance HasFilterAttributes Merge where
   filterAttributes = mergeFilterAttributes
 
+instance HasFilterAttributes ImageF where
+  filterAttributes = imageFFilterAttr
+
+
 instance HasFilterAttributes FilterElement where
   filterAttributes = lens getter setter
     where
@@ -158,7 +165,7 @@ instance HasFilterAttributes FilterElement where
         FEFuncG -> defaultSvg
         FEFuncR -> defaultSvg
         FEGaussianBlur g -> g ^. filterAttributes
-        FEImage -> defaultSvg
+        FEImage i -> i ^. filterAttributes
         FEMergeNode _ -> defaultSvg --MergeNode has no filterAttributes!
         FEMerge m -> m ^. filterAttributes
         FEMorphology -> defaultSvg
@@ -182,7 +189,7 @@ instance HasFilterAttributes FilterElement where
         FEFuncG -> fe
         FEFuncR -> fe
         FEGaussianBlur g -> FEGaussianBlur $ g & filterAttributes .~ attr
-        FEImage -> fe
+        FEImage i -> FEImage $ i & filterAttributes .~ attr
         FEMerge m -> FEMerge $ m & filterAttributes .~ attr
         FEMergeNode _ -> fe --MergeNode has no filterAttributes!
         FEMorphology -> fe
