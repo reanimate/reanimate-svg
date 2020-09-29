@@ -101,6 +101,40 @@ module Graphics.SvgTree.Types
     , imageFHref
     , imageFAspectRatio
 
+    , FuncA (..)
+    , FuncType (..)
+    , funcADrawAttributes
+    , funcAType
+    , funcATableValues
+    , funcASlope
+    , funcAIntercept
+    , funcAAmplitude
+    , funcAExponent
+    , FuncR (..)
+    , funcRDrawAttributes
+    , funcRType
+    , funcRTableValues
+    , funcRSlope
+    , funcRIntercept
+    , funcRAmplitude
+    , funcRExponent
+    , FuncG (..)
+    , funcGDrawAttributes
+    , funcGType
+    , funcGTableValues
+    , funcGSlope
+    , funcGIntercept
+    , funcGAmplitude
+    , funcGExponent
+    , FuncB (..)
+    , funcBDrawAttributes
+    , funcBType
+    , funcBTableValues
+    , funcBSlope
+    , funcBIntercept
+    , funcBAmplitude
+    , funcBExponent
+
     , ColorMatrixType(..)
     , colorMatrixDrawAttributes
     , colorMatrixFilterAttr

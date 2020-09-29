@@ -77,6 +77,12 @@ deriving instance Hashable MergeNode
 
 deriving instance Hashable ImageF
 
+deriving instance Hashable FuncType
+deriving instance Hashable FuncA
+deriving instance Hashable FuncR
+deriving instance Hashable FuncG
+deriving instance Hashable FuncB
+
 deriving instance Hashable ColorMatrix
 
 deriving instance Hashable FilterSource

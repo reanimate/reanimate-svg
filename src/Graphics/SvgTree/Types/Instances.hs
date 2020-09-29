@@ -76,6 +76,15 @@ instance HasDrawAttributes Composite where
 instance HasDrawAttributes Blend where
   drawAttributes = blendDrawAttributes
 
+instance HasDrawAttributes FuncA where
+  drawAttributes = funcADrawAttributes
+instance HasDrawAttributes FuncR where
+  drawAttributes = funcRDrawAttributes
+instance HasDrawAttributes FuncG where
+  drawAttributes = funcGDrawAttributes
+instance HasDrawAttributes FuncB where
+  drawAttributes = funcBDrawAttributes
+
 instance HasDrawAttributes Flood where
   drawAttributes = floodDrawAttributes
 
@@ -160,10 +169,10 @@ instance HasFilterAttributes FilterElement where
         FEDisplacementMap d -> d ^. filterAttributes
         FEDropShadow -> defaultSvg
         FEFlood f -> f ^. filterAttributes
-        FEFuncA -> defaultSvg
-        FEFuncB -> defaultSvg
-        FEFuncG -> defaultSvg
-        FEFuncR -> defaultSvg
+        FEFuncA _ -> defaultSvg --FuncA has no filter attributes
+        FEFuncR _ -> defaultSvg --FuncR has no filter attributes
+        FEFuncG _ -> defaultSvg --FuncG has no filter attributes
+        FEFuncB _ -> defaultSvg --FuncB has no filter attributes
         FEGaussianBlur g -> g ^. filterAttributes
         FEImage i -> i ^. filterAttributes
         FEMergeNode _ -> defaultSvg --MergeNode has no filterAttributes!
@@ -184,10 +193,10 @@ instance HasFilterAttributes FilterElement where
         FEDisplacementMap d -> FEDisplacementMap $ d & filterAttributes .~ attr
         FEDropShadow -> fe
         FEFlood f -> FEFlood $ f & filterAttributes .~ attr
-        FEFuncA -> fe
-        FEFuncB -> fe
-        FEFuncG -> fe
-        FEFuncR -> fe
+        FEFuncA _ -> fe --FuncA has no filter atributes
+        FEFuncR _ -> fe --FuncR has no filter atributes
+        FEFuncG _ -> fe --FuncG has no filter atributes
+        FEFuncB _ -> fe --FuncB has no filter atributes
         FEGaussianBlur g -> FEGaussianBlur $ g & filterAttributes .~ attr
         FEImage i -> FEImage $ i & filterAttributes .~ attr
         FEMerge m -> FEMerge $ m & filterAttributes .~ attr

@@ -104,6 +104,43 @@ module Graphics.SvgTree.Types.Internal
     imageFHref,
     imageFAspectRatio,
 
+    FuncA (..),
+    FuncType (..),
+    funcADrawAttributes,
+    funcAType,
+    funcATableValues,
+    funcASlope,
+    funcAIntercept,
+    funcAAmplitude,
+    funcAExponent,
+
+    FuncR (..),
+    funcRDrawAttributes,
+    funcRType,
+    funcRTableValues,
+    funcRSlope,
+    funcRIntercept,
+    funcRAmplitude,
+    funcRExponent,
+
+    FuncG (..),
+    funcGDrawAttributes,
+    funcGType,
+    funcGTableValues,
+    funcGSlope,
+    funcGIntercept,
+    funcGAmplitude,
+    funcGExponent,
+
+    FuncB (..),
+    funcBDrawAttributes,
+    funcBType,
+    funcBTableValues,
+    funcBSlope,
+    funcBIntercept,
+    funcBAmplitude,
+    funcBExponent,
+
     ColorMatrixType (..),
     colorMatrixDrawAttributes,
     colorMatrixFilterAttr,
@@ -1155,12 +1192,12 @@ data FilterElement
   | FEDisplacementMap DisplacementMap        --DONE
   | FEDropShadow
   | FEFlood Flood               -- SVG Basic --DONE
-  | FEFuncA -- Need
-  | FEFuncB
-  | FEFuncG
-  | FEFuncR
+  | FEFuncA FuncA -- Need       -- SVG Basic
+  | FEFuncB FuncB               -- SVG Basic
+  | FEFuncG FuncG               -- SVG Basic
+  | FEFuncR FuncR               -- SVG Basic
   | FEGaussianBlur GaussianBlur -- SVG Basic --DONE
-  | FEImage ImageF              -- SVG Basic
+  | FEImage ImageF              -- SVG Basic --DONE --Parser not working
   | FEMerge Merge               -- SVG Basic --DONE
   | FEMergeNode MergeNode       -- SVG Basic --DONE
   | FEMorphology
@@ -1359,6 +1396,115 @@ instance WithDefaultSvg MergeNode where
     { _mergeNodeDrawAttributes = defaultSvg,
       _mergeNodeIn = Last Nothing
     }
+
+data FuncType
+  = FIdentity
+  | FTable
+  | FDiscrete
+  | FLinear
+  | FGamma
+  deriving (Eq, Show, Generic)
+
+data FuncA = FuncA
+  { _funcADrawAttributes :: !DrawAttributes,
+    --Does not have filter attributes!
+    _funcAType :: !FuncType,
+    _funcATableValues :: ![Number],
+    _funcASlope :: !Number,
+    _funcAIntercept :: !Number,
+    _funcAAmplitude :: !Number,
+    _funcAExponent :: !Number
+    --_funcAOffset :: _ -- This appears in the documentation, but no details are given.
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg FuncA where
+  defaultSvg =
+    FuncA
+    { _funcADrawAttributes = defaultSvg,
+      _funcAType = FIdentity, -- Standard does not define a default value.
+      _funcATableValues = [],
+      _funcASlope = Num 0,
+      _funcAIntercept = Num 0,
+      _funcAAmplitude = Num 1,
+      _funcAExponent = Num 1
+    }
+
+data FuncR = FuncR
+  { _funcRDrawAttributes :: !DrawAttributes,
+    --Does not have filter attributes!
+    _funcRType :: !FuncType,
+    _funcRTableValues :: ![Number],
+    _funcRSlope :: !Number,
+    _funcRIntercept :: !Number,
+    _funcRAmplitude :: !Number,
+    _funcRExponent :: !Number
+    --_funcAOffset :: _ -- This appears in the documentation, but no details are given.
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg FuncR where
+  defaultSvg =
+    FuncR
+    { _funcRDrawAttributes = defaultSvg,
+      _funcRType = FIdentity, -- Standard does not define a default value.
+      _funcRTableValues = [],
+      _funcRSlope = Num 0,
+      _funcRIntercept = Num 0,
+      _funcRAmplitude = Num 1,
+      _funcRExponent = Num 1
+    }
+
+data FuncG = FuncG
+  { _funcGDrawAttributes :: !DrawAttributes,
+    --Does not have filter attributes!
+    _funcGType :: !FuncType,
+    _funcGTableValues :: ![Number],
+    _funcGSlope :: !Number,
+    _funcGIntercept :: !Number,
+    _funcGAmplitude :: !Number,
+    _funcGExponent :: !Number
+    --_funcAOffset :: _ -- This appears in the documentation, but no details are given.
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg FuncG where
+  defaultSvg =
+    FuncG
+    { _funcGDrawAttributes = defaultSvg,
+      _funcGType = FIdentity, -- Standard does not define a default value.
+      _funcGTableValues = [],
+      _funcGSlope = Num 0,
+      _funcGIntercept = Num 0,
+      _funcGAmplitude = Num 1,
+      _funcGExponent = Num 1
+    }
+
+data FuncB = FuncB
+  { _funcBDrawAttributes :: !DrawAttributes,
+    --Does not have filter attributes!
+    _funcBType :: !FuncType,
+    _funcBTableValues :: ![Number],
+    _funcBSlope :: !Number,
+    _funcBIntercept :: !Number,
+    _funcBAmplitude :: !Number,
+    _funcBExponent :: !Number
+    --_funcAOffset :: _ -- This appears in the documentation, but no details are given.
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg FuncB where
+  defaultSvg =
+    FuncB
+    { _funcBDrawAttributes = defaultSvg,
+      _funcBType = FIdentity, -- Standard does not define a default value.
+      _funcBTableValues = [],
+      _funcBSlope = Num 0,
+      _funcBIntercept = Num 0,
+      _funcBAmplitude = Num 1,
+      _funcBExponent = Num 1
+    }
+
 
 data ColorMatrixType
   = Matrix
@@ -1947,5 +2093,9 @@ makeLenses ''Merge
 makeLenses ''MergeNode
 makeLenses ''Group
 makeLenses ''ImageF
+makeLenses ''FuncA
+makeLenses ''FuncR
+makeLenses ''FuncG
+makeLenses ''FuncB
 
 makeClassy ''FilterAttributes
