@@ -101,6 +101,12 @@ module Graphics.SvgTree.Types
     , imageFHref
     , imageFAspectRatio
 
+    , ComponentTransfer (..)
+    , compTransferDrawAttributes
+    , compTransferFilterAttr
+    , compTransferChildren
+    , compTransferIn
+
     , FuncA (..)
     , FuncType (..)
     , funcADrawAttributes

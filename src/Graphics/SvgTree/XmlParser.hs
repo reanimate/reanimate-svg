@@ -974,19 +974,24 @@ instance XMLUpdatable FilterElement where
   xmlTagName _ = "FilterElement"
   serializeTreeNode fe = flip mergeAttributes <$> genericSerializeNode fe <*>
     case fe of
-      FEBlend b           -> serializeTreeNode b
-      FEColorMatrix m     -> serializeTreeNode m
-      FEComposite c       -> serializeTreeNode c
-      FEGaussianBlur b    -> serializeTreeNode b
-      FETurbulence t      -> serializeTreeNode t
-      FEDisplacementMap d -> serializeTreeNode d
-      FETile t            -> serializeTreeNode t
-      FEFlood f           -> serializeTreeNode f
-      FEOffset o          -> serializeTreeNode o
-      FEMerge m           -> serializeTreeNode m
-      FEMergeNode n       -> serializeTreeNode n
-      FEImage i           -> serializeTreeNode i
-      _                   -> error $
+      FEBlend b             -> serializeTreeNode b
+      FEColorMatrix m       -> serializeTreeNode m
+      FEComposite c         -> serializeTreeNode c
+      FEGaussianBlur b      -> serializeTreeNode b
+      FETurbulence t        -> serializeTreeNode t
+      FEDisplacementMap d   -> serializeTreeNode d
+      FETile t              -> serializeTreeNode t
+      FEFlood f             -> serializeTreeNode f
+      FEOffset o            -> serializeTreeNode o
+      FEMerge m             -> serializeTreeNode m
+      FEMergeNode n         -> serializeTreeNode n
+      FEImage i             -> serializeTreeNode i
+      FEComponentTransfer f -> serializeTreeNode f
+      FEFuncA f             -> serializeTreeNode f
+      FEFuncR f             -> serializeTreeNode f
+      FEFuncG f             -> serializeTreeNode f
+      FEFuncB f             -> serializeTreeNode f
+      _                     -> error $
         "Unsupported element: " ++ show fe ++ ". Please submit bug on github."
   attributes =
     [ "result" `parseIn` (filterAttributes . filterResult)]
@@ -1070,6 +1075,15 @@ instance XMLUpdatable Merge where
      updateWithAccessor _mergeChildren node $
         genericSerializeWithDrawAttr node
   attributes = []
+
+instance XMLUpdatable ComponentTransfer where
+  xmlTagName _ = "feComponentTransfer"
+  serializeTreeNode node =
+     updateWithAccessor _compTransferChildren node $
+        genericSerializeWithDrawAttr node
+  attributes =
+    [ "in" `parseIn` compTransferIn ]
+
 
 instance XMLUpdatable MergeNode where
   xmlTagName _ = "feMergeNode"
@@ -1368,9 +1382,20 @@ unparseMergeNode e@(nodeName -> "feMergeNode") =
   FEMergeNode $ xmlUnparseWithDrawAttr e
 unparseMergeNode _ = FENone
 
+-- This is to guarantee there will be only "feFunc_" elements inside any "feComponentTransfer" element.
+unparseFunc :: X.Element -> FilterElement
+unparseFunc e = case nodeName e of
+  "feFuncA" -> FEFuncA $ xmlUnparseWithDrawAttr e
+  "feFuncR" -> FEFuncR $ xmlUnparseWithDrawAttr e
+  "feFuncG" -> FEFuncG $ xmlUnparseWithDrawAttr e
+  "feFuncB" -> FEFuncB $ xmlUnparseWithDrawAttr e
+  _         -> FENone
+
 unparseFE :: X.Element -> FilterElement
 unparseFE e@(nodeName -> "feMerge") =
     FEMerge $ xmlUnparseWithDrawAttr e & mergeChildren .~ map unparseMergeNode (elChildren e)
+unparseFE e@(nodeName -> "feComponentTransfer") =
+    FEComponentTransfer $ xmlUnparseWithDrawAttr e & compTransferChildren .~ map unparseFunc (elChildren e)
 unparseFE e = case nodeName e of
     "feBlend"           -> FEBlend parsed
     "feColorMatrix"     -> FEColorMatrix parsed
@@ -1383,6 +1408,10 @@ unparseFE e = case nodeName e of
     "feOffset"          -> FEOffset parsed
     "feImage"           -> FEImage parsed
     "feMergeNode"       -> FEMergeNode parsed -- Potential bug: allow the "feMergeNode" element to appear outside a "feMerge" element.
+    "feFuncA"           -> FEFuncA parsed -- Potential bug: allow the "feFuncA" element to appear outside a "feComponentTransfer" element.
+    "feFuncR"           -> FEFuncR parsed -- Potential bug: allow the "feFuncR" element to appear outside a "feComponentTransfer" element.
+    "feFuncG"           -> FEFuncG parsed -- Potential bug: allow the "feFuncG" element to appear outside a "feComponentTransfer" element.
+    "feFuncB"           -> FEFuncB parsed -- Potential bug: allow the "feFuncB" element to appear outside a "feComponentTransfer" element.
     _                   -> FENone
   where
     parsed :: (WithDefaultSvg a, XMLUpdatable a, HasDrawAttributes a) => a

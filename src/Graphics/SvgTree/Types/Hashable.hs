@@ -77,6 +77,7 @@ deriving instance Hashable MergeNode
 
 deriving instance Hashable ImageF
 
+deriving instance Hashable ComponentTransfer
 deriving instance Hashable FuncType
 deriving instance Hashable FuncA
 deriving instance Hashable FuncR

@@ -104,6 +104,12 @@ module Graphics.SvgTree.Types.Internal
     imageFHref,
     imageFAspectRatio,
 
+    ComponentTransfer (..),
+    compTransferDrawAttributes,
+    compTransferFilterAttr,
+    compTransferChildren,
+    compTransferIn,
+
     FuncA (..),
     FuncType (..),
     funcADrawAttributes,
@@ -1185,17 +1191,17 @@ instance WithDefaultSvg TreeBranch where
 data FilterElement
   = FEBlend Blend               -- SVG Basic --DONE
   | FEColorMatrix ColorMatrix   -- SVG Basic --DONE
-  | FEComponentTransfer -- Need -- SVG Basic
+  | FEComponentTransfer ComponentTransfer -- Need -- SVG Basic --DONE --Parser not working
   | FEComposite Composite       -- SVG Basic --DONE
   | FEConvolveMatrix
   | FEDiffuseLighting
   | FEDisplacementMap DisplacementMap        --DONE
   | FEDropShadow
   | FEFlood Flood               -- SVG Basic --DONE
-  | FEFuncA FuncA -- Need       -- SVG Basic
-  | FEFuncB FuncB               -- SVG Basic
-  | FEFuncG FuncG               -- SVG Basic
-  | FEFuncR FuncR               -- SVG Basic
+  | FEFuncA FuncA -- Need       -- SVG Basic --DONE
+  | FEFuncB FuncB               -- SVG Basic --DONE
+  | FEFuncG FuncG               -- SVG Basic --DONE
+  | FEFuncR FuncR               -- SVG Basic --DONE
   | FEGaussianBlur GaussianBlur -- SVG Basic --DONE
   | FEImage ImageF              -- SVG Basic --DONE --Parser not working
   | FEMerge Merge               -- SVG Basic --DONE
@@ -1395,6 +1401,23 @@ instance WithDefaultSvg MergeNode where
     MergeNode
     { _mergeNodeDrawAttributes = defaultSvg,
       _mergeNodeIn = Last Nothing
+    }
+
+data ComponentTransfer = ComponentTransfer
+  { _compTransferDrawAttributes :: !DrawAttributes,
+    _compTransferFilterAttr :: !FilterAttributes,
+    _compTransferChildren :: ![FilterElement],
+    _compTransferIn :: !(Last FilterSource)
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg ComponentTransfer where
+  defaultSvg =
+    ComponentTransfer
+    { _compTransferDrawAttributes = defaultSvg,
+      _compTransferFilterAttr = defaultSvg,
+      _compTransferChildren = [],
+      _compTransferIn = Last Nothing
     }
 
 data FuncType
@@ -2093,6 +2116,7 @@ makeLenses ''Merge
 makeLenses ''MergeNode
 makeLenses ''Group
 makeLenses ''ImageF
+makeLenses ''ComponentTransfer
 makeLenses ''FuncA
 makeLenses ''FuncR
 makeLenses ''FuncG

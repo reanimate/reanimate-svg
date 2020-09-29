@@ -76,6 +76,9 @@ instance HasDrawAttributes Composite where
 instance HasDrawAttributes Blend where
   drawAttributes = blendDrawAttributes
 
+instance HasDrawAttributes ComponentTransfer where
+  drawAttributes = compTransferDrawAttributes
+
 instance HasDrawAttributes FuncA where
   drawAttributes = funcADrawAttributes
 instance HasDrawAttributes FuncR where
@@ -155,6 +158,10 @@ instance HasFilterAttributes Merge where
 instance HasFilterAttributes ImageF where
   filterAttributes = imageFFilterAttr
 
+instance HasFilterAttributes ComponentTransfer where
+  filterAttributes = compTransferFilterAttr
+
+
 
 instance HasFilterAttributes FilterElement where
   filterAttributes = lens getter setter
@@ -162,7 +169,7 @@ instance HasFilterAttributes FilterElement where
       getter fe = case fe of
         FEBlend b -> b ^. filterAttributes
         FEColorMatrix m -> m ^. filterAttributes
-        FEComponentTransfer -> defaultSvg
+        FEComponentTransfer c -> c ^. filterAttributes
         FEComposite c -> c ^. filterAttributes
         FEConvolveMatrix -> defaultSvg
         FEDiffuseLighting -> defaultSvg
@@ -186,7 +193,7 @@ instance HasFilterAttributes FilterElement where
       setter fe attr = case fe of
         FEBlend b -> FEBlend $ b & filterAttributes .~ attr
         FEColorMatrix m -> FEColorMatrix $ m & filterAttributes .~ attr
-        FEComponentTransfer -> fe
+        FEComponentTransfer c -> FEComponentTransfer $ c & filterAttributes .~ attr
         FEComposite c -> FEComposite $ c & filterAttributes .~ attr
         FEConvolveMatrix -> fe
         FEDiffuseLighting -> fe
