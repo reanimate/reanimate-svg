@@ -369,6 +369,22 @@ instance ParseableAttribute FilterSource where
     StrokePaint     -> "StrokePaint"
     SourceRef s     -> s
 
+instance ParseableAttribute FuncType where
+  aparse s = case s of
+    "identity" -> Just FIdentity
+    "table"    -> Just FTable
+    "discrete" -> Just FDiscrete
+    "linear"   -> Just FLinear
+    "gamma"    -> Just FGamma
+    _          -> Nothing
+
+  aserialize v = Just $ case v of
+    FIdentity -> "identity"
+    FTable    -> "table"
+    FDiscrete -> "discrete"
+    FLinear   -> "linear"
+    FGamma    -> "gamma"
+
 instance ParseableAttribute BlendMode where
   aparse s = case s of
     "normal"      -> Just Normal
@@ -982,6 +998,50 @@ instance XMLUpdatable Blend where
     [ "in" `parseIn` blendIn
     , "in2" `parseIn` blendIn2
     , "mode"  `parseIn` blendMode ]
+
+instance XMLUpdatable FuncA where
+  xmlTagName _ = "feFuncA"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "type" `parseIn` funcAType
+    , "tableValues" `parseIn` funcATableValues
+    , "slope" `parseIn` funcASlope
+    , "intercept" `parseIn` funcAIntercept
+    , "ampliture" `parseIn` funcAAmplitude
+    , "exponent" `parseIn` funcAExponent ]
+
+instance XMLUpdatable FuncR where
+  xmlTagName _ = "feFuncR"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "type" `parseIn` funcRType
+    , "tableValues" `parseIn` funcRTableValues
+    , "slope" `parseIn` funcRSlope
+    , "intercept" `parseIn` funcRIntercept
+    , "ampliture" `parseIn` funcRAmplitude
+    , "exponent" `parseIn` funcRExponent ]
+
+instance XMLUpdatable FuncG where
+  xmlTagName _ = "feFuncG"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "type" `parseIn` funcGType
+    , "tableValues" `parseIn` funcGTableValues
+    , "slope" `parseIn` funcGSlope
+    , "intercept" `parseIn` funcGIntercept
+    , "ampliture" `parseIn` funcGAmplitude
+    , "exponent" `parseIn` funcGExponent ]
+
+instance XMLUpdatable FuncB where
+  xmlTagName _ = "feFuncB"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "type" `parseIn` funcBType
+    , "tableValues" `parseIn` funcBTableValues
+    , "slope" `parseIn` funcBSlope
+    , "intercept" `parseIn` funcBIntercept
+    , "ampliture" `parseIn` funcBAmplitude
+    , "exponent" `parseIn` funcBExponent ]
 
 instance XMLUpdatable Flood where
   xmlTagName _ = "feFlood"
