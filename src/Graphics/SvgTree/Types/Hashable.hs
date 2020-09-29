@@ -75,6 +75,8 @@ deriving instance Hashable Offset
 deriving instance Hashable Merge
 deriving instance Hashable MergeNode
 
+deriving instance Hashable ImageF
+
 deriving instance Hashable ColorMatrix
 
 deriving instance Hashable FilterSource

@@ -95,6 +95,12 @@ module Graphics.SvgTree.Types
     , mergeFilterAttributes
     , mergeChildren
 
+    , ImageF (..)
+    , imageFDrawAttributes
+    , imageFFilterAttr
+    , imageFHref
+    , imageFAspectRatio
+
     , ColorMatrixType(..)
     , colorMatrixDrawAttributes
     , colorMatrixFilterAttr

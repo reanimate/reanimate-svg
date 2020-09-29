@@ -969,6 +969,7 @@ instance XMLUpdatable FilterElement where
       FEOffset o          -> serializeTreeNode o
       FEMerge m           -> serializeTreeNode m
       FEMergeNode n       -> serializeTreeNode n
+      FEImage i           -> serializeTreeNode i
       _                   -> error $
         "Unsupported element: " ++ show fe ++ ". Please submit bug on github."
   attributes =
@@ -1015,6 +1016,15 @@ instance XMLUpdatable MergeNode where
   serializeTreeNode = genericSerializeWithDrawAttr
   attributes =
     [ "in" `parseIn` mergeNodeIn ]
+
+instance XMLUpdatable ImageF where
+  xmlTagName _ = "feImage"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ --parserSetter "href" imageFHref (Just . dropSharp) Just
+      "href" `parseIn` imageFHref
+    , "preserveAspectRatio" `parseIn` imageFAspectRatio
+    ]
 
 instance XMLUpdatable ColorMatrix where
   xmlTagName _ = "feColorMatrix"
@@ -1311,6 +1321,7 @@ unparseFE e = case nodeName e of
     "feTile"            -> FETile parsed
     "feFlood"           -> FEFlood parsed
     "feOffset"          -> FEOffset parsed
+    "feImage"           -> FEImage parsed
     "feMergeNode"       -> FEMergeNode parsed -- Potential bug: allow the "feMergeNode" element to appear outside a "feMerge" element.
     _                   -> FENone
   where
