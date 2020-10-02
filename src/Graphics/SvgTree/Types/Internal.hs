@@ -1263,8 +1263,6 @@ data FilterElement
 instance WithDefaultSvg FilterElement where
   defaultSvg = FENone
 
-data
-
 data SpecularLighting = SpecularLighting
   { _specLightingDrawAttributes :: DrawAttributes,
     _specLightingFilterAttr :: !FilterAttributes,
