@@ -82,6 +82,7 @@ module Graphics.SvgTree.Types.Internal
     convolveMatrixTargetX,
     convolveMatrixTargetY,
     convolveMatrixEdgeMode,
+    convolveMatrixKernelUnitLength,
     convolveMatrixPreserveAlpha,
 
     Morphology (..),
@@ -1297,6 +1298,7 @@ data ConvolveMatrix = ConvolveMatrix
     _convolveMatrixTargetX :: Int,
     _convolveMatrixTargetY :: Int,
     _convolveMatrixEdgeMode :: EdgeMode,
+    _convolveMatrixKernelUnitLength :: NumberOptionalNumber,
     _convolveMatrixPreserveAlpha :: Bool
   }
   deriving (Eq, Show, Generic)
@@ -1314,6 +1316,7 @@ instance WithDefaultSvg ConvolveMatrix where
       _convolveMatrixTargetX = 1,
       _convolveMatrixTargetY = 1,
       _convolveMatrixEdgeMode = EdgeDuplicate,
+      _convolveMatrixKernelUnitLength = Num1 0,
       _convolveMatrixPreserveAlpha = False
     }
 

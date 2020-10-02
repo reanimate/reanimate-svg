@@ -79,6 +79,7 @@ module Graphics.SvgTree.Types
     , convolveMatrixTargetX
     , convolveMatrixTargetY
     , convolveMatrixEdgeMode
+    , convolveMatrixKernelUnitLength
     , convolveMatrixPreserveAlpha
 
     , Morphology (..)
