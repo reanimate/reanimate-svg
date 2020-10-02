@@ -496,9 +496,9 @@ instance ParseableAttribute NumberOptionalNumber where
   aparse s = case s of
     _  -> Nothing                                        -- TODO
 
-  aserialize v = case v of
-    Num1 a   -> Just $ show a
-    Num2 a b -> Just $ show a ++ ", " ++ show b
+  aserialize v = Just $ case v of
+    Num1 a   -> show a
+    Num2 a b -> show a ++ ", " ++ show b
 
 instance ParseableAttribute Bool where
   aparse s = case s of
