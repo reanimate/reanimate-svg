@@ -68,6 +68,52 @@ module Graphics.SvgTree.Types
     , blendIn2
     , blendMode
 
+    , ConvolveMatrix (..)
+    , convolveMatrixDrawAttributes
+    , convolveMatrixFilterAttr
+    , convolveMatrixIn
+    , convolveMatrixOrder
+    , convolveMatrixKernelMatrix
+    , convolveMatrixDivisor
+    , convolveMatrixBias
+    , convolveMatrixTargetX
+    , convolveMatrixTargetY
+    , convolveMatrixEdgeMode
+    , convolveMatrixPreserveAlpha
+
+    , Morphology (..)
+    , OperatorType (..)
+    , NumberOptionalNumber (..)
+    , morphologyDrawAttributes
+    , morphologyFilterAttr
+    , morphologyIn
+    , morphologyOperator
+    , morphologyRadius
+
+    , SpecularLighting (..)
+    , specLightingDrawAttributes
+    , specLightingFilterAttr
+    , specLightingIn
+    , specLightingSurfaceScale
+    , specLightingSpecularConst
+    , specLightingSpecularExp
+    , specLightingKernelUnitLength
+
+    , DiffuseLighting
+    , diffuseLightingDrawAttributes
+    , diffuseLightingFilterAttr
+    , diffuseLightingIn
+    , diffuseLightingSurfaceScale
+    , diffuseLightingDiffuseConst
+    , diffuseLightingKernelUnitLength
+
+    , DropShadow (..)
+    , dropShadowDrawAttributes
+    , dropShadowFilterAttr
+    , dropShadowDx
+    , dropShadowDy
+    , dropShadowStdDeviation
+
     , Flood (..)
     , floodDrawAttributes
     , floodFilterAttr
