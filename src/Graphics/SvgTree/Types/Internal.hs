@@ -71,6 +71,53 @@ module Graphics.SvgTree.Types.Internal
     blendIn2,
     blendMode,
 
+    ConvolveMatrix (..),
+    convolveMatrixDrawAttributes,
+    convolveMatrixFilterAttr,
+    convolveMatrixIn,
+    convolveMatrixOrder,
+    convolveMatrixKernelMatrix,
+    convolveMatrixDivisor,
+    convolveMatrixBias,
+    convolveMatrixTargetX,
+    convolveMatrixTargetY,
+    convolveMatrixEdgeMode,
+    convolveMatrixKernelUnitLength,
+    convolveMatrixPreserveAlpha,
+
+    Morphology (..),
+    OperatorType (..),
+    NumberOptionalNumber (..),
+    morphologyDrawAttributes,
+    morphologyFilterAttr,
+    morphologyIn,
+    morphologyOperator,
+    morphologyRadius,
+
+    SpecularLighting (..),
+    specLightingDrawAttributes,
+    specLightingFilterAttr,
+    specLightingIn,
+    specLightingSurfaceScale,
+    specLightingSpecularConst,
+    specLightingSpecularExp,
+    specLightingKernelUnitLength,
+
+    DropShadow (..),
+    dropShadowDrawAttributes,
+    dropShadowFilterAttr,
+    dropShadowDx,
+    dropShadowDy,
+    dropShadowStdDeviation,
+
+    DiffuseLighting,
+    diffuseLightingDrawAttributes,
+    diffuseLightingFilterAttr,
+    diffuseLightingIn,
+    diffuseLightingSurfaceScale,
+    diffuseLightingDiffuseConst,
+    diffuseLightingKernelUnitLength,
+
     Tile (..),
     tileDrawAttributes,
     tileFilterAttr,
@@ -1193,10 +1240,10 @@ data FilterElement
   | FEColorMatrix ColorMatrix   -- SVG Basic --DONE
   | FEComponentTransfer ComponentTransfer -- Need -- SVG Basic --DONE --Parser not working
   | FEComposite Composite       -- SVG Basic --DONE
-  | FEConvolveMatrix
-  | FEDiffuseLighting
+  | FEConvolveMatrix ConvolveMatrix          --DONE -- No parser
+  | FEDiffuseLighting DiffuseLighting        --DONE -- No parser
   | FEDisplacementMap DisplacementMap        --DONE
-  | FEDropShadow
+  | FEDropShadow DropShadow                  --DONE -- No parser
   | FEFlood Flood               -- SVG Basic --DONE
   | FEFuncA FuncA -- Need       -- SVG Basic --DONE
   | FEFuncB FuncB               -- SVG Basic --DONE
@@ -1206,16 +1253,147 @@ data FilterElement
   | FEImage ImageF              -- SVG Basic --DONE --Parser not working
   | FEMerge Merge               -- SVG Basic --DONE
   | FEMergeNode MergeNode       -- SVG Basic --DONE
-  | FEMorphology
+  | FEMorphology Morphology                  --DONE -- No parser
   | FEOffset Offset             -- SVG Basic --DONE
-  | FESpecularLighting
+  | FESpecularLighting SpecularLighting      --DONE -- No parser
   | FETile Tile                 -- SVG Basic --DONE
-  | FETurbulence Turbulence
+  | FETurbulence Turbulence                  --DONE
   | FENone
   deriving (Eq, Show, Generic)
 
 instance WithDefaultSvg FilterElement where
   defaultSvg = FENone
+
+data SpecularLighting = SpecularLighting
+  { _specLightingDrawAttributes :: DrawAttributes,
+    _specLightingFilterAttr :: !FilterAttributes,
+    _specLightingIn :: !(Last FilterSource),
+    _specLightingSurfaceScale :: Double,
+    _specLightingSpecularConst :: Double,
+    _specLightingSpecularExp :: Double,
+    _specLightingKernelUnitLength :: NumberOptionalNumber
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg SpecularLighting where
+  defaultSvg =
+    SpecularLighting
+    { _specLightingDrawAttributes = defaultSvg,
+      _specLightingFilterAttr = defaultSvg,
+      _specLightingIn = Last Nothing,
+      _specLightingSurfaceScale = 1,
+      _specLightingSpecularConst = 1,
+      _specLightingSpecularExp = 1,
+      _specLightingKernelUnitLength = Num1 0
+    }
+
+data ConvolveMatrix = ConvolveMatrix
+  { _convolveMatrixDrawAttributes :: DrawAttributes,
+    _convolveMatrixFilterAttr :: !FilterAttributes,
+    _convolveMatrixIn :: !(Last FilterSource),
+    _convolveMatrixOrder :: NumberOptionalNumber,
+    _convolveMatrixKernelMatrix :: [Double],
+    _convolveMatrixDivisor :: Double,
+    _convolveMatrixBias :: Double,
+    _convolveMatrixTargetX :: Int,
+    _convolveMatrixTargetY :: Int,
+    _convolveMatrixEdgeMode :: EdgeMode,
+    _convolveMatrixKernelUnitLength :: NumberOptionalNumber,
+    _convolveMatrixPreserveAlpha :: Bool
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg ConvolveMatrix where
+  defaultSvg =
+    ConvolveMatrix
+    { _convolveMatrixDrawAttributes = defaultSvg,
+      _convolveMatrixFilterAttr = defaultSvg,
+      _convolveMatrixIn = Last Nothing,
+      _convolveMatrixOrder = Num1 3,
+      _convolveMatrixKernelMatrix = [],
+      _convolveMatrixDivisor = 1,
+      _convolveMatrixBias = 0,
+      _convolveMatrixTargetX = 1,
+      _convolveMatrixTargetY = 1,
+      _convolveMatrixEdgeMode = EdgeDuplicate,
+      _convolveMatrixKernelUnitLength = Num1 0,
+      _convolveMatrixPreserveAlpha = False
+    }
+
+data DiffuseLighting = DiffuseLighting
+  { _diffuseLightingDrawAttributes :: DrawAttributes,
+    _diffuseLightingFilterAttr :: !FilterAttributes,
+    _diffuseLightingIn :: !(Last FilterSource),
+    _diffuseLightingSurfaceScale :: Double,
+    _diffuseLightingDiffuseConst :: Double,
+    _diffuseLightingKernelUnitLength :: NumberOptionalNumber
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg DiffuseLighting where
+  defaultSvg =
+    DiffuseLighting
+    { _diffuseLightingDrawAttributes = defaultSvg,
+      _diffuseLightingFilterAttr = defaultSvg,
+      _diffuseLightingIn = Last Nothing,
+      _diffuseLightingSurfaceScale = 1,
+      _diffuseLightingDiffuseConst = 1,
+      _diffuseLightingKernelUnitLength = Num1 0
+    }
+
+data Morphology = Morphology
+  { _morphologyDrawAttributes :: DrawAttributes,
+    _morphologyFilterAttr :: !FilterAttributes,
+    _morphologyIn :: !(Last FilterSource),
+    _morphologyOperator :: OperatorType,
+    _morphologyRadius :: NumberOptionalNumber
+  }
+  deriving (Eq, Show, Generic)
+
+
+instance WithDefaultSvg Morphology where
+  defaultSvg =
+    Morphology
+    { _morphologyDrawAttributes = defaultSvg,
+      _morphologyFilterAttr = defaultSvg,
+      _morphologyIn = Last Nothing,
+      _morphologyOperator = OperatorOver,
+      _morphologyRadius = Num1 0
+    }
+
+data DropShadow = DropShadow
+  { _dropShadowDrawAttributes :: DrawAttributes,
+    _dropShadowFilterAttr :: !FilterAttributes,
+    _dropShadowDx :: Double,
+    _dropShadowDy :: Double,
+    _dropShadowStdDeviation :: NumberOptionalNumber
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg DropShadow where
+  defaultSvg =
+    DropShadow
+    { _dropShadowDrawAttributes = defaultSvg,
+      _dropShadowFilterAttr = defaultSvg,
+      _dropShadowDx = 2,
+      _dropShadowDy = 2,
+      _dropShadowStdDeviation = Num1 0
+    }
+
+data OperatorType
+  = OperatorOver
+  | OperatorIn
+  | OperatorOut
+  | OperatorAtop
+  | OperatorXor
+  | OperatorLighter
+  | OperatorArithmetic
+  deriving (Eq, Show, Generic)
+
+data NumberOptionalNumber
+  = Num1 Double
+  | Num2 Double Double
+  deriving (Eq, Show, Generic)
 
 data ImageF = ImageF
   { _imageFDrawAttributes :: DrawAttributes,
@@ -2121,5 +2299,10 @@ makeLenses ''FuncA
 makeLenses ''FuncR
 makeLenses ''FuncG
 makeLenses ''FuncB
+makeLenses ''Morphology
+makeLenses ''SpecularLighting
+makeLenses ''DropShadow
+makeLenses ''DiffuseLighting
+makeLenses ''ConvolveMatrix
 
 makeClassy ''FilterAttributes

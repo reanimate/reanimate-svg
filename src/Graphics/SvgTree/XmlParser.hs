@@ -472,6 +472,44 @@ instance ParseableAttribute ChannelSelector where
     ChannelB -> "B"
     ChannelA -> "A"
 
+instance ParseableAttribute OperatorType where
+  aparse s = case s of
+    "over"       -> Just OperatorOver
+    "in"         -> Just OperatorIn
+    "out"        -> Just OperatorOut
+    "atop"       -> Just OperatorAtop
+    "xor"        -> Just OperatorXor
+    "lighter"    -> Just OperatorLighter
+    "arithmetic" -> Just OperatorArithmetic
+    _            -> Nothing
+
+  aserialize v = Just $ case v of
+    OperatorOver       -> "over"
+    OperatorIn         -> "in"
+    OperatorOut        -> "out"
+    OperatorAtop       -> "atop"
+    OperatorXor        -> "xor"
+    OperatorLighter    -> "lighter"
+    OperatorArithmetic -> "arithmetic"
+
+instance ParseableAttribute NumberOptionalNumber where
+  aparse s = case s of
+    _  -> Nothing                                        -- TODO
+
+  aserialize v = Just $ case v of
+    Num1 a   -> show a
+    Num2 a b -> show a ++ ", " ++ show b
+
+instance ParseableAttribute Bool where
+  aparse s = case s of
+    "false" -> Just False
+    "true"  -> Just True
+    _       -> Nothing
+
+  aserialize v = Just $ case v of
+    False -> "false"
+    True  -> "true"
+
 instance ParseableAttribute EdgeMode where
   aparse s = case s of
     "duplicate" -> Just EdgeDuplicate
@@ -991,10 +1029,64 @@ instance XMLUpdatable FilterElement where
       FEFuncR f             -> serializeTreeNode f
       FEFuncG f             -> serializeTreeNode f
       FEFuncB f             -> serializeTreeNode f
+      FESpecularLighting s  -> serializeTreeNode s
+      FEConvolveMatrix c    -> serializeTreeNode c
+      FEDiffuseLighting d   -> serializeTreeNode d
+      FEMorphology m        -> serializeTreeNode m
+      FEDropShadow d        -> serializeTreeNode d
       _                     -> error $
         "Unsupported element: " ++ show fe ++ ". Please submit bug on github."
   attributes =
     [ "result" `parseIn` (filterAttributes . filterResult)]
+
+instance XMLUpdatable ConvolveMatrix where
+  xmlTagName _ = "feConvolveMatrix"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "in" `parseIn` convolveMatrixIn,
+      "order" `parseIn` convolveMatrixOrder,
+      "kernelMatrix" `parseIn` convolveMatrixKernelMatrix,
+      "divisor" `parseIn` convolveMatrixDivisor,
+      "bias" `parseIn` convolveMatrixBias,
+      "targetX" `parseIn` convolveMatrixTargetX,
+      "targetY" `parseIn` convolveMatrixTargetY,
+      "edgeMode" `parseIn` convolveMatrixEdgeMode,
+      "preserveAlpha" `parseIn` convolveMatrixPreserveAlpha ]
+
+instance XMLUpdatable SpecularLighting where
+  xmlTagName _ = "feSpecularLighting"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "in" `parseIn` specLightingIn,
+      "surfaceScale" `parseIn` specLightingSurfaceScale,
+      "specularConstant" `parseIn` specLightingSpecularConst,
+      "specularExponent" `parseIn` specLightingSpecularExp,
+      "kernelUnitLength" `parseIn` specLightingKernelUnitLength ]
+
+instance XMLUpdatable DiffuseLighting where
+  xmlTagName _ = "feDiffuseLighting"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "in" `parseIn` diffuseLightingIn,
+      "surfaceScale" `parseIn` diffuseLightingSurfaceScale,
+      "diffuseConstant" `parseIn` diffuseLightingDiffuseConst,
+      "kernelUnitLength" `parseIn` diffuseLightingKernelUnitLength]
+
+instance XMLUpdatable Morphology where
+  xmlTagName _ = "feMorphology"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "in" `parseIn` morphologyIn,
+      "operator" `parseIn` morphologyOperator,
+      "radius" `parseIn` morphologyRadius ]
+
+instance XMLUpdatable DropShadow where
+  xmlTagName _ = "feDropShadow"
+  serializeTreeNode = genericSerializeWithDrawAttr
+  attributes =
+    [ "dx" `parseIn` dropShadowDx,
+      "dy" `parseIn` dropShadowDy,
+      "stdDeviation" `parseIn` dropShadowStdDeviation ]
 
 instance XMLUpdatable Blend where
   xmlTagName _ = "feBlend"
@@ -1397,22 +1489,27 @@ unparseFE e@(nodeName -> "feMerge") =
 unparseFE e@(nodeName -> "feComponentTransfer") =
     FEComponentTransfer $ xmlUnparseWithDrawAttr e & compTransferChildren .~ map unparseFunc (elChildren e)
 unparseFE e = case nodeName e of
-    "feBlend"           -> FEBlend parsed
-    "feColorMatrix"     -> FEColorMatrix parsed
-    "feComposite"       -> FEComposite parsed
-    "feDisplacementMap" -> FEDisplacementMap parsed
-    "feGaussianBlur"    -> FEGaussianBlur parsed
-    "feTurbulence"      -> FETurbulence parsed
-    "feTile"            -> FETile parsed
-    "feFlood"           -> FEFlood parsed
-    "feOffset"          -> FEOffset parsed
-    "feImage"           -> FEImage parsed
-    "feMergeNode"       -> FEMergeNode parsed -- Potential bug: allow the "feMergeNode" element to appear outside a "feMerge" element.
-    "feFuncA"           -> FEFuncA parsed -- Potential bug: allow the "feFuncA" element to appear outside a "feComponentTransfer" element.
-    "feFuncR"           -> FEFuncR parsed -- Potential bug: allow the "feFuncR" element to appear outside a "feComponentTransfer" element.
-    "feFuncG"           -> FEFuncG parsed -- Potential bug: allow the "feFuncG" element to appear outside a "feComponentTransfer" element.
-    "feFuncB"           -> FEFuncB parsed -- Potential bug: allow the "feFuncB" element to appear outside a "feComponentTransfer" element.
-    _                   -> FENone
+    "feBlend"            -> FEBlend parsed
+    "feColorMatrix"      -> FEColorMatrix parsed
+    "feComposite"        -> FEComposite parsed
+    "feDisplacementMap"  -> FEDisplacementMap parsed
+    "feGaussianBlur"     -> FEGaussianBlur parsed
+    "feTurbulence"       -> FETurbulence parsed
+    "feTile"             -> FETile parsed
+    "feFlood"            -> FEFlood parsed
+    "feOffset"           -> FEOffset parsed
+    "feImage"            -> FEImage parsed
+    "feMergeNode"        -> FEMergeNode parsed -- Potential bug: allow the "feMergeNode" element to appear outside a "feMerge" element.
+    "feFuncA"            -> FEFuncA parsed -- Potential bug: allow the "feFuncA" element to appear outside a "feComponentTransfer" element.
+    "feFuncR"            -> FEFuncR parsed -- Potential bug: allow the "feFuncR" element to appear outside a "feComponentTransfer" element.
+    "feFuncG"            -> FEFuncG parsed -- Potential bug: allow the "feFuncG" element to appear outside a "feComponentTransfer" element.
+    "feFuncB"            -> FEFuncB parsed -- Potential bug: allow the "feFuncB" element to appear outside a "feComponentTransfer" element.
+    "feSpecularLighting" -> FESpecularLighting parsed
+    "feConvolveMatrix"   -> FEConvolveMatrix parsed
+    "feDiffuseLighting"  -> FEDiffuseLighting parsed
+    "feMorphology"       -> FEMorphology parsed
+    "feDropShadow"       -> FEDropShadow parsed
+    _                    -> FENone
   where
     parsed :: (WithDefaultSvg a, XMLUpdatable a, HasDrawAttributes a) => a
     parsed = xmlUnparseWithDrawAttr e

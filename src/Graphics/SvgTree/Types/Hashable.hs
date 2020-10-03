@@ -66,6 +66,18 @@ deriving instance Hashable FilterElement
 deriving instance Hashable Blend
 deriving instance Hashable BlendMode
 
+deriving instance Hashable ConvolveMatrix
+
+deriving instance Hashable Morphology
+deriving instance Hashable OperatorType
+deriving instance Hashable NumberOptionalNumber
+
+deriving instance Hashable SpecularLighting
+
+deriving instance Hashable DropShadow
+
+deriving instance Hashable DiffuseLighting
+
 deriving instance Hashable Flood
 
 deriving instance Hashable Tile

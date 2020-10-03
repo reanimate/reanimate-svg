@@ -76,6 +76,21 @@ instance HasDrawAttributes Composite where
 instance HasDrawAttributes Blend where
   drawAttributes = blendDrawAttributes
 
+instance HasDrawAttributes ConvolveMatrix where
+  drawAttributes = convolveMatrixDrawAttributes
+
+instance HasDrawAttributes Morphology where
+  drawAttributes = morphologyDrawAttributes
+
+instance HasDrawAttributes SpecularLighting where
+  drawAttributes = specLightingDrawAttributes
+
+instance HasDrawAttributes DropShadow where
+  drawAttributes = dropShadowDrawAttributes
+
+instance HasDrawAttributes DiffuseLighting where
+  drawAttributes = diffuseLightingDrawAttributes
+
 instance HasDrawAttributes ComponentTransfer where
   drawAttributes = compTransferDrawAttributes
 
@@ -128,6 +143,21 @@ instance HasFilterAttributes Filter where
 instance HasFilterAttributes Blend where
   filterAttributes = blendFilterAttr
 
+instance HasFilterAttributes ConvolveMatrix where
+  filterAttributes = convolveMatrixFilterAttr
+
+instance HasFilterAttributes Morphology where
+  filterAttributes = morphologyFilterAttr
+
+instance HasFilterAttributes SpecularLighting where
+  filterAttributes = specLightingFilterAttr
+
+instance HasFilterAttributes DropShadow where
+  filterAttributes = dropShadowFilterAttr
+
+instance HasFilterAttributes DiffuseLighting where
+  filterAttributes = diffuseLightingFilterAttr
+
 instance HasFilterAttributes Flood where
   filterAttributes = floodFilterAttr
 
@@ -171,10 +201,10 @@ instance HasFilterAttributes FilterElement where
         FEColorMatrix m -> m ^. filterAttributes
         FEComponentTransfer c -> c ^. filterAttributes
         FEComposite c -> c ^. filterAttributes
-        FEConvolveMatrix -> defaultSvg
-        FEDiffuseLighting -> defaultSvg
+        FEConvolveMatrix c -> c ^. filterAttributes
+        FEDiffuseLighting d -> d ^. filterAttributes
         FEDisplacementMap d -> d ^. filterAttributes
-        FEDropShadow -> defaultSvg
+        FEDropShadow d -> d ^. filterAttributes
         FEFlood f -> f ^. filterAttributes
         FEFuncA _ -> defaultSvg --FuncA has no filter attributes
         FEFuncR _ -> defaultSvg --FuncR has no filter attributes
@@ -184,9 +214,9 @@ instance HasFilterAttributes FilterElement where
         FEImage i -> i ^. filterAttributes
         FEMergeNode _ -> defaultSvg --MergeNode has no filterAttributes!
         FEMerge m -> m ^. filterAttributes
-        FEMorphology -> defaultSvg
+        FEMorphology m -> m ^. filterAttributes
         FEOffset o -> o ^. filterAttributes
-        FESpecularLighting -> defaultSvg
+        FESpecularLighting s -> s ^. filterAttributes
         FETile t -> t ^. filterAttributes
         FETurbulence t -> t ^. filterAttributes
         FENone -> defaultSvg
@@ -195,10 +225,10 @@ instance HasFilterAttributes FilterElement where
         FEColorMatrix m -> FEColorMatrix $ m & filterAttributes .~ attr
         FEComponentTransfer c -> FEComponentTransfer $ c & filterAttributes .~ attr
         FEComposite c -> FEComposite $ c & filterAttributes .~ attr
-        FEConvolveMatrix -> fe
-        FEDiffuseLighting -> fe
+        FEConvolveMatrix c -> FEConvolveMatrix $ c & filterAttributes .~ attr
+        FEDiffuseLighting d -> FEDiffuseLighting $ d & filterAttributes .~ attr
         FEDisplacementMap d -> FEDisplacementMap $ d & filterAttributes .~ attr
-        FEDropShadow -> fe
+        FEDropShadow d -> FEDropShadow $ d & filterAttributes .~ attr
         FEFlood f -> FEFlood $ f & filterAttributes .~ attr
         FEFuncA _ -> fe --FuncA has no filter atributes
         FEFuncR _ -> fe --FuncR has no filter atributes
@@ -208,9 +238,9 @@ instance HasFilterAttributes FilterElement where
         FEImage i -> FEImage $ i & filterAttributes .~ attr
         FEMerge m -> FEMerge $ m & filterAttributes .~ attr
         FEMergeNode _ -> fe --MergeNode has no filterAttributes!
-        FEMorphology -> fe
+        FEMorphology m -> FEMorphology $ m & filterAttributes .~ attr
         FEOffset o -> FEOffset $ o & filterAttributes .~ attr
-        FESpecularLighting -> fe
+        FESpecularLighting s -> FESpecularLighting $ s & filterAttributes .~ attr
         FETile t -> FETile $ t & filterAttributes .~ attr
         FETurbulence t -> FETurbulence $ t & filterAttributes .~ attr
         FENone -> fe
