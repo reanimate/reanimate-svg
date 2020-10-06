@@ -1104,7 +1104,7 @@ instance XMLUpdatable FuncA where
     , "tableValues" `parseIn` funcATableValues
     , "slope" `parseIn` funcASlope
     , "intercept" `parseIn` funcAIntercept
-    , "ampliture" `parseIn` funcAAmplitude
+    , "amplitude" `parseIn` funcAAmplitude
     , "exponent" `parseIn` funcAExponent ]
 
 instance XMLUpdatable FuncR where
@@ -1115,7 +1115,7 @@ instance XMLUpdatable FuncR where
     , "tableValues" `parseIn` funcRTableValues
     , "slope" `parseIn` funcRSlope
     , "intercept" `parseIn` funcRIntercept
-    , "ampliture" `parseIn` funcRAmplitude
+    , "amplitude" `parseIn` funcRAmplitude
     , "exponent" `parseIn` funcRExponent ]
 
 instance XMLUpdatable FuncG where
@@ -1126,7 +1126,7 @@ instance XMLUpdatable FuncG where
     , "tableValues" `parseIn` funcGTableValues
     , "slope" `parseIn` funcGSlope
     , "intercept" `parseIn` funcGIntercept
-    , "ampliture" `parseIn` funcGAmplitude
+    , "amplitude" `parseIn` funcGAmplitude
     , "exponent" `parseIn` funcGExponent ]
 
 instance XMLUpdatable FuncB where
@@ -1137,7 +1137,7 @@ instance XMLUpdatable FuncB where
     , "tableValues" `parseIn` funcBTableValues
     , "slope" `parseIn` funcBSlope
     , "intercept" `parseIn` funcBIntercept
-    , "ampliture" `parseIn` funcBAmplitude
+    , "amplitude" `parseIn` funcBAmplitude
     , "exponent" `parseIn` funcBExponent ]
 
 instance XMLUpdatable Flood where
