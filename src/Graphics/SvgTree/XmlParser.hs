@@ -1484,11 +1484,14 @@ unparseFunc e = case nodeName e of
   _         -> FENone
 
 unparseFE :: X.Element -> FilterElement
-unparseFE e@(nodeName -> "feMerge") =
-    FEMerge $ xmlUnparseWithDrawAttr e & mergeChildren .~ map unparseMergeNode (elChildren e)
-unparseFE e@(nodeName -> "feComponentTransfer") =
-    FEComponentTransfer $ xmlUnparseWithDrawAttr e & compTransferChildren .~ map unparseFunc (elChildren e)
-unparseFE e = case nodeName e of
+unparseFE e = flip xmlUpdate e $
+  case nodeName e of
+    "feMerge" ->
+      FEMerge $ xmlUnparseWithDrawAttr e
+        & mergeChildren .~ map unparseMergeNode (elChildren e)
+    "feComponentTransfer" ->
+      FEComponentTransfer $ xmlUnparseWithDrawAttr e
+        & compTransferChildren .~ map unparseFunc (elChildren e)
     "feBlend"            -> FEBlend parsed
     "feColorMatrix"      -> FEColorMatrix parsed
     "feComposite"        -> FEComposite parsed
