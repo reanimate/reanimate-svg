@@ -1,6 +1,6 @@
 cabal-version:       2.2
 name:                reanimate-svg
-version:             0.11.0.0
+version:             0.12.0.0
 synopsis:            SVG file loader and serializer
 description:
   reanimate-svg provides types representing a SVG document,
