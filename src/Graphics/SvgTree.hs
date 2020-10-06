@@ -4,6 +4,7 @@ module Graphics.SvgTree
   ( -- * Saving/Loading functions
     loadSvgFile,
     parseSvgFile,
+    parseSvg,
     unparse,
     xmlOfDocument,
     xmlOfTree,
@@ -46,6 +47,12 @@ parseSvgFile ::
   Maybe Document
 parseSvgFile filename fileContent =
   parseXMLDoc fileContent >>= unparseDocument filename
+
+parseSvg :: T.Text -> Tree
+parseSvg inp =
+  case parseXMLDoc inp of
+    Nothing -> error "Invalid XML"
+    Just xml -> unparse xml
 
 -- | Save a svg Document on a file on disk.
 saveXmlFile :: FilePath -> Document -> IO ()
