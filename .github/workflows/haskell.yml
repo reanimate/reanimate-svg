@@ -58,6 +58,6 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: images
-        path: *.png
+        path: ./*.png
     - name: Check documentation syntax
       run: cabal v2-haddock
