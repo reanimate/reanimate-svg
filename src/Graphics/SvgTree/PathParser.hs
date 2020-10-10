@@ -39,6 +39,9 @@ num = realToFrac <$> (skipSpace *> plusMinus <* skipSpace)
         shorthand = process' <$> (string "." *> many1 digit)
         process' = either (const 0) id . parseOnly doubleNumber . T.pack . (++) "0."
 
+flag :: Parser Bool
+flag = fmap (/='0') digit
+
 viewBoxParser :: Parser (Double, Double, Double, Double)
 viewBoxParser = (,,,)
        <$> iParse <*> iParse <*> iParse <*> iParse
@@ -91,11 +94,12 @@ command =  (MoveTo OriginAbsolute <$ string "M" <*> pointList)
           manyComma a = a `sepBy1` commaWsp
 
           numComma = num <* commaWsp
+          flagComma = flag <* commaWsp
           ellipticalArgs = (,,,,,) <$> numComma
                                    <*> numComma
                                    <*> numComma
-                                   <*> fmap (/= 0) numComma
-                                   <*> fmap (/= 0) numComma
+                                   <*> flagComma
+                                   <*> flagComma
                                    <*> point
 
 unwordsS :: [ShowS] -> ShowS
