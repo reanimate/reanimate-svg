@@ -1,5 +1,11 @@
 -*-change-log-*-
 
+v0.13.0.0
+
+ * Fix bug in path parser.
+ * Vastly improved support for filter effects thanks to José Edil Guimarães De Medeiros.
+ * Better unicode support.
+
 v0.11.0.0
 
  * Drop support for GHC 7.
