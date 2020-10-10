@@ -80,7 +80,7 @@ test-suite w3c-spec
     Diff,
     vector, linear,
     QuickCheck >= 2.1.0, text,
-    temporary,
+    temporary, typed-process,
     tasty, tasty-golden, tasty-hunit,
     tasty-quickcheck, tasty-rerun >= 1.1.17,
     tasty-expected-failure

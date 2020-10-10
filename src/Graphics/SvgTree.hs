@@ -22,9 +22,9 @@ module Graphics.SvgTree
 where
 
 import Control.Lens
-import qualified Data.ByteString as B
 import Data.List (foldl')
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import Graphics.SvgTree.CssParser (cssRulesOfText)
 import Graphics.SvgTree.CssTypes
 import Graphics.SvgTree.Types
@@ -36,14 +36,14 @@ import Text.XML.Light.Output (ppcTopElement, prettyConfigPP)
 -- a SVG Document.
 loadSvgFile :: FilePath -> IO (Maybe Document)
 loadSvgFile filename =
-  parseSvgFile filename <$> B.readFile filename
+  parseSvgFile filename <$> T.readFile filename
 
 -- | Parse an in-memory SVG file
 parseSvgFile ::
   -- | Source path/URL of the document, used
   -- to resolve relative links.
   FilePath ->
-  B.ByteString ->
+  T.Text ->
   Maybe Document
 parseSvgFile filename fileContent =
   parseXMLDoc fileContent >>= unparseDocument filename
