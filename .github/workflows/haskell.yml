@@ -52,5 +52,12 @@ jobs:
         sudo apt-get install libpango-1.0
         sudo apt-get install librsvg2-bin
         cabal v2-test --test-show-details=always
+        cabal v2-run w3c-spec cycle test/other/masking-path-10-b.svg | tail -n 1 > tmp.svg
+        rsvg-convert --format png -o cycled.png < tmp.svg
+        rsvg-convert --format png -o original.png < test/other/masking-path-10-b.svg
+    - uses: actions/upload-artifact@v2
+      with:
+        name: images
+        path: *.png
     - name: Check documentation syntax
       run: cabal v2-haddock
