@@ -11,9 +11,30 @@ import           Control.Applicative        ((<|>))
 
 import           Data.Attoparsec.Text (Parser, char, digit, many1,
                                        parseOnly, scientific, skipSpace,
-                                       string)
+                                       string, choice)
+
+
+doubleParser :: Parser Double
+doubleParser = negate <$ string "-" <*> doubleNumber
+            <|> string "+" *> doubleNumber
+            <|> doubleNumber
+  where
+    doubleNumber :: Parser Double
+    doubleNumber = toRealFloat <$> scientific <|> shorthand
+
+    shorthand = process' <$> (string "." *> many1 digit)
+    process' = either (const 0) id . parseOnly doubleNumber . T.pack . (++) "0."
+
 
 -- <angle>
+angleParser :: Parser Angle
+angleParser = choice
+              [ Deg   <$> (skipSpace *> doubleParser <* string "deg")
+              , Grad  <$> (skipSpace *> doubleParser <* string "grad")
+              , Rad   <$> (skipSpace *> doubleParser <* string "rad")
+              , Angle <$> (skipSpace *> doubleParser <* skipSpace)]
+
+
 -- <anything>
 -- <basic-shape>
 -- <clock-value>
@@ -30,16 +51,7 @@ import           Data.Attoparsec.Text (Parser, char, digit, many1,
 -- <name>
 -- <number>
 numberParser :: Parser Number
-numberParser = Num . realToFrac <$> (skipSpace *> plusMinus <* skipSpace)
-  where doubleNumber :: Parser Double
-        doubleNumber = toRealFloat <$> scientific <|> shorthand
-
-        plusMinus = negate <$ string "-" <*> doubleNumber
-                 <|> string "+" *> doubleNumber
-                 <|> doubleNumber
-
-        shorthand = process' <$> (string "." *> many1 digit)
-        process' = either (const 0) id . parseOnly doubleNumber . T.pack . (++) "0."
+numberParser = Num <$> (skipSpace *> doubleParser <* skipSpace)
 
 -- <number-optional-number>
 -- <opacity-value>
