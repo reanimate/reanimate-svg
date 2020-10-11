@@ -1021,10 +1021,9 @@ newtype Hanging = Hanging Number
 --  defaultSvg = 0
 
 -- height
-data HeightAttr                                  -- No default?
+data HeightAttr
   = HeightAttrAuto
-  | HeightAttrLength Double
-  | HeightAttrPercentage Double
+  | HeightAttr Length
   deriving (Eq, Show, Generic, Hashable)
 
 -- href
