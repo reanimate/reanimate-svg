@@ -41,6 +41,8 @@ library
   other-modules: Graphics.SvgTree.Types.Contents
                , Graphics.SvgTree.Types.Attributes
                , Graphics.SvgTree.Types.Elements
+               , Graphics.SvgTree.Parser.ContentsParser
+               , Graphics.SvgTree.SVGParser
                -- , Graphics.SvgTree.XmlParser
                -- , Graphics.SvgTree.CssParser
                -- , Graphics.SvgTree.ColorParser

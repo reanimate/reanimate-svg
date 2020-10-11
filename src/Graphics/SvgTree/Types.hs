@@ -3,9 +3,7 @@
 -- of a svg scene.
 --
 -- Most of the types are lensified.
-module Graphics.SvgTree.Types
-  (
-  ) where
+module Graphics.SvgTree.Types where
 
 -- import Graphics.SvgTree.Types.Internal
 -- import Graphics.SvgTree.Types.Hashable
