@@ -14,7 +14,7 @@ import           Data.Attoparsec.Text (Parser, char, digit, many1,
                                        string)
 
 numberParser :: Parser Number
-numberParser = realToFrac <$> (skipSpace *> plusMinus <* skipSpace)
+numberParser = Num . realToFrac <$> (skipSpace *> plusMinus <* skipSpace)
   where doubleNumber :: Parser Double
         doubleNumber = toRealFloat <$> scientific <|> shorthand
 
