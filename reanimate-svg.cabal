@@ -29,24 +29,28 @@ library
   hs-source-dirs: src
   ghc-options: -Wall
   default-language: Haskell2010
-  exposed-modules: Graphics.SvgTree
-                 , Graphics.SvgTree.CssTypes
-                 , Graphics.SvgTree.Types
-                 , Graphics.SvgTree.PathParser
-                 , Graphics.SvgTree.NamedColors
-                 , Graphics.SvgTree.Memo
-                 , Graphics.SvgTree.Printer
+  exposed-modules: Graphics.SvgTree.Types
+                 -- , Graphics.SvgTree
+                 -- , Graphics.SvgTree.CssTypes
+                 -- , Graphics.SvgTree.Types
+                 -- , Graphics.SvgTree.PathParser
+                 -- , Graphics.SvgTree.NamedColors
+                 -- , Graphics.SvgTree.Memo
+                 -- , Graphics.SvgTree.Printer
 
-  other-modules: Graphics.SvgTree.XmlParser
-               , Graphics.SvgTree.CssParser
-               , Graphics.SvgTree.ColorParser
+  other-modules: Graphics.SvgTree.Types.Contents
+               , Graphics.SvgTree.Types.Attributes
+               , Graphics.SvgTree.Types.Elements
+               -- , Graphics.SvgTree.XmlParser
+               -- , Graphics.SvgTree.CssParser
+               -- , Graphics.SvgTree.ColorParser
                , Graphics.SvgTree.Misc
-               , Graphics.SvgTree.Types.Hashable
-               , Graphics.SvgTree.Types.Basic
-               , Graphics.SvgTree.Types.Fold
-               , Graphics.SvgTree.Types.Internal
-               , Graphics.SvgTree.Types.Constructors
-               , Graphics.SvgTree.Types.Instances
+               -- , Graphics.SvgTree.Types.Hashable
+               -- , Graphics.SvgTree.Types.Basic
+               -- , Graphics.SvgTree.Types.Fold
+               -- , Graphics.SvgTree.Types.Internal
+               -- , Graphics.SvgTree.Types.Constructors
+               -- , Graphics.SvgTree.Types.Instances
 
   build-depends: base              >= 4.5 && < 6
                , JuicyPixels       >= 3.2

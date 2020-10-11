@@ -1,8 +1,5 @@
 {-# LANGUAGE CPP #-}
-module Graphics.SvgTree.Misc
-  ( ppD
-  , ppF
-  ) where
+module Graphics.SvgTree.Misc  where
 
 #if defined(ASTERIUS) || defined(ghcjs_HOST_OS)
 import           Numeric
@@ -23,3 +20,6 @@ ppD = T.unpack . T.dropWhileEnd (== '.') . T.dropWhileEnd (== '0') . toFixed pre
 
 ppF :: Float -> String
 ppF = ppD . realToFrac
+
+ppI :: Int -> String
+ppI = show
