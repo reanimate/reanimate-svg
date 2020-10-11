@@ -6,6 +6,9 @@ import Graphics.SvgTree.Types
 import Graphics.SvgTree.Types.Elements
 import Graphics.SvgTree.Types.Attributes
 
+import Graphics.SvgTree.Parser.AttributesParser
+import Graphics.SvgTree.Parser.ContentsParser
+
 import qualified Text.XML.Light as X
 import qualified Data.Text      as T
 import           Data.Attoparsec.Text         (Parser, parseOnly, string)
@@ -25,12 +28,6 @@ parse p str = case parseOnly p (T.pack str) of
   Left _  -> Nothing
   Right r -> Just r
 
--- viewBoxParser :: Parser (Double, Double, Double, Double)
--- viewBoxParser = (,,,)
---        <$> iParse <*> iParse <*> iParse <*> iParse
---   where
---     iParse = num <* skipSpace
-
 unparseSVG :: FilePath -> X.Element -> Maybe SVG
 unparseSVG rootLocation e@(nodeName -> "svg")
   = Just SVG
@@ -45,7 +42,7 @@ unparseSVG rootLocation e@(nodeName -> "svg")
     _svgWidth = Nothing,
     _svgPreserveAspectRatio = Nothing,
     _svgVersion = Nothing,
-    _svgViewBox = Nothing,--attributeFinder "viewBox" e >>= parse viewBoxParser,
+    _svgViewBox = attributeFinder "viewBox" e >>= parse viewBoxParser,
     _svgX = Nothing,
     _svgY = Nothing
   }
