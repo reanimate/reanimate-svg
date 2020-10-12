@@ -12,6 +12,7 @@ import           Data.Word              (Word8)
 import           GHC.Generics           (Generic)
 import           Text.Printf
 import           Codec.Picture          (PixelRGBA8 (..))
+import qualified Data.Text              as T
 
 import           Graphics.SvgTree.Misc
 
@@ -44,11 +45,11 @@ mapAngle f a = case a of
 
 
 -- <anything>
-newtype Anything = Anything String
+newtype Anything = Anything T.Text
   deriving (Eq, Show, Generic, Hashable)
 
 instance SerializableAttribute Anything where
-  serializeAttribute (Anything s) = s
+  serializeAttribute (Anything s) = T.unpack s
 
 
 -- <basic-shape>
@@ -178,11 +179,11 @@ mapFrequency f freq = case freq of
 
 
 -- <funcIRI>
-newtype FuncIRI = FuncIRI String
+newtype FuncIRI = FuncIRI T.Text
   deriving (Eq, Show, Generic, Hashable)
 
 instance SerializableAttribute FuncIRI where
-  serializeAttribute (FuncIRI s) = "url(" ++ s ++ ")"
+  serializeAttribute (FuncIRI s) = "url(" ++ T.unpack s ++ ")"
 
 
 -- <ICCColor>
@@ -205,11 +206,11 @@ mapInteger f (SVGInteger i) = SVGInteger $ f i
 
 
 -- <IRI>                      -- TODO: separate absolute IRI from relative IRI?
-newtype IRI = IRI String
+newtype IRI = IRI T.Text
   deriving (Eq, Show, Generic, Hashable)
 
 instance SerializableAttribute IRI where
-  serializeAttribute (IRI s) = s
+  serializeAttribute (IRI s) = T.unpack s
 
 -- <Length>
 data Length
@@ -275,11 +276,11 @@ instance (SerializableAttribute a) => SerializableAttribute (ListOfTs a) where
 
 
 -- <name>
-newtype Name = Name String
+newtype Name = Name T.Text
   deriving (Eq, Show, Generic, Hashable)
 
 instance SerializableAttribute Name where
-  serializeAttribute (Name s) = s
+  serializeAttribute (Name s) = T.unpack s
 
 
 -- <number>
@@ -432,8 +433,8 @@ instance SerializableAttribute Units where
     ObjectBoundingBox -> "objectBoundingBox"
 
 -- <URL>
-newtype URL = URL String
+newtype URL = URL T.Text
   deriving (Eq, Show, Generic, Hashable)
 
 instance SerializableAttribute URL where
-  serializeAttribute (URL s) = s
+  serializeAttribute (URL s) = T.unpack s
