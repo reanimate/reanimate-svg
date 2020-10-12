@@ -19,7 +19,7 @@ import Graphics.SvgTree.Types.Contents
 import Control.Lens.TH (makeLenses, makeClassy)
 import GHC.Generics (Generic)
 import Data.Hashable
-
+import qualified Data.Text as T
 
 -- | Define a 'default' element for the SVG tree.
 -- It is used as base when parsing the element from XML.
@@ -853,7 +853,7 @@ newtype FloodColor = FloodColor Color
 
 -- flood-opacity
 data FloodOpacity
-  = FloodOpacityNum Number
+  = FloodOpacity Number
   | FloodOpacityPercent Percentage
   deriving (Eq, Show, Generic, Hashable)
 
@@ -861,8 +861,10 @@ data FloodOpacity
 --   defaultSvg = FloodOpacityNum $ Num 1
 
 -- font-family
+-- TODO: this is not correct. The standard allow for the names to be repeated (#).
+-- value := [ <family-name> | <generic-family> ]#
 data FontFamily
-  = FontFamilyName String  -- TODO: check this.
+  = FontFamily T.Text  -- TODO: check this.
   | FontFamilySerif
   | FontFamilySansSerif
   | FontFamilyCursive
@@ -882,8 +884,8 @@ data FontSize
   | FontSizeXXXLarge
   | FontSizeLarger
   | FontSizeSmaller
-  | FontSizeLength Length
   | FontSizePercent Percentage
+  | FontSize Length
   deriving (Eq, Show, Generic, Hashable)
 
 -- instance WithDefaultSvg FontSize where
@@ -892,7 +894,7 @@ data FontSize
 -- font-size-adjust
 data FontSizeAdjust
   = FontSizeAdjustNone
-  | FonteSizeAdjustNumber Number
+  | FontSizeAdjust Number
   deriving (Eq, Show, Generic, Hashable)
 
 -- instance WithDefaultSvg FontSizeAdjust where
@@ -994,7 +996,7 @@ data GlyphOrientationVertical
 --   defaultSvg = GlyphOrientationVerticalAuto
 
 -- glyphRef
-newtype GlyphRef = GlyphRef String
+newtype GlyphRef = GlyphRef T.Text
   deriving (Eq, Show, Generic, Hashable)
 
 -- instance WithDefaultSvg GlyphRef where
@@ -1062,23 +1064,23 @@ data ImageRendering
 -- in
 data In                                           -- No default?
   = InSourceGraphic
-  | InSourceAlph
+  | InSourceAlpha
   | InBackgroundImage
   | InBackgroundAlpha
   | InFillPaint
   | InStrokePaint
-  | In String                                     -- Change to Name or URL?
+  | In T.Text                                     -- Change to Name or URL?
   deriving (Eq, Show, Generic, Hashable)
 
 -- in2
 data In2                                          -- No default?
   = In2SourceGraphic
-  | In2SourceAlph
+  | In2SourceAlpha
   | In2BackgroundImage
   | In2BackgroundAlpha
   | In2FillPaint
   | In2StrokePaint
-  | In2 String
+  | In2 T.Text
   deriving (Eq, Show, Generic, Hashable)
 
 -- intercept

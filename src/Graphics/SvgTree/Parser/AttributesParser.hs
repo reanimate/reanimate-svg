@@ -274,43 +274,203 @@ dominantBaselineParser = choice
 -- TODO
 
 -- edgeMode
+edgeModeParser :: Parser EdgeMode
+edgeModeParser = choice
+                 [ EdgeDuplicate <$ "duplicate"
+                 , EdgeWrap      <$ "wrap"
+                 , EdgeNone      <$ "none"
+                 ]
+
 -- elevation
+elevationParser :: Parser Elevation
+elevationParser = Elevation <$> numberParser
+
 -- enable-background
+-- TODO
+
 -- end
+-- TODO
+
 -- exponent
+exponentParser :: Parser Exponent
+exponentParser = Exponent <$> numberParser
+
 -- externalResourcesRequired
+externalResourcesRequiredParser :: Parser ExternalResourcesRequired
+externalResourcesRequiredParser = choice
+                                  [ ExternalResourcesRequired True  <$ "true"
+                                  , ExternalResourcesRequired False <$ "false" ]
 
 -- fill
+-- TODO: different elements define different subsets of this attribute.
+-- Better to parse in the elements to disallow invalid SVGs to be parsed?
+fillParser :: Parser FillAttr
+fillParser = choice
+             [ FillColor <$> colorParser
+             , FillFreeze <$ "freeze"
+             , FillRemove <$ "remove" ]
+
 -- fill-opacity
+fillOpacityParser :: Parser FillOpacity
+fillOpacityParser = choice
+                    [ FillOpacity <$> numberParser
+                    , FillOpacityPercent <$> percentageParser ]
+
 -- fill-rule
+fillRuleParser :: Parser FillRule
+fillRuleParser = choice
+                 [ FillNonZero <$ "nonzero"
+                 , FillEvenOdd <$ "evenodd" ]
+
 -- filter
+-- TODO
+
 -- filterRes
+-- TODO
+
 -- filterUnits
+filterUnitsParser :: Parser FilterUnits
+filterUnitsParser = FilterUnits <$> unitsParser
+
 -- flood-color
+floodColorParser :: Parser FloodColor
+floodColorParser = FloodColor <$> colorParser
+
 -- flood-opacity
+floodOpacityParser :: Parser FloodOpacity
+floodOpacityParser = choice
+                     [ FloodOpacity <$> numberParser
+                     , FloodOpacityPercent <$> percentageParser ]
+
 -- font-family
+-- TODO: this is not correct. The standard allow for the names to be repeated (#).
+-- value := [ <family-name> | <generic-family> ]#
+fontFamilyParser :: Parser FontFamily
+fontFamilyParser = choice
+                   [ FontFamily          <$> takeText  -- TODO: check this.
+                   , FontFamilySerif     <$ "serif"
+                   , FontFamilySansSerif <$ "sans-serif"
+                   , FontFamilyCursive   <$ "cursive"
+                   , FontFamilyFantasy   <$ "fantasy"
+                   , FontFamilyMonospace <$ "monospace" ]
+
 -- font-size
+fontSizeParser :: Parser FontSize
+fontSizeParser = choice
+                 [ FontSizeXXSmall  <$ "xx-small"
+                 , FontSizeXSmall   <$ "x-small"
+                 , FontSizeSmall    <$ "small"
+                 , FontSizeMedium   <$ "medium"
+                 , FontSizeLarge    <$ "large"
+                 , FontSizeXLarge   <$ "x-large"
+                 , FontSizeXXLarge  <$ "xx-large"
+                 , FontSizeXXXLarge <$ "xxx-large"
+                 , FontSizeLarger   <$ "larger"
+                 , FontSizeSmaller  <$ "smaller"
+                 , FontSizePercent  <$> percentageParser
+                 , FontSize         <$> lengthParser ]
+
 -- font-size-adjust
+fontSizeAdjustParser :: Parser FontSizeAdjust
+fontSizeAdjustParser = choice
+                       [ FontSizeAdjustNone <$ "none"
+                       , FontSizeAdjust     <$> numberParser ]
+
 -- font-stretch
+fontStretchParser :: Parser FontStretch
+fontStretchParser = choice
+                    [ FontStretchNormal         <$ "normal"
+                    , FontStretchUltraCondensed <$ "ultra-condensed"
+                    , FontStretchExtraCondensed <$ "extra-condensed"
+                    , FontStretchCondensed      <$ "condensed"
+                    , FontStretchSemiCondensed  <$ "semi-condensed"
+                    , FontStretchSemiExpanded   <$ "semi-expanded"
+                    , FontStretchExpanded       <$ "expanded"
+                    , FontStretchExtraExpanded  <$ "extra-expanded"
+                    , FontStretchUltraExpanded  <$ "ultra-expanded"
+                    , FontStretch               <$> percentageParser]
+
 -- font-style
+fontStyleParser :: Parser FontStyle
+fontStyleParser = choice
+                  [ FontStyleNormal  <$ "normal"
+                  , FontStyleItalic  <$ "italic"
+                  , FontStyleOblique <$ "oblique"
+                  ]
+
 -- font-variant
+-- TODO
+
 -- font-weight
+fontWeightParser :: Parser FontWeight
+fontWeightParser = choice
+                   [ FontWeightNormal  <$ "normal"
+                   , FontWeightBold    <$ "bold"
+                   , FontWeightBolder  <$ "bolder"
+                   , FontWeightLighter <$ "lighter"
+                   , FontWeight        <$> numberParser ]
+
 -- format
+formatParser :: Parser Format
+formatParser = choice
+               [ FormatTruedocPfr       <$ "truedoc-pfr"
+               , FormatEmbeddedOpentype <$ "embedded-opentype"
+               , FormatType1            <$ "type-1"
+               , FormatTruetype         <$ "truetype"
+               , FormatOpentype         <$ "opentype"
+               , FormatTruetypeGx       <$ "truetype-gx"
+               , FormatSpeedo           <$ "speedo"
+               , FormatIntellifont      <$ "intellifont" ]
+
 -- from
+-- TODO
+
 -- fr
+frParser :: Parser Fr
+frParser = Fr <$> lengthParser
+
 -- fx
+fxParser :: Parser Fx
+fxParser = Fx <$> lengthParser
+
 -- fy
+fyParser :: Parser Fy
+fyParser = Fy <$> lengthParser
 
 -- g1
+-- TODO
+
 -- g2
+-- TODO
+
 -- glyph-name
+-- TODO
+
 -- glyph-orientation-horizontal
+glyphOrientationHorizontalParser :: Parser GlyphOrientationHorizontal
+glyphOrientationHorizontalParser = GlyphOrientationHorizontal <$> angleParser
+
 -- glyph-orientation-vertical
+glyphOrientationVerticalParser :: Parser GlyphOrientationVertical
+glyphOrientationVerticalParser = choice
+                                 [ GlyphOrientationVerticalAuto <$ "auto"
+                                 , GlyphOrientationVertical     <$> angleParser ]
+
 -- glyphRef
+glyphRefParser :: Parser GlyphRef
+glyphRefParser = GlyphRef <$> takeText
+
 -- gradientTransform
+-- TODO
+
 -- gradientUnits
+gradientUnitsParser :: Parser GradientUnits
+gradientUnitsParser = GradientUnits <$> unitsParser
 
 -- hanging
+hangingParser :: Parser Hanging
+hangingParser = Hanging <$> numberParser
+
 -- height
 heightAttrParser :: Parser HeightAttr
 heightAttrParser = choice
@@ -318,28 +478,100 @@ heightAttrParser = choice
                    , HeightAttr <$> lengthParser ]
 
 -- href
+hrefParser :: Parser Href
+hrefParser = Href <$> urlParser
+
 -- hreflang
+-- TODO
+
 -- horiz-adv-x
+horizAdvXParser :: Parser HorizAdvX
+horizAdvXParser = HorizAdvX <$> numberParser
+
 -- horiz-origin-x
+horizOriginXParser :: Parser HorizOriginX
+horizOriginXParser = HorizOriginX <$> numberParser
 
 -- id
+-- TODO
+
 -- ideographic
+ideographicParser :: Parser Ideographic
+ideographicParser = Ideographic <$> numberParser
+
 -- image-rendering
+imageRenderingParser :: Parser ImageRendering
+imageRenderingParser = choice
+                       [ ImageRenderingAuto            <$ "auto"
+                       , ImageRenderingOptimizeSpeed   <$ "optimizeSpeed"
+                       , ImageRenderingOptimizeQuality <$ "optimizeQuality"]
+
 -- in
+inParser :: Parser In
+inParser = choice
+           [ InSourceGraphic   <$ "SourceGraphic"
+           , InSourceAlpha     <$ "SourceAlpha"
+           , InBackgroundImage <$ "BackgroundImage"
+           , InBackgroundAlpha <$ "BackgroundAlpha"
+           , InFillPaint       <$ "FillPaint"
+           , InStrokePaint     <$ "StrokePaint"
+           , In                <$> takeText ]
+
 -- in2
+in2Parser :: Parser In2
+in2Parser = choice
+           [ In2SourceGraphic   <$ "SourceGraphic"
+           , In2SourceAlpha     <$ "SourceAlpha"
+           , In2BackgroundImage <$ "BackgroundImage"
+           , In2BackgroundAlpha <$ "BackgroundAlpha"
+           , In2FillPaint       <$ "FillPaint"
+           , In2StrokePaint     <$ "StrokePaint"
+           , In2                <$> takeText ]
+
 -- intercept
--- K
+interceptParser :: Parser Intercept
+interceptParser = Intercept <$> numberParser
+
 -- k
+kParser :: Parser K
+kParser = K <$> numberParser
+
 -- k1
+k1Parser :: Parser K1
+k1Parser = K1 <$> numberParser
+
 -- k2
+k2Parser :: Parser K2
+k2Parser = K2 <$> numberParser
+
 -- k3
+k3Parser :: Parser K3
+k3Parser = K3 <$> numberParser
+
 -- k4
+k4Parser :: Parser K4
+k4Parser = K4 <$> numberParser
+
 -- kernelMatrix
+-- TODO
+
 -- kernelUnitLength
+-- TODO
+
 -- kerning
+kerningParser :: Parser Kerning
+kerningParser = choice
+                [ KerningAuto <$ "auto"
+                , Kerning     <$> lengthParser ]
+
 -- keyPoints
+-- TODO
+
 -- keySplines
+-- TODO
+
 -- keyTimes
+-- TODO
 
 -- lang
 -- lengthAdjust
