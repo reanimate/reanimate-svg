@@ -187,11 +187,11 @@ instance SerializableAttribute FuncIRI where
 
 
 -- <ICCColor>
-newtype ICCColor = ICCColor String
+newtype ICCColor = ICCColor T.Text
   deriving (Eq, Show, Generic, Hashable)
 
 instance SerializableAttribute ICCColor where
-  serializeAttribute (ICCColor s) = "icc-color(" ++ s ++ ")"
+  serializeAttribute (ICCColor s) = "icc-color(" ++ (T.unpack s) ++ ")"
 
 
 -- <integer>

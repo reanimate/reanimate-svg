@@ -4,15 +4,23 @@ module Graphics.SvgTree.Parser.ContentsParser where
 
 import Graphics.SvgTree.Types
 import Graphics.SvgTree.Types.Contents
+import Graphics.SvgTree.NamedColors
 
-import           Data.Scientific            (toRealFloat)
-import qualified Data.Text                  as T
-import           Control.Applicative        ((<|>))
+import           Codec.Picture          (PixelRGBA8 (..))
+import           Data.Scientific        (toRealFloat)
+import qualified Data.Text              as T
+import           Control.Applicative    ((<|>))
+import           Data.Word              (Word8)
+import qualified Data.Map               as M
+import           Data.Bits              (unsafeShiftL, (.|.))
+import           Data.Functor
 
-import           Data.Attoparsec.Text (Parser, char, digit, many1,
-                                       anyChar, signed, decimal,
-                                       parseOnly, scientific, skipSpace,
-                                       string, choice, takeText, manyTill)
+
+import           Data.Attoparsec.Text   hiding (Number)
+                 -- (Parser, char, digit, many1,
+                                        --  anyChar, signed, decimal,
+                                        --  parseOnly, scientific, skipSpace,
+                                        --  string, choice, takeText, manyTill)
 
 
 doubleParser :: Parser Double
@@ -26,6 +34,9 @@ doubleParser = negate <$ string "-" <*> doubleNumber
     shorthand = process' <$> (string "." *> many1 digit)
     process' = either (const 0) id . parseOnly doubleNumber . T.pack . (++) "0."
 
+commaWsp :: Parser ()
+commaWsp = skipSpace *> option () ("," $> ())
+                     <* skipSpace
 
 -- <angle>
 angleParser :: Parser Angle
@@ -46,7 +57,43 @@ anythingParser = Anything <$> takeText
 -- TODO
 
 -- <color>
--- TODO
+colorParser :: Parser PixelRGBA8
+colorParser = rgbColor
+           <|> (string "#" *> (color <|> colorReduced))
+           <|> namedColor
+  where
+    charRange c1 c2 =
+        (\c -> fromIntegral $ fromEnum c - fromEnum c1) <$> satisfy (\v -> c1 <= v && v <= c2)
+    black = PixelRGBA8 0 0 0 255
+
+    hexChar :: Parser Word8
+    hexChar = charRange '0' '9'
+           <|> ((+ 10) <$> charRange 'a' 'f')
+           <|> ((+ 10) <$> charRange 'A' 'F')
+
+    namedColor = do
+      str <- takeWhile1 (inClass "a-zA-Z")
+      return $ M.findWithDefault black (T.toLower str) svgNamedColors
+
+    percentToWord v = floor $ v * (255 / 100)
+
+    numPercent = ((percentToWord <$> doubleParser) <* string "%")
+              <|> (floor <$> doubleParser)
+
+    hexByte = (\h1 h2 -> h1 `unsafeShiftL` 4 .|. h2)
+           <$> hexChar <*> hexChar
+
+    color = (\r g b -> PixelRGBA8 r g b 255)
+         <$> hexByte <*> hexByte <*> hexByte
+    rgbColor = (\r g b -> PixelRGBA8 r g b 255)
+            <$> (asciiCI "rgb(" *> numPercent)
+            <*> (commaWsp *> numPercent)
+            <*> (commaWsp *> numPercent <* skipSpace <* string ")")
+
+    colorReduced =
+        (\r g b -> PixelRGBA8 (r * 17) (g * 17) (b * 17) 255)
+        <$> hexChar <*> hexChar <*> hexChar
+
 
 -- <coordinate>
 coordinateParser :: Parser Coordinate
@@ -73,7 +120,10 @@ parseFuncIRI :: Parser FuncIRI
 parseFuncIRI = FuncIRI . T.pack <$> ("url" *> manyTill anyChar (char ')'))
 
 -- <ICCColor>
--- TODO
+-- TODO: not correct.
+-- icccolor ::= "icc-color(" name (, number)+ ")"
+iccColorParser :: Parser ICCColor
+iccColorParser = ICCColor . T.pack <$> ("icc-color(" *> manyTill anyChar (char ')'))
 
 -- <integer>
 integerParser :: Parser SVGInteger

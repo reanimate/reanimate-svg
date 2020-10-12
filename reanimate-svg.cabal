@@ -34,7 +34,7 @@ library
                  -- , Graphics.SvgTree.CssTypes
                  -- , Graphics.SvgTree.Types
                  -- , Graphics.SvgTree.PathParser
-                 -- , Graphics.SvgTree.NamedColors
+                 , Graphics.SvgTree.NamedColors
                  -- , Graphics.SvgTree.Memo
                  -- , Graphics.SvgTree.Printer
 
