@@ -2054,7 +2054,6 @@ data Visibility
 -- width
 data WidthAttr
   = WidthAttrAuto
-  | WidthAttrPercent Percentage
   | WidthAttr Length
   deriving (Eq, Show, Generic, Hashable)
 

@@ -10,10 +10,9 @@ import Graphics.SvgTree.Parser.ContentsParser
 import           Data.Scientific            (toRealFloat)
 import qualified Data.Text                  as T
 import           Control.Applicative        ((<|>))
+import           Data.Functor
 
-import           Data.Attoparsec.Text (Parser, char, digit, many1,
-                                       parseOnly, scientific, skipSpace,
-                                       string)
+import           Data.Attoparsec.Text   hiding (Number)
 
 
 -- accent-height
@@ -107,6 +106,11 @@ import           Data.Attoparsec.Text (Parser, char, digit, many1,
 
 -- hanging
 -- height
+heightAttrParser :: Parser HeightAttr
+heightAttrParser = choice
+                   [ HeightAttrAuto <$ "auto"
+                   , HeightAttr <$> lengthParser ]
+
 -- href
 -- hreflang
 -- horiz-adv-x
@@ -278,6 +282,11 @@ viewBoxParser =  viewBox
 -- visibility
 
 -- width
+widthAttrParser :: Parser WidthAttr
+widthAttrParser = choice
+                 [ WidthAttrAuto <$ "auto"
+                 , WidthAttr <$> lengthParser ]
+
 -- widths
 -- word-spacing
 -- writing-mode
