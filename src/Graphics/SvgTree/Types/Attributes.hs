@@ -560,7 +560,7 @@ data ColorProfile
   = ColorProfileAuto
   | ColorProfileSRGB
   | ColorProfileName Name
-  | ColorProfileIRI String
+  | ColorProfileIRI String                        -- TODO: Change to IRI?
   deriving (Eq, Show, Generic, Hashable)
 
 -- instance WithDefaultSvg ColorProfile where
@@ -586,7 +586,9 @@ newtype ContentScriptType = ContentScriptType String
 newtype ContentStyleType = ContentStyleType String
   deriving (Eq, Show, Generic, Hashable)
 
--- cursor                                         -- TODO
+-- cursor
+-- TODO: not entirely right, the standard allows for zero or more FuncIRI fields.
+-- value := [[<funciri>,]* [ auto | crosshair...
 data Cursor
   = Cursor FuncIRI CursorType
   | CursorInherit
@@ -696,20 +698,14 @@ newtype Divisor = Divisor Number
 -- dominant-baseline
 data DominantBaseline
   = DomAuto
-  | DomBaseline
-  | DomBeforeEdge
-  | DomTextBeforeEdge
+  | DomTextBottom
+  | DomAlphabetic
+  | DomIdeographic
   | DomMiddle
   | DomCentral
-  | DomAfterEdge
-  | DomTextAfterEdge
-  | DomIdeographic
-  | DomAlphabetic
-  | DomHanging
   | DomMathematical
-  | DomTop
-  | DomCenter
-  | DomBottom
+  | DomHanging
+  | DomTextTop
   deriving (Eq, Show, Generic, Hashable)
 
 -- instance WithDefaultSvg DominantBaseline where

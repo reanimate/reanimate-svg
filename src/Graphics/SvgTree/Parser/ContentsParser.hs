@@ -57,10 +57,10 @@ anythingParser = Anything <$> takeText
 -- TODO
 
 -- <color>
-colorParser :: Parser PixelRGBA8
-colorParser = rgbColor
-           <|> (string "#" *> (color <|> colorReduced))
-           <|> namedColor
+colorParser :: Parser Color --PixelRGBA8
+colorParser = Color  <$> rgbColor
+          <|> Color  <$> (string "#" *> (color <|> colorReduced))
+          <|> Color  <$> namedColor
   where
     charRange c1 c2 =
         (\c -> fromIntegral $ fromEnum c - fromEnum c1) <$> satisfy (\v -> c1 <= v && v <= c2)
@@ -116,8 +116,8 @@ frequencyParser = choice
                   , KHz <$> (skipSpace *> doubleParser <* string "kHz")]
 
 -- <funcIRI>
-parseFuncIRI :: Parser FuncIRI
-parseFuncIRI = FuncIRI . T.pack <$> ("url" *> manyTill anyChar (char ')'))
+funcIRIParser :: Parser FuncIRI
+funcIRIParser = FuncIRI . T.pack <$> ("url" *> manyTill anyChar (char ')'))
 
 -- <ICCColor>
 -- TODO: not correct.
