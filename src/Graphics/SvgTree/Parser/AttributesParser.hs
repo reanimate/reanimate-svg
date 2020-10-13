@@ -574,46 +574,197 @@ kerningParser = choice
 -- TODO
 
 -- lang
+langParser :: Parser Lang
+langParser = Lang <$> takeText
+
 -- lengthAdjust
+lenghtAdjustParser :: Parser LengthAdjust
+lenghtAdjustParser = choice
+                     [ LengthAdjustSpacing          <$ "spacing"
+                     , LengthAdjustSpacingAndGlyphs <$ "spacingAndGlyphs" ]
+
 -- letter-spacing
+letterSpacingParser :: Parser LetterSpacing
+letterSpacingParser = choice
+                      [ LetterSpacingNormal <$ "normal"
+                      , LetterSpacing       <$> lengthParser ]
+
 -- lighting-color
+lightingColorParser :: Parser LightingColor
+lightingColorParser = LightingColor <$> colorParser
+
 -- limitingConeAngle
+limitingConeAngleParser :: Parser LimitingConeAngle
+limitingConeAngleParser = LimitingConeAngle <$> numberParser
+
 -- local
+localParser :: Parser Local
+localParser = Local <$> takeText
 
 -- marker-end
+markerEndParser :: Parser MarkerEnd
+markerEndParser = choice
+                  [ MarkerEndNone <$ "none"
+                  , MarkerEnd <$> takeText ]
+
 -- marker-mid
+markerMidParser :: Parser MarkerMid
+markerMidParser = choice
+                  [ MarkerMidNone <$ "none"
+                  , MarkerMid <$> takeText ]
+
 -- marker-start
+markerStartParser :: Parser MarkerStart
+markerStartParser = choice
+                  [ MarkerStartNone <$ "none"
+                  , MarkerStart <$> takeText ]
+
 -- markerHeight
+markerHeightParser :: Parser MarkerHeight
+markerHeightParser = choice
+                     [ MarkerHeightPercent <$> percentageParser
+                     , MarkerHeight        <$> numberParser ]
+
 -- markerUnits
+markerUnitsParser :: Parser MarkerUnits
+markerUnitsParser = choice
+                    [ MarkerUnitsUserSpaceOnUse <$ "userSpaceOnUse"
+                    , MarkerUnitsStrokeWidth    <$ "strokeWidth" ]
+
 -- markerWidth
+markerWidthParser :: Parser MarkerWidth
+markerWidthParser = choice
+                    [ MarkerWidthPercent <$> percentageParser
+                    , MarkerWidth        <$> numberParser ]
+
 -- mask
+-- TODO
+
 -- maskContentUnits
+maskContentUnitsParser :: Parser MaskContentUnits
+maskContentUnitsParser = MaskContentUnits <$> unitsParser
+
 -- maskUnits
+maskUnitsParser :: Parser MaskUnits
+maskUnitsParser = MaskUnits <$> unitsParser
+
 -- mathematical
+mathematicalParser :: Parser Mathematical
+mathematicalParser = Mathematical <$> numberParser
+
 -- max
+-- TODO
+
 -- media
+-- TODO
+
 -- method
+methodParser :: Parser Method
+methodParser = choice
+                [ MethodAlign   <$ "align"
+                , MethodStretch <$ "stretch" ]
+
 -- min
+-- TODO
+
 -- mode
--- N
+modeParser :: Parser Mode
+modeParser = choice
+             [ ModeNormal     <$ "normal"
+             , ModeMultiply   <$ "multiply"
+             , ModeScreen     <$ "screen"
+             , ModeOverlay    <$ "overlay"
+             , ModeDarken     <$ "darken"
+             , ModeLighten    <$ "lighten"
+             , ModeColorDodge <$ "color-dodge"
+             , ModeColorBurn  <$ "color-burn"
+             , ModeHardLight  <$ "hard-light"
+             , ModeSoftLight  <$ "soft-light"
+             , ModeDifference <$ "difference"
+             , ModeExclusion  <$ "exclusion"
+             , ModeHue        <$ "hue"
+             , ModeSaturation <$ "saturation"
+             , ModeColor      <$ "color"
+             , ModeLuminosity <$ "luminosity" ]
+
 -- name
+nameAttrParser :: Parser NameAttr
+nameAttrParser = NameAttr <$> nameParser
+
 -- numOctaves
+numOctavesParser :: Parser NumOctaves
+numOctavesParser = NumOctaves <$> integerParser
 
 -- offset
+-- TODO
+
 -- opacity
+opacityParser :: Parser Opacity
+opacityParser = Opacity <$> numberParser
+
 -- operator
+operatorParser :: Parser Operator
+operatorParser = choice
+                 [ OperatorOver       <$ "over"
+                 , OperatorIn         <$ "in"
+                 , OperatorOut        <$ "out"
+                 , OperatorAtop       <$ "atop"
+                 , OperatorXor        <$ "xor"
+                 , OperatorLighter    <$ "lighter"
+                 , OperatorArithmetic <$ "arithmetic"
+                 , OperatorErode      <$ "erode"
+                 , OperatorDilate     <$ "dilate" ]
+
 -- order
+-- TODO
+
 -- orient
+orientParser :: Parser Orient
+orientParser = choice
+               [ OrientAuto             <$ "auto"
+               , OrientAutoStartReverse <$ "auto-start-reverse"
+               , OrientAngle            <$> angleParser
+               , Orient                 <$> numberParser ]
+
 -- orientation
+orientationParser :: Parser Orientation
+orientationParser = choice
+                    [ OrientationH <$ "h"
+                    , OrientationV <$ "v" ]
+
 -- origin
+originParser :: Parser OriginAttr
+originParser = OriginDefault <$ "default"
+
 -- overflow
+overflowParser :: Parser Overflow
+overflowParser = choice
+                 [ OverflowVisible <$ "visible"
+                 , OverflowHidden  <$ "hidden"
+                 , OverflowScroll  <$ "scroll"
+                 , OverflowAuto    <$ "auto" ]
+
 -- overline-position
+overlinePositionParser :: Parser OverlinePosition
+overlinePositionParser = OverlinePosition <$> numberParser
+
 -- overline-thickness
+overlineThicknessParser :: Parser OverlineThickness
+overlineThicknessParser = OverlineThickness <$> numberParser
 
 -- panose-1
+-- TODO
+
 -- paint-order
+-- TODO
+
 -- path
+-- TODO
+
 -- pathLength
+pathLengthParser :: Parser PathLength
+pathLengthParser = PathLength <$> numberParser
+
 -- patternContentUnits
 -- patternTransform
 -- patternUnits

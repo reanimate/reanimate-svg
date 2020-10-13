@@ -1149,7 +1149,7 @@ data Kerning
 -- keyTimes                                       -- TODO
 
 -- lang
-data Lang = Lang String
+data Lang = Lang T.Text
   deriving (Eq, Show, Generic, Hashable)
 
 -- instance WithDefaultSvg Lang where
@@ -1188,7 +1188,7 @@ newtype LimitingConeAngle = LimitingConeAngle Number
 --   defaultSvg = LimitingConeAngle $ Num 0
 
 -- local
-newtype Local = Local String
+newtype Local = Local T.Text
   deriving (Eq, Show, Generic, Hashable)
 
 -- instance WithDefaultSvg Local where
@@ -1197,7 +1197,7 @@ newtype Local = Local String
 -- marker-end
 data MarkerEnd
   = MarkerEndNone
-  | MarkerEnd String                              -- Better use URL?
+  | MarkerEnd T.Text                              -- Better use URL?
   deriving (Eq, Show, Generic, Hashable)
 
 -- instance WithDefaultSvg MarkerEnd where
@@ -1206,7 +1206,7 @@ data MarkerEnd
 -- marker-mid
 data MarkerMid
   = MarkerMidNone
-  | MarkerMid String                              -- Better use URL?
+  | MarkerMid T.Text                              -- Better use URL?
   deriving (Eq, Show, Generic, Hashable)
 
 -- instance WithDefaultSvg MarkerMid where
@@ -1215,7 +1215,7 @@ data MarkerMid
 -- marker-start
 data MarkerStart
   = MarkerStartNone
-  | MarkerStart String                            -- Better use URL?
+  | MarkerStart T.Text                            -- Better use URL?
   deriving (Eq, Show, Generic, Hashable)
 
 -- instance WithDefaultSvg MarkerStart where
