@@ -1570,9 +1570,9 @@ data RefX
 
 -- refY
 data RefY
-  = RefYLeft
+  = RefYTop
   | RefYCenter
-  | RefYRight
+  | RefYBottom
   | RefYLength Length
   | RefY Number
   deriving (Eq, Show, Generic, Hashable)
@@ -1731,11 +1731,11 @@ newtype StdDeviation = StdDeviation NumberOptionalNumber
 --   defaultSvg = StdDeviation $ NumOpt (Num 0) Nothing
 
 -- stemh
-newtype SetmH = StemH Number
+newtype StemH = StemH Number
   deriving (Eq, Show, Generic, Hashable)
 
 -- stemv
-newtype SetmV = StemV Number
+newtype StemV = StemV Number
   deriving (Eq, Show, Generic, Hashable)
 
 -- stitchTiles
@@ -1817,8 +1817,6 @@ data StrokeLineJoin
 -- instance WithDefaultSvg StrokeLineJoin where
 --   defaultSvg = JoinMiter
 
-type LineJoin = StrokeLineJoin
-
 -- stroke-miterlimit
 newtype StrokeMiterlimit = StrokeMiterlimit Number
   deriving (Eq, Show, Generic, Hashable)
@@ -1852,11 +1850,11 @@ newtype SurfaceScale = SurfaceScale Number
 --   defaultSvg = SurfaceScale $ Num 1
 
 -- systemLanguage
-newtype SystemLang = SystemLang String
+newtype SystemLang = SystemLang T.Text
   deriving (Eq, Show, Generic, Hashable)
 
 -- tabindex
-newtype Tabindex = TabIndex SVGInteger
+newtype Tabindex = Tabindex SVGInteger
   deriving (Eq, Show, Generic, Hashable)
 
 -- tableValues
@@ -1941,7 +1939,7 @@ data TypeAttr
   | TypeGamma
   | TypeFractalNoise
   | TypeTurbulence
-  | Type String
+  | Type T.Text
   deriving (Eq, Show, Generic, Hashable)
 
 -- u1                                             -- TODO
@@ -1957,7 +1955,7 @@ newtype UnderlineThickness = UnderlineThickness Number
   deriving (Eq, Show, Generic, Hashable)
 
 -- unicode
-newtype Unicode = Unicode String
+newtype Unicode = Unicode T.Text
   deriving (Eq, Show, Generic, Hashable)
 
 -- unicode-bidi
@@ -1991,7 +1989,7 @@ newtype VHanging = VHanging Number
   deriving (Eq, Show, Generic, Hashable)
 
 -- v-ideographic
-newtype VIdeograph = VIdeograph Number
+newtype VIdeographic = VIdeographic Number
   deriving (Eq, Show, Generic, Hashable)
 
 -- v-mathematical
@@ -2070,9 +2068,9 @@ data WordSpacing
 
 -- writing-mode
 data WritingMode
-  = WritingModeHorizontalTb
-  | WritingModeVerticalTb
-  | WritingModeVerticalLr
+  = WritingModeHorizontalTB
+  | WritingModeVerticalRL
+  | WritingModeVerticalLR
   deriving (Eq, Show, Generic, Hashable)
 
 -- instance WithDefaultSvg WritingMode where

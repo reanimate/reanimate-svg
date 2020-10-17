@@ -12,7 +12,7 @@ import qualified Data.Text              as T
 import           Control.Applicative    ((<|>))
 import           Data.Functor
 
-import           Data.Attoparsec.Text   hiding (Number)
+import           Data.Attoparsec.Text   hiding (Number, Result)
 
 
 -- accent-height
@@ -766,99 +766,447 @@ pathLengthParser :: Parser PathLength
 pathLengthParser = PathLength <$> numberParser
 
 -- patternContentUnits
+patternContentUnitsParser :: Parser PatternContentUnits
+patternContentUnitsParser = PatternContentUnits <$> unitsParser
+
 -- patternTransform
+-- TODO
+
 -- patternUnits
+patternUnitsParser :: Parser PatternUnits
+patternUnitsParser = PatternUnits <$> unitsParser
+
 -- ping
+-- TODO
+
 -- pointer-events
+pointerEventsParser :: Parser PointerEvents
+pointerEventsParser = choice
+                      [ PointerEventsBoundingBox    <$ "bounding-box"
+                      , PointerEventsVisiblePainted <$ "visiblePainted"
+                      , PointerEventsVisibleFill    <$ "visibleFill"
+                      , PointerEventsVisibleStroke  <$ "visibleStroke"
+                      , PointerEventsVisible        <$ "visible"
+                      , PointerEventsPainted        <$ "painted"
+                      , PointerEventsFill           <$ "fill"
+                      , PointerEventsStroke         <$ "stroke"
+                      , PointerEventsAll            <$ "all"
+                      , PointerEventsNone           <$ "none"
+                      ]
+
 -- points
+-- TODO
+
 -- pointsAtX
+pointsAtXParser :: Parser PointsAtX
+pointsAtXParser = PointsAtX <$> numberParser
+
 -- pointsAtY
+pointsAtYParser :: Parser PointsAtY
+pointsAtYParser = PointsAtY <$> numberParser
+
 -- pointsAtZ
--- preserveAlpha
+pointsAtZParser :: Parser PointsAtZ
+pointsAtZParser = PointsAtZ <$> numberParser
+
+-- preserveAlph
+preserveAlphaParser :: Parser PreserveAlpha
+preserveAlphaParser = choice
+                      [ PreserveAlpha True  <$ "true"
+                      , PreserveAlpha False <$ "false" ]
+
 -- preserveAspectRatio
+-- TODO
+
 -- primitiveUnits
+primitiveUnitsParser :: Parser PrimitiveUnits
+primitiveUnitsParser = PrimitiveUnits <$> unitsParser
 
 -- r
+rAttrParser :: Parser RAttr
+rAttrParser = RAttr <$> lengthParser
+
 -- radius
+-- TODO
+
 -- referrerPolicy
+-- TODO
+
 -- refX
+refXParser :: Parser RefX
+refXParser = choice
+             [ RefXLeft   <$ "left"
+             , RefXCenter <$ "center"
+             , RefXRight  <$ "right"
+             , RefXLength <$> lengthParser
+             , RefX       <$> numberParser ]
+
 -- refY
+refYParser :: Parser RefY
+refYParser = choice
+             [ RefYTop    <$ "top"
+             , RefYCenter <$ "center"
+             , RefYBottom <$ "bottom"
+             , RefYLength <$> lengthParser
+             , RefY       <$> numberParser ]
+
 -- rel
+-- TODO
+
 -- rendering-intent
+renderingIntentParser :: Parser RenderingIntent
+renderingIntentParser = choice
+                        [ RenderingIntentAuto                 <$ "auto"
+                        , RenderingIntentPerceptual           <$ "perceptual"
+                        , RenderingIntentRelativeColorimetric <$ "relative-colorimetric"
+                        , RenderingIntentSaturation           <$ "saturation"
+                        , RenderingIntentAbsoluteColorimetric <$ "absolute-colorimetric" ]
+
 -- repeatCount
+repeatCountParser :: Parser RepeatCount
+repeatCountParser = choice
+                    [ RepeatCountIndefinite <$ "indefinite"
+                    , RepeatCount           <$> numberParser ]
+
 -- repeatDur
+-- TODO
+
 -- requiredExtensions
+-- TODO
+
 -- requiredFeatures
+-- TODO
+
 -- restart
+restartParser :: Parser Restart
+restartParser = choice
+                [ RestartAlways        <$ "always"
+                , RestartWhenNotActive <$ "whenNotActive"
+                , RestartNever         <$ "never" ]
+
 -- result
+
+resultParser :: Parser Result
+resultParser = Result <$> nameParser
+
 -- rotate
+rotateParser :: Parser  RotateAttr
+rotateParser = choice
+               [ RotateAttrAuto        <$ "auto"
+               , RotateAttrAutoReverse <$ "auto-reverse"
+               , RotateAttr            <$> numberParser ]
+
 -- rx
+rxParser :: Parser Rx
+rxParser = choice
+           [ RxAuto <$ "auto"
+           , Rx     <$> lengthParser ]
+
 -- ry
+ryParser :: Parser Ry
+ryParser = choice
+           [ RyAuto <$ "auto"
+           , Ry     <$> lengthParser ]
 
 -- scale
+scaleParser :: Parser ScaleAttr
+scaleParser = ScaleAttr <$> numberParser
+
 -- seed
+seedParser :: Parser Seed
+seedParser = Seed <$> numberParser
+
 -- shape-rendering
+shapeRenderingParser :: Parser ShapeRendering
+shapeRenderingParser = choice
+                       [ ShapeRenderingAuto               <$ "auto"
+                       , ShapeRenderingOptimizeSpeed      <$ "optimizeSpeed"
+                       , ShapeRenderingCripEdges          <$ "crispEdges"
+                       , ShapeRenderingGeometricPrecision <$ "geometricPrecision" ]
+
 -- slope
+slopeParser :: Parser Slope
+slopeParser = Slope <$> numberParser
+
 -- spacing
+spacingParser :: Parser Spacing
+spacingParser = choice
+                [ SpacingAuto  <$ "auto"
+                , SpacingExact <$ "exact" ]
+
 -- specularConstant
+specularConstantParser :: Parser SpecularConstant
+specularConstantParser = SpecularConstant <$> numberParser
+
 -- specularExponent
+specularExponentParser :: Parser SpecularExponent
+specularExponentParser = SpecularExponent <$> numberParser
+
 -- speed
+-- TODO
+
 -- spreadMethod
+spreadMethodParser :: Parser SpreadMethod
+spreadMethodParser = choice
+                     [ SpreadMethodPad     <$ "pad"
+                     , SpreadMethodReflect <$ "reflect"
+                     , SpreadMethodRepeat  <$ "repeat" ]
+
 -- startOffset
+startOffsetParser :: Parser StartOffset
+startOffsetParser = choice
+                    [ StartOffsetLength <$> lengthParser
+                    , StartOffset       <$> numberParser ]
+
 -- stdDeviation
+-- TODO
+
 -- stemh
+stemHParser :: Parser StemH
+stemHParser = StemH <$> numberParser
+
 -- stemv
+stemVParser :: Parser StemV
+stemVParser = StemV <$> numberParser
+
 -- stitchTiles
+stitchTilesParser :: Parser StitchTiles
+stitchTilesParser = choice
+                    [ NoStitch <$ "noStitch"
+                    , Stitch   <$ "stitch" ]
+
 -- stop-color
+-- TODO
+
 -- stop-opacity
+stopOpacityParser :: Parser StopOpacity
+stopOpacityParser = choice
+                    [ StopOpacity        <$> numberParser
+                    , StopOpacityPercent <$> percentageParser ]
+
 -- strikethrough-position
+strikethroughPositionParser :: Parser StrikethroughPosition
+strikethroughPositionParser = StrikethroughPosition <$> numberParser
+
 -- strikethrough-thickness
+strikethroughThicknessParser :: Parser StrikethroughThickness
+strikethroughThicknessParser = StrikethroughThickness <$> numberParser
+
 -- string
+stringParser :: Parser StringAttr
+stringParser = StringAttr <$> anythingParser
+
 -- stroke
+-- strokeParser :: Parser Stroke
+-- strokeParser = Stroke <$> paintParser
+
 -- stroke-dasharray
+-- TODO
+
 -- stroke-dashoffset
+strokeDashoffsetParser :: Parser StrokeDashoffset
+strokeDashoffsetParser = choice
+                         [ StrokeDashoffsetPercent <$> percentageParser
+                         , StrokeDashoffset        <$> lengthParser ]
+
 -- stroke-linecap
+strokeLinecapParser :: Parser StrokeLinecap
+strokeLinecapParser = choice
+                      [ CapButt   <$ "butt"
+                      , CapRound  <$ "round"
+                      , CapSquare <$ "square" ]
+
 -- stroke-linejoin
+strokeLineJoinParser :: Parser StrokeLineJoin
+strokeLineJoinParser = choice
+                       [ JoinArcs      <$ "arcs"
+                       , JoinBevel     <$ "bevel"
+                       , JoinMiter     <$ "miter"
+                       , JoinMiterClip <$ "miter-clip"
+                       , JoinRound     <$ "round" ]
+
 -- stroke-miterlimit
+strokeMiterlimitParser :: Parser StrokeMiterlimit
+strokeMiterlimitParser = StrokeMiterlimit <$> numberParser
+
 -- stroke-opacity
+strokeOpacityParser :: Parser StrokeOpacity
+strokeOpacityParser = choice
+                      [ StrokeOpacity        <$> numberParser
+                      , StrokeOpacityPercent <$> percentageParser ]
+
 -- stroke-width
+strokeWidthParser :: Parser StrokeWidth
+strokeWidthParser = StrokeWidth <$> lengthParser
+
 -- style
+-- TODO
+
 -- surfaceScale
+surfaceScaleParser :: Parser SurfaceScale
+surfaceScaleParser = SurfaceScale <$> numberParser
+
 -- systemLanguage
+systemLangParser :: Parser SystemLang
+systemLangParser = SystemLang <$> takeText
 
 -- tabindex
+tabIndexParser :: Parser Tabindex
+tabIndexParser = Tabindex <$> integerParser
+
 -- tableValues
+-- TODO
+
 -- target
+targetParser :: Parser Target
+targetParser = choice
+               [ TargetSelf   <$ "_self"
+               , TargetParent <$ "_parent"
+               , TargetTop    <$ "_top"
+               , TargetBlank  <$ "_blank"
+               , Target       <$> nameParser ]
+
 -- targetX
+targetXParser :: Parser TargetX
+targetXParser = TargetX <$> integerParser
+
 -- targetY
+targetYParser :: Parser TargetY
+targetYParser = TargetY <$> integerParser
+
 -- text-anchor
+textAnchorParser :: Parser TextAnchor
+textAnchorParser = choice
+                   [ TextAnchorStart  <$ "start"
+                   , TextAnchorMiddle <$ "middle"
+                   , TextAnchorEnd    <$ "end" ]
+
 -- text-decoration
+-- TODO
+
 -- text-rendering
+textRenderingParser :: Parser TextRendering
+textRenderingParser = choice
+                      [ TextRenderingAuto               <$ "auto"
+                      , TextRenderingOptimizeSpeed      <$ "optimizeSpeed"
+                      , TextRenderingOptimizeLegibility <$ "optimizeLegibility"
+                      , TextRenderingGeometricPrecision <$ "geometricPrecision" ]
+
 -- textLength
+textLengthParser :: Parser TextLength
+textLengthParser = choice
+                   [ TextLengthLength <$> lengthParser
+                   , TextLength       <$> numberParser ]
+
 -- to
+-- TODO
+
 -- transform
+-- TODO
+
 -- transform-origin
+-- TODO
+
 -- type
+typeParser :: Parser TypeAttr
+typeParser = choice
+             [ TypeTranslate        <$ "translate"
+             , TypeScale            <$ "scale"
+             , TypeRotate           <$ "rotate"
+             , TypeSkewX            <$ "skewX"
+             , TypeSkewY            <$ "skewY"
+             , TypeMatrix           <$ "matrix"
+             , TypeSaturate         <$ "saturate"
+             , TypeHueRotate        <$ "hueRotate"
+             , TypeLuminanceToAlpha <$ "luminanceToAlpha"
+             , TypeIdentity         <$ "identity"
+             , TypeTable            <$ "table"
+             , TypeDiscrete         <$ "discrete"
+             , TypeLinear           <$ "linear"
+             , TypeGamma            <$ "gamma"
+             , TypeFractalNoise     <$ "fractalNoise"
+             , TypeTurbulence       <$ "turbulence"
+             , Type                 <$> takeText ]
 
 -- u1
+-- TODO
+
 -- u2
+-- TODO
+
 -- underline-position
+underlinePositionParser :: Parser UnderlinePosition
+underlinePositionParser = UnderlinePosition <$> numberParser
+
 -- underline-thickness
+underlineThicknessParser :: Parser UnderlineThickness
+underlineThicknessParser = UnderlineThickness <$> numberParser
+
 -- unicode
+unicodeParser :: Parser Unicode
+unicodeParser = Unicode <$> takeText
+
 -- unicode-bidi
+unicodeBidiParser :: Parser UnicodeBidi
+unicodeBidiParser = choice
+                    [ UnicodeBidiNormal          <$ "normal"
+                    , UnicodeBidiEmbed           <$ "embed"
+                    , UnicodeBidiIsolate         <$ "isolate"
+                    , UnicodeBidiBidiOverride    <$ "bidi-override"
+                    , UnicodeBidiIsolateOverride <$ "isolate-override"
+                    , UnicodeBidiPlaintext       <$ "plaintext" ]
+
 -- unicode-range
+-- TODO
+
 -- units-per-em
+unitsPerEmParser :: Parser UnitsPerEm
+unitsPerEmParser = UnitsPerEm <$> numberParser
 
 -- v-alphabetic
+vAlphabeticParser :: Parser VAlphabetic
+vAlphabeticParser = VAlphabetic <$> numberParser
+
 -- v-hanging
+vHangingParser :: Parser VHanging
+vHangingParser = VHanging <$> numberParser
+
 -- v-ideographic
+vIdeographicParser :: Parser VIdeographic
+vIdeographicParser = VIdeographic <$> numberParser
+
 -- v-mathematical
+vMathematicalParser :: Parser VMathematical
+vMathematicalParser = VMathematical <$> numberParser
+
 -- values
+-- TODO
+
 -- vector-effect
+vectorEffectParser :: Parser VectorEffect
+vectorEffectParser = choice
+                     [ VectorEffectNone             <$ "none"
+                     , VectorEffectNonScalingStroke <$ "non-scaling-stroke"
+                     , VectorEffectNonScalingSize   <$ "non-scaling-size"
+                     , VectorEffectNonRotation      <$ "non-rotation"
+                     , VectorEffectFixedPosition    <$ "fixed-position" ]
+
 -- version
+versionParser :: Parser Version
+versionParser = Version <$> numberParser
+
 -- vert-adv-y
+vertAdvYParser :: Parser VertAdvY
+vertAdvYParser = VertAdvY <$> numberParser
+
 -- vert-origin-x
+vertOriginXParser :: Parser VertOriginX
+vertOriginXParser = VertOriginX <$> numberParser
+
 -- vert-origin-y
+vertOriginYParser :: Parser VertOriginY
+vertOriginYParser = VertOriginY <$> numberParser
+
 -- viewBox
 viewBoxParser :: Parser ViewBox
 viewBoxParser =  viewBox
@@ -868,7 +1216,15 @@ viewBoxParser =  viewBox
     viewBox a b c d = ViewBox $ Just (a,b,c,d)
 
 -- viewTarget
+viewTargetParser :: Parser ViewTarget
+viewTargetParser = ViewTarget <$> nameParser
+
 -- visibility
+visibilityParser :: Parser Visibility
+visibilityParser = choice
+                   [ Visible  <$ "visible"
+                   , Hidden   <$ "hidden"
+                   , Collapse <$ "collapse" ]
 
 -- width
 widthAttrParser :: Parser WidthAttr
@@ -877,29 +1233,119 @@ widthAttrParser = choice
                  , WidthAttr <$> lengthParser ]
 
 -- widths
+widthsParser :: Parser Widths
+widthsParser = Widths <$> numberParser
+
 -- word-spacing
+wordSpacingParser :: Parser WordSpacing
+wordSpacingParser = choice
+                    [ WordSpacingNormal <$ "normal"
+                    , WordSpacing <$> lengthParser ]
+
 -- writing-mode
+writingModeParser :: Parser  WritingMode
+writingModeParser = choice
+                    [ WritingModeHorizontalTB <$ "horizontal-tb"
+                    , WritingModeVerticalRL   <$ "vertical-rl"
+                    , WritingModeVerticalLR   <$ "vertical-lr"]
 
 -- x
+-- TODO
+
 -- x-height
+xHeightParser :: Parser XHeight
+xHeightParser = XHeight <$> numberParser
+
 -- x1
+x1Parser :: Parser X1
+x1Parser = choice
+           [ X1Percent <$> percentageParser
+           , X1        <$> lengthParser ]
+
 -- x2
+x2Parser :: Parser X2
+x2Parser = choice
+           [ X2Percent <$> percentageParser
+           , X2        <$> lengthParser ]
+
 -- xChannelSelector
+xChannelSelectorParser :: Parser XChannelSelector
+xChannelSelectorParser = choice
+                         [ XChannelR <$ "R"
+                         , XChannelG <$ "G"
+                         , XChannelB <$ "B"
+                         , XChannelA <$ "A" ]
+
 -- xlink:actuate
+-- TODO
+
 -- xlink:arcrole
+-- TODO
+
 -- xlink:href
+-- TODO
+
 -- xlink:role
+-- TODO
+
 -- xlink:show
+xlinkShowParser :: Parser XlinkShow
+xlinkShowParser = choice
+                  [ XlinkShowNew     <$ "new"
+                  , XlinkShowReplace <$ "replace"
+                  , XlinkShowEmbed   <$ "embed"
+                  , XlinkShowOther   <$ "other"
+                  , XlinkShowNone    <$ "none" ]
+
 -- xlink:title
+xlinkTitleParser :: Parser XlinkTitle
+xlinkTitleParser = XlinkTitle <$> anythingParser
+
 -- xlink:type
+xlinkTypeParser :: Parser XlinkType
+xlinkTypeParser = XlinkTypeSimple <$ "simple"
+
 -- xml:base
+-- TODO
+
 -- xml:lang
+xmlLangParser :: Parser XmlLang
+xmlLangParser = XmlLang <$> nameParser
+
 -- xml:space
+xmlSpaceParser :: Parser XmlSpace
+xmlSpaceParser = choice
+                 [ XmlSpaceDefault  <$ "default"
+                 , XmlSpacePreserve <$ "preserve" ]
 
 -- y
--- y1
--- y2
--- yChannelSelector
+-- TODO
 
+-- y1
+y1Parser :: Parser Y1
+y1Parser = choice
+           [ Y1Percent <$> percentageParser
+           , Y1        <$> lengthParser ]
+
+-- y2
+y2Parser :: Parser Y2
+y2Parser = choice
+           [ Y2Percent <$> percentageParser
+           , Y2        <$> lengthParser ]
+
+-- yChannelSelector
+yChannelSelectorParser :: Parser YChannelSelector
+yChannelSelectorParser = choice
+                         [ YChannelR <$ "R"
+                         , YChannelG <$ "G"
+                         , YChannelB <$ "B"
+                         , YChannelA <$ "A" ]
 -- z
+zParser :: Parser ZAttr
+zParser = ZAttr <$> numberParser
+
 -- zoomAndPan
+zoomAndPanParser :: Parser ZoomAndPan
+zoomAndPanParser = choice
+                   [ ZoomAndPanDisable <$ "disable"
+                   , ZoomAndPanMagnify <$ "magnify" ]
