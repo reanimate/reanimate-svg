@@ -2,15 +2,8 @@
 
 module Graphics.SvgTree.Parser.AttributesParser where
 
-import Graphics.SvgTree.Types
 import Graphics.SvgTree.Types.Attributes
-import Graphics.SvgTree.Types.Contents
 import Graphics.SvgTree.Parser.ContentsParser
-
-import           Data.Scientific        (toRealFloat)
-import qualified Data.Text              as T
-import           Control.Applicative    ((<|>))
-import           Data.Functor
 
 import           Data.Attoparsec.Text   hiding (Number, Result)
 
