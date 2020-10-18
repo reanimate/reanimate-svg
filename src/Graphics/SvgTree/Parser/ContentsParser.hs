@@ -38,12 +38,13 @@ commaWsp :: Parser ()
 commaWsp = skipSpace *> option () ("," $> ())
                      <* skipSpace
 
+
 -- <angle>
 angleParser :: Parser Angle
 angleParser = choice
-              [ Deg   <$> (skipSpace *> doubleParser <* string "deg")
-              , Grad  <$> (skipSpace *> doubleParser <* string "grad")
-              , Rad   <$> (skipSpace *> doubleParser <* string "rad")
+              [ Deg   <$> (skipSpace *> doubleParser <* "deg")
+              , Grad  <$> (skipSpace *> doubleParser <* "grad")
+              , Rad   <$> (skipSpace *> doubleParser <* "rad")
               , Angle <$> (skipSpace *> doubleParser <* skipSpace)]
 
 -- <anything>
@@ -58,9 +59,9 @@ anythingParser = Anything <$> takeText
 
 -- <color>
 colorParser :: Parser Color --PixelRGBA8
-colorParser = Color  <$> rgbColor
-          <|> Color  <$> (string "#" *> (color <|> colorReduced))
-          <|> Color  <$> namedColor
+colorParser = Color <$> rgbColor
+          <|> Color <$> ("#" *> (color <|> colorReduced))
+          <|> Color <$> namedColor
   where
     charRange c1 c2 =
         (\c -> fromIntegral $ fromEnum c - fromEnum c1) <$> satisfy (\v -> c1 <= v && v <= c2)
@@ -98,22 +99,22 @@ colorParser = Color  <$> rgbColor
 -- <coordinate>
 coordinateParser :: Parser Coordinate
 coordinateParser = choice
-                   [ CoordinateEm <$> (skipSpace *> doubleParser <* string "em")
-                   , CoordinateEx <$> (skipSpace *> doubleParser <* string "ex")
-                   , CoordinatePx <$> (skipSpace *> doubleParser <* string "px")
-                   , CoordinateInches <$> (skipSpace *> doubleParser <* string "in")
-                   , CoordinateCm <$> (skipSpace *> doubleParser <* string "cm")
-                   , CoordinateMm <$> (skipSpace *> doubleParser <* string "mm")
-                   , CoordinatePt <$> (skipSpace *> doubleParser <* string "pt")
-                   , CoordinatePc <$> (skipSpace *> doubleParser <* string "pc")
-                   , CoordinatePercent <$> (skipSpace *> doubleParser <* string "%")
+                   [ CoordinateEm <$> (skipSpace *> doubleParser <* "em")
+                   , CoordinateEx <$> (skipSpace *> doubleParser <* "ex")
+                   , CoordinatePx <$> (skipSpace *> doubleParser <* "px")
+                   , CoordinateInches <$> (skipSpace *> doubleParser <* "in")
+                   , CoordinateCm <$> (skipSpace *> doubleParser <* "cm")
+                   , CoordinateMm <$> (skipSpace *> doubleParser <* "mm")
+                   , CoordinatePt <$> (skipSpace *> doubleParser <* "pt")
+                   , CoordinatePc <$> (skipSpace *> doubleParser <* "pc")
+                   , CoordinatePercent <$> (skipSpace *> doubleParser <* "%")
                    , Coordinate   <$> (skipSpace *> doubleParser <* skipSpace)]
 
 -- <frequency>
 frequencyParser :: Parser Frequency
 frequencyParser = choice
-                  [ Hz <$> (skipSpace *> doubleParser <* string "Hz")
-                  , KHz <$> (skipSpace *> doubleParser <* string "kHz")]
+                  [ Hz <$> (skipSpace *> doubleParser <* "Hz")
+                  , KHz <$> (skipSpace *> doubleParser <* "kHz")]
 
 -- <funcIRI>
 funcIRIParser :: Parser FuncIRI
@@ -136,15 +137,15 @@ iriParser = IRI <$> takeText
 -- <Length>
 lengthParser :: Parser Length
 lengthParser = choice
-                   [ Em <$> (skipSpace *> doubleParser <* string "em")
-                   , Ex <$> (skipSpace *> doubleParser <* string "ex")
-                   , Px <$> (skipSpace *> doubleParser <* string "px")
-                   , Inches <$> (skipSpace *> doubleParser <* string "in")
-                   , Cm <$> (skipSpace *> doubleParser <* string "cm")
-                   , Mm <$> (skipSpace *> doubleParser <* string "mm")
-                   , Pt <$> (skipSpace *> doubleParser <* string "pt")
-                   , Pc <$> (skipSpace *> doubleParser <* string "pc")
-                   , Percent <$> (skipSpace *> doubleParser <* string "%")
+                   [ Em <$> (skipSpace *> doubleParser <* "em")
+                   , Ex <$> (skipSpace *> doubleParser <* "ex")
+                   , Px <$> (skipSpace *> doubleParser <* "px")
+                   , Inches <$> (skipSpace *> doubleParser <* "in")
+                   , Cm <$> (skipSpace *> doubleParser <* "cm")
+                   , Mm <$> (skipSpace *> doubleParser <* "mm")
+                   , Pt <$> (skipSpace *> doubleParser <* "pt")
+                   , Pc <$> (skipSpace *> doubleParser <* "pc")
+                   , Percent <$> (skipSpace *> doubleParser <* "%")
                    , Length  <$> (skipSpace *> doubleParser <* skipSpace)]
 
 -- <length-percentage>
@@ -175,7 +176,7 @@ opacityValueParser = OpacityValue <$> (skipSpace *> doubleParser)
 
 -- <percentage>
 percentageParser :: Parser Percentage
-percentageParser = Percentage <$> (skipSpace *> doubleParser <* string "%")
+percentageParser = Percentage <$> (skipSpace *> doubleParser <* "%")
 
 -- <time>
 -- TODO
@@ -186,8 +187,8 @@ percentageParser = Percentage <$> (skipSpace *> doubleParser <* string "%")
 -- <units>
 unitsParser :: Parser Units
 unitsParser = choice
-              [ UserSpaceOnUse <$ string "userSpaceOnUse"
-              , ObjectBoundingBox <$ string "objectBoundingBox"]
+              [ UserSpaceOnUse    <$ "userSpaceOnUse"
+              , ObjectBoundingBox <$ "objectBoundingBox"]
 
 -- <URL>
 urlParser :: Parser URL
