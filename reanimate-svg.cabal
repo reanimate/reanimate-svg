@@ -43,6 +43,7 @@ library
                , Graphics.SvgTree.Types.Elements
                , Graphics.SvgTree.Parser.ContentsParser
                , Graphics.SvgTree.Parser.AttributesParser
+               , Graphics.SvgTree.Parser.ParseableContent
                , Graphics.SvgTree.SVGParser
                , Graphics.SvgTree.Printer.ContentsPrinter
                Graphics.SvgTree.Printer.SerializableContent
