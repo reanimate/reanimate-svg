@@ -44,9 +44,10 @@ library
                , Graphics.SvgTree.Parser.ContentsParser
                , Graphics.SvgTree.Parser.AttributesParser
                , Graphics.SvgTree.Parser.ParseableContent
+               , Graphics.SvgTree.Parser.ParseableAttribute
                , Graphics.SvgTree.SVGParser
                , Graphics.SvgTree.Printer.ContentsPrinter
-               Graphics.SvgTree.Printer.SerializableContent
+               , Graphics.SvgTree.Printer.SerializableContent
                -- , Graphics.SvgTree.XmlParser
                -- , Graphics.SvgTree.CssParser
                -- , Graphics.SvgTree.ColorParser
