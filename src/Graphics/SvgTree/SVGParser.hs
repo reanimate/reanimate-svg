@@ -8,6 +8,8 @@ import Graphics.SvgTree.Types.Attributes
 
 import Graphics.SvgTree.Parser.AttributesParser
 import Graphics.SvgTree.Parser.ContentsParser
+import Graphics.SvgTree.Parser.ParseableContent
+import Graphics.SvgTree.Parser.ParseableAttribute
 
 import qualified Text.XML.Light as X
 import qualified Data.Text      as T
@@ -28,6 +30,10 @@ parse p str = case parseOnly p (T.pack str) of
   Left _  -> Nothing
   Right r -> Just r
 
+parseAttr :: (ParseableAttribute a) => String -> X.Element -> Maybe a
+parseAttr attr e = attributeFinder attr e >>= parseAttribute . T.pack
+
+
 unparseSVG :: FilePath -> X.Element -> Maybe SVG
 unparseSVG rootLocation e@(nodeName -> "svg")
   = Just SVG
@@ -35,14 +41,14 @@ unparseSVG rootLocation e@(nodeName -> "svg")
     _svgStylingAttributes = defaultSvg,
     _svgConditionalProcessingAttributes = defaultSvg,
     _svgPresentationAttributes = defaultSvg,
-    _svgBaseProfile = Nothing,
+    _svgBaseProfile = parseAttr "baseProfile" e,
     --    _svgContentScriptType = Nothing,
     --    _svgContentStyleType = Nothing,
-    _svgHeight = attributeFinder "height" e >>= parse heightAttrParser,
-    _svgWidth = attributeFinder "width" e >>= parse widthAttrParser,
+    _svgHeight = parseAttr "height" e,
+    _svgWidth = parseAttr "width" e,
     _svgPreserveAspectRatio = Nothing,
     _svgVersion = Nothing,
-    _svgViewBox = attributeFinder "viewBox" e >>= parse viewBoxParser,
+    _svgViewBox = parseAttr "viewBox" e,
     _svgX = Nothing,
     _svgY = Nothing
   }
