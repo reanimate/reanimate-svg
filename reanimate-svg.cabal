@@ -15,6 +15,7 @@ license:             BSD-3-Clause
 license-file:        LICENSE
 author:              Vincent Berthoux, David Himmelstrup
 maintainer:          David Himmelstrup <lemmih@gmail.com>
+homepage:            https://github.com/reanimate/reanimate-svg#readme
 -- copyright:
 category:            Graphics, Svg
 build-type:          Simple
@@ -23,7 +24,7 @@ extra-source-files: changelog.md
 
 Source-Repository head
     Type:      git
-    Location:  git://github.com/lemmih/reanimate-svg.git
+    Location:  git://github.com/reanimate/reanimate-svg.git
 
 library
   hs-source-dirs: src
