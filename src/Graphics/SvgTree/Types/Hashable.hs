@@ -10,12 +10,10 @@ module Graphics.SvgTree.Types.Hashable where
 import Codec.Picture (PixelRGBA8 (..))
 import Control.Lens
 import Data.Hashable
-import Data.Monoid
 import GHC.Generics (Generic)
 import Graphics.SvgTree.Types.Internal
 
 -- Orphan instances :(
-instance Hashable a => Hashable (Last a)
 
 deriving instance Generic PixelRGBA8
 
