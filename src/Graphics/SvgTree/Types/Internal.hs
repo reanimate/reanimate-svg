@@ -455,9 +455,9 @@ module Graphics.SvgTree.Types.Internal
 where
 
 import Codec.Picture (PixelRGBA8 (..))
+import Control.Applicative ((<|>))
 import Control.Lens.TH (makeClassy, makeLenses)
 import Data.Function (on)
-import Data.Monoid (Last (..))
 import qualified Data.Text as T
 import GHC.Generics (Generic)
 import Graphics.SvgTree.CssTypes
@@ -641,22 +641,22 @@ data FilterSource
   deriving (Eq, Show, Generic)
 
 data FilterAttributes = FilterAttributes
-  { _filterHeight :: !(Last Number),
+  { _filterHeight :: !(Maybe Number),
     _filterResult :: !(Maybe String),
-    _filterWidth :: !(Last Number),
-    _filterX :: !(Last Number),
-    _filterY :: !(Last Number)
+    _filterWidth :: !(Maybe Number),
+    _filterX :: !(Maybe Number),
+    _filterY :: !(Maybe Number)
   }
   deriving (Eq, Show, Generic)
 
 instance WithDefaultSvg FilterAttributes where
   defaultSvg =
     FilterAttributes
-      { _filterHeight = Last Nothing,
+      { _filterHeight = Nothing,
         _filterResult = Nothing,
-        _filterWidth = Last Nothing,
-        _filterX = Last Nothing,
-        _filterY = Last Nothing
+        _filterWidth = Nothing,
+        _filterX = Nothing,
+        _filterY = Nothing
       }
 
 -- | This type define how to draw any primitives,
@@ -667,24 +667,24 @@ instance WithDefaultSvg FilterAttributes where
 data DrawAttributes = DrawAttributes
   { -- | Attribute corresponding to the `stroke-width`
     -- SVG attribute.
-    _strokeWidth :: !(Last Number),
+    _strokeWidth :: !(Maybe Number),
     -- | Correspond to the `stroke` attribute.
-    _strokeColor :: !(Last Texture),
+    _strokeColor :: !(Maybe Texture),
     -- | Define the `stroke-opacity` attribute, the transparency
     -- for the "border".
     _strokeOpacity :: !(Maybe Float),
     -- | Correspond to the `stroke-linecap` SVG
     -- attribute
-    _strokeLineCap :: !(Last Cap),
+    _strokeLineCap :: !(Maybe Cap),
     -- | Correspond to the `stroke-linejoin` SVG
     -- attribute
-    _strokeLineJoin :: !(Last LineJoin),
+    _strokeLineJoin :: !(Maybe LineJoin),
     -- | Define the distance of the miter join, correspond
     -- to the `stroke-miterlimit` attritbue.
-    _strokeMiterLimit :: !(Last Double),
+    _strokeMiterLimit :: !(Maybe Double),
     -- | Define the filling color of the elements. Corresponding
     -- to the `fill` attribute.
-    _fillColor :: !(Last Texture),
+    _fillColor :: !(Maybe Texture),
     -- | Define the `fill-opacity` attribute, the transparency
     -- for the "content".
     _fillOpacity :: !(Maybe Float),
@@ -693,13 +693,13 @@ data DrawAttributes = DrawAttributes
     -- | Content of the `transform` attribute
     _transform :: !(Maybe [Transformation]),
     -- | Define the `fill-rule` used during the rendering.
-    _fillRule :: !(Last FillRule),
+    _fillRule :: !(Maybe FillRule),
     -- | Define the `mask` attribute.
-    _maskRef :: !(Last ElementRef),
+    _maskRef :: !(Maybe ElementRef),
     -- | Define the `clip-path` attribute.
-    _clipPathRef :: !(Last ElementRef),
+    _clipPathRef :: !(Maybe ElementRef),
     -- | Define the `clip-rule` attribute.
-    _clipRule :: !(Last FillRule),
+    _clipRule :: !(Maybe FillRule),
     -- | Map to the `class` attribute. Used for the CSS
     -- rewriting.
     _attrClass :: ![T.Text],
@@ -708,32 +708,32 @@ data DrawAttributes = DrawAttributes
     _attrId :: !(Maybe String),
     -- | Define the start distance of the dashing pattern.
     -- Correspond to the `stroke-dashoffset` attribute.
-    _strokeOffset :: !(Last Number),
+    _strokeOffset :: !(Maybe Number),
     -- | Define the dashing pattern for the lines. Correspond
     -- to the `stroke-dasharray` attribute.
-    _strokeDashArray :: !(Last [Number]),
+    _strokeDashArray :: !(Maybe [Number]),
     -- | Current size of the text, correspond to the
     -- `font-size` SVG attribute.
-    _fontSize :: !(Last Number),
+    _fontSize :: !(Maybe Number),
     -- | Define the possible fonts to be used for text rendering.
     -- Map to the `font-family` attribute.
-    _fontFamily :: !(Last [String]),
+    _fontFamily :: !(Maybe [String]),
     -- | Map to the `font-style` attribute.
-    _fontStyle :: !(Last FontStyle),
+    _fontStyle :: !(Maybe FontStyle),
     -- | Define how to interpret the text position, correspond
     -- to the `text-anchor` attribute.
-    _textAnchor :: !(Last TextAnchor),
+    _textAnchor :: !(Maybe TextAnchor),
     -- | Define the marker used for the start of the line.
     -- Correspond to the `marker-start` attribute.
-    _markerStart :: !(Last ElementRef),
+    _markerStart :: !(Maybe ElementRef),
     -- | Define the marker used for every point of the
     -- polyline/path Correspond to the `marker-mid`
     -- attribute.
-    _markerMid :: !(Last ElementRef),
+    _markerMid :: !(Maybe ElementRef),
     -- | Define the marker used for the end of the line.
     -- Correspond to the `marker-end` attribute.
-    _markerEnd :: !(Last ElementRef),
-    _filterRef :: !(Last ElementRef)
+    _markerEnd :: !(Maybe ElementRef),
+    _filterRef :: !(Maybe ElementRef)
   }
   deriving (Eq, Show, Generic)
 
@@ -1076,7 +1076,7 @@ instance Semigroup TextInfo where
         (dx1 <> dx2)
         (dy1 <> dy2)
         (r1 <> r2)
-        (getLast $ Last l1 <> Last l2)
+        (l2 <|> l1)
 
 instance Monoid TextInfo where
   mempty = TextInfo [] [] [] [] [] Nothing
@@ -1267,7 +1267,7 @@ instance WithDefaultSvg FilterElement where
 data SpecularLighting = SpecularLighting
   { _specLightingDrawAttributes :: DrawAttributes,
     _specLightingFilterAttr :: !FilterAttributes,
-    _specLightingIn :: !(Last FilterSource),
+    _specLightingIn :: !(Maybe FilterSource),
     _specLightingSurfaceScale :: Double,
     _specLightingSpecularConst :: Double,
     _specLightingSpecularExp :: Double,
@@ -1280,7 +1280,7 @@ instance WithDefaultSvg SpecularLighting where
     SpecularLighting
     { _specLightingDrawAttributes = defaultSvg,
       _specLightingFilterAttr = defaultSvg,
-      _specLightingIn = Last Nothing,
+      _specLightingIn = Nothing,
       _specLightingSurfaceScale = 1,
       _specLightingSpecularConst = 1,
       _specLightingSpecularExp = 1,
@@ -1290,7 +1290,7 @@ instance WithDefaultSvg SpecularLighting where
 data ConvolveMatrix = ConvolveMatrix
   { _convolveMatrixDrawAttributes :: DrawAttributes,
     _convolveMatrixFilterAttr :: !FilterAttributes,
-    _convolveMatrixIn :: !(Last FilterSource),
+    _convolveMatrixIn :: !(Maybe FilterSource),
     _convolveMatrixOrder :: NumberOptionalNumber,
     _convolveMatrixKernelMatrix :: [Double],
     _convolveMatrixDivisor :: Double,
@@ -1308,7 +1308,7 @@ instance WithDefaultSvg ConvolveMatrix where
     ConvolveMatrix
     { _convolveMatrixDrawAttributes = defaultSvg,
       _convolveMatrixFilterAttr = defaultSvg,
-      _convolveMatrixIn = Last Nothing,
+      _convolveMatrixIn = Nothing,
       _convolveMatrixOrder = Num1 3,
       _convolveMatrixKernelMatrix = [],
       _convolveMatrixDivisor = 1,
@@ -1323,7 +1323,7 @@ instance WithDefaultSvg ConvolveMatrix where
 data DiffuseLighting = DiffuseLighting
   { _diffuseLightingDrawAttributes :: DrawAttributes,
     _diffuseLightingFilterAttr :: !FilterAttributes,
-    _diffuseLightingIn :: !(Last FilterSource),
+    _diffuseLightingIn :: !(Maybe FilterSource),
     _diffuseLightingSurfaceScale :: Double,
     _diffuseLightingDiffuseConst :: Double,
     _diffuseLightingKernelUnitLength :: NumberOptionalNumber
@@ -1335,7 +1335,7 @@ instance WithDefaultSvg DiffuseLighting where
     DiffuseLighting
     { _diffuseLightingDrawAttributes = defaultSvg,
       _diffuseLightingFilterAttr = defaultSvg,
-      _diffuseLightingIn = Last Nothing,
+      _diffuseLightingIn = Nothing,
       _diffuseLightingSurfaceScale = 1,
       _diffuseLightingDiffuseConst = 1,
       _diffuseLightingKernelUnitLength = Num1 0
@@ -1344,7 +1344,7 @@ instance WithDefaultSvg DiffuseLighting where
 data Morphology = Morphology
   { _morphologyDrawAttributes :: DrawAttributes,
     _morphologyFilterAttr :: !FilterAttributes,
-    _morphologyIn :: !(Last FilterSource),
+    _morphologyIn :: !(Maybe FilterSource),
     _morphologyOperator :: OperatorType,
     _morphologyRadius :: NumberOptionalNumber
   }
@@ -1356,7 +1356,7 @@ instance WithDefaultSvg Morphology where
     Morphology
     { _morphologyDrawAttributes = defaultSvg,
       _morphologyFilterAttr = defaultSvg,
-      _morphologyIn = Last Nothing,
+      _morphologyIn = Nothing,
       _morphologyOperator = OperatorOver,
       _morphologyRadius = Num1 0
     }
@@ -1443,9 +1443,9 @@ data ChannelSelector
 data DisplacementMap = DisplacementMap
   { _displacementMapDrawAttributes :: !DrawAttributes,
     _displacementMapFilterAttr :: !FilterAttributes,
-    _displacementMapIn :: !(Last FilterSource),
-    _displacementMapIn2 :: !(Last FilterSource),
-    _displacementMapScale :: !(Last Double),
+    _displacementMapIn :: !(Maybe FilterSource),
+    _displacementMapIn2 :: !(Maybe FilterSource),
+    _displacementMapScale :: !(Maybe Double),
     _displacementMapXChannelSelector :: ChannelSelector,
     _displacementMapYChannelSelector :: ChannelSelector
   }
@@ -1456,9 +1456,9 @@ instance WithDefaultSvg DisplacementMap where
     DisplacementMap
       { _displacementMapDrawAttributes = defaultSvg,
         _displacementMapFilterAttr = defaultSvg,
-        _displacementMapIn = Last Nothing,
-        _displacementMapIn2 = Last Nothing,
-        _displacementMapScale = Last Nothing,
+        _displacementMapIn = Nothing,
+        _displacementMapIn2 = Nothing,
+        _displacementMapScale = Nothing,
         _displacementMapXChannelSelector = ChannelA,
         _displacementMapYChannelSelector = ChannelA
       }
@@ -1485,8 +1485,8 @@ data BlendMode
 data Blend = Blend
   { _blendDrawAttributes :: !DrawAttributes,
     _blendFilterAttr :: !FilterAttributes,
-    _blendIn :: !(Last FilterSource),
-    _blendIn2 :: !(Last FilterSource),
+    _blendIn :: !(Maybe FilterSource),
+    _blendIn2 :: !(Maybe FilterSource),
     _blendMode :: !BlendMode
   }
   deriving (Eq, Show, Generic)
@@ -1496,8 +1496,8 @@ instance WithDefaultSvg Blend where
     Blend
     { _blendDrawAttributes = defaultSvg,
       _blendFilterAttr = defaultSvg,
-      _blendIn = Last Nothing,
-      _blendIn2 = Last Nothing,
+      _blendIn = Nothing,
+      _blendIn2 = Nothing,
       _blendMode = Normal
     }
 
@@ -1521,7 +1521,7 @@ instance WithDefaultSvg Flood where
 data Offset = Offset
   { _offsetDrawAttributes :: !DrawAttributes,
     _offsetFilterAttr :: !FilterAttributes,
-    _offsetIn :: !(Last FilterSource),
+    _offsetIn :: !(Maybe FilterSource),
     _offsetDX :: !Number,
     _offsetDY :: !Number
   }
@@ -1532,7 +1532,7 @@ instance WithDefaultSvg Offset where
     Offset
     { _offsetDrawAttributes = defaultSvg,
       _offsetFilterAttr = defaultSvg,
-      _offsetIn = Last Nothing,
+      _offsetIn = Nothing,
       _offsetDX = Num 0,
       _offsetDY = Num 0
     }
@@ -1540,7 +1540,7 @@ instance WithDefaultSvg Offset where
 data Tile = Tile
   { _tileDrawAttributes :: !DrawAttributes,
     _tileFilterAttr :: !FilterAttributes,
-    _tileIn :: !(Last FilterSource)
+    _tileIn :: !(Maybe FilterSource)
   }
   deriving (Eq, Show, Generic)
 
@@ -1549,7 +1549,7 @@ instance WithDefaultSvg Tile where
     Tile
     { _tileDrawAttributes = defaultSvg,
       _tileFilterAttr = defaultSvg,
-      _tileIn = Last Nothing
+      _tileIn = Nothing
     }
 
 data Merge = Merge
@@ -1570,7 +1570,7 @@ instance WithDefaultSvg Merge where
 data MergeNode = MergeNode
   { _mergeNodeDrawAttributes :: !DrawAttributes,
     --Does not have filter attributes!
-    _mergeNodeIn :: !(Last FilterSource)
+    _mergeNodeIn :: !(Maybe FilterSource)
   }
   deriving (Eq, Show, Generic)
 
@@ -1578,14 +1578,14 @@ instance WithDefaultSvg MergeNode where
   defaultSvg =
     MergeNode
     { _mergeNodeDrawAttributes = defaultSvg,
-      _mergeNodeIn = Last Nothing
+      _mergeNodeIn = Nothing
     }
 
 data ComponentTransfer = ComponentTransfer
   { _compTransferDrawAttributes :: !DrawAttributes,
     _compTransferFilterAttr :: !FilterAttributes,
     _compTransferChildren :: ![FilterElement],
-    _compTransferIn :: !(Last FilterSource)
+    _compTransferIn :: !(Maybe FilterSource)
   }
   deriving (Eq, Show, Generic)
 
@@ -1595,7 +1595,7 @@ instance WithDefaultSvg ComponentTransfer where
     { _compTransferDrawAttributes = defaultSvg,
       _compTransferFilterAttr = defaultSvg,
       _compTransferChildren = [],
-      _compTransferIn = Last Nothing
+      _compTransferIn = Nothing
     }
 
 data FuncType
@@ -1717,7 +1717,7 @@ data ColorMatrixType
 data ColorMatrix = ColorMatrix
   { _colorMatrixDrawAttributes :: !DrawAttributes,
     _colorMatrixFilterAttr :: !FilterAttributes,
-    _colorMatrixIn :: !(Last FilterSource),
+    _colorMatrixIn :: !(Maybe FilterSource),
     _colorMatrixType :: !ColorMatrixType,
     _colorMatrixValues :: !String
   }
@@ -1728,7 +1728,7 @@ instance WithDefaultSvg ColorMatrix where
     ColorMatrix
       { _colorMatrixDrawAttributes = defaultSvg,
         _colorMatrixFilterAttr = defaultSvg,
-        _colorMatrixIn = Last Nothing,
+        _colorMatrixIn = Nothing,
         _colorMatrixType = Matrix,
         _colorMatrixValues = ""
       }
@@ -1745,8 +1745,8 @@ data CompositeOperator
 data Composite = Composite
   { _compositeDrawAttributes :: DrawAttributes,
     _compositeFilterAttr :: !FilterAttributes,
-    _compositeIn :: Last FilterSource,
-    _compositeIn2 :: Last FilterSource,
+    _compositeIn :: Maybe FilterSource,
+    _compositeIn2 :: Maybe FilterSource,
     _compositeOperator :: CompositeOperator,
     _compositeK1 :: Number,
     _compositeK2 :: Number,
@@ -1760,8 +1760,8 @@ instance WithDefaultSvg Composite where
     Composite
       { _compositeDrawAttributes = defaultSvg,
         _compositeFilterAttr = defaultSvg,
-        _compositeIn = Last Nothing,
-        _compositeIn2 = Last Nothing,
+        _compositeIn = Nothing,
+        _compositeIn2 = Nothing,
         _compositeOperator = CompositeOver,
         _compositeK1 = Num 0,
         _compositeK2 = Num 0,
@@ -1772,7 +1772,7 @@ instance WithDefaultSvg Composite where
 data Turbulence = Turbulence
   { _turbulenceDrawAttributes :: !DrawAttributes,
     _turbulenceFilterAttr :: !FilterAttributes,
-    _turbulenceBaseFrequency :: !(Double, Last Double), -- Not negative
+    _turbulenceBaseFrequency :: !(Double, Maybe Double), -- Not negative
     _turbulenceNumOctaves :: Int, -- Not negative
     _turbulenceSeed :: Double,
     _turbulenceStitchTiles :: StitchTiles,
@@ -1795,7 +1795,7 @@ instance WithDefaultSvg Turbulence where
     Turbulence
       { _turbulenceDrawAttributes = defaultSvg,
         _turbulenceFilterAttr = defaultSvg,
-        _turbulenceBaseFrequency = (0, Last Nothing),
+        _turbulenceBaseFrequency = (0, Nothing),
         _turbulenceNumOctaves = 1,
         _turbulenceSeed = 0,
         _turbulenceStitchTiles = NoStitch,
@@ -1811,9 +1811,9 @@ data EdgeMode
 data GaussianBlur = GaussianBlur
   { _gaussianBlurDrawAttributes :: DrawAttributes,
     _gaussianBlurFilterAttr :: !FilterAttributes,
-    _gaussianBlurIn :: Last FilterSource,
+    _gaussianBlurIn :: Maybe FilterSource,
     _gaussianBlurStdDeviationX :: Number,
-    _gaussianBlurStdDeviationY :: Last Number,
+    _gaussianBlurStdDeviationY :: Maybe Number,
     _gaussianBlurEdgeMode :: EdgeMode
   }
   deriving (Eq, Show, Generic)
@@ -1823,9 +1823,9 @@ instance WithDefaultSvg GaussianBlur where
     GaussianBlur
       { _gaussianBlurDrawAttributes = defaultSvg,
         _gaussianBlurFilterAttr = defaultSvg,
-        _gaussianBlurIn = Last Nothing,
+        _gaussianBlurIn = Nothing,
         _gaussianBlurStdDeviationX = Num 0,
-        _gaussianBlurStdDeviationY = Last Nothing,
+        _gaussianBlurStdDeviationY = Nothing,
         _gaussianBlurEdgeMode = EdgeDuplicate
       }
 
@@ -2183,69 +2183,70 @@ mayMerge a Nothing = a
 instance Semigroup DrawAttributes where
   (<>) a b =
     DrawAttributes
-      { _strokeWidth = (mappend `on` _strokeWidth) a b,
-        _strokeColor = (mappend `on` _strokeColor) a b,
-        _strokeLineCap = (mappend `on` _strokeLineCap) a b,
+      { _strokeWidth = chooseLast _strokeWidth,
+        _strokeColor = chooseLast _strokeColor,
+        _strokeLineCap = chooseLast _strokeLineCap,
         _strokeOpacity = (opacityMappend `on` _strokeOpacity) a b,
-        _strokeLineJoin = (mappend `on` _strokeLineJoin) a b,
-        _strokeMiterLimit = (mappend `on` _strokeMiterLimit) a b,
-        _fillColor = (mappend `on` _fillColor) a b,
+        _strokeLineJoin = chooseLast _strokeLineJoin,
+        _strokeMiterLimit = chooseLast _strokeMiterLimit,
+        _fillColor = chooseLast _fillColor,
         _fillOpacity = (opacityMappend `on` _fillOpacity) a b,
-        _fontSize = (mappend `on` _fontSize) a b,
+        _fontSize = chooseLast _fontSize,
         _transform = (mayMerge `on` _transform) a b,
-        _fillRule = (mappend `on` _fillRule) a b,
+        _fillRule = chooseLast _fillRule,
         _attrClass = _attrClass b,
         _attrId = _attrId b,
         _groupOpacity = _groupOpacity b,
-        _strokeOffset = (mappend `on` _strokeOffset) a b,
-        _strokeDashArray = (mappend `on` _strokeDashArray) a b,
-        _fontFamily = (mappend `on` _fontFamily) a b,
-        _fontStyle = (mappend `on` _fontStyle) a b,
-        _textAnchor = (mappend `on` _textAnchor) a b,
-        _maskRef = (mappend `on` _maskRef) a b,
-        _clipPathRef = (mappend `on` _clipPathRef) a b,
-        _clipRule = (mappend `on` _clipRule) a b,
-        _markerStart = (mappend `on` _markerStart) a b,
-        _markerMid = (mappend `on` _markerMid) a b,
-        _markerEnd = (mappend `on` _markerEnd) a b,
-        _filterRef = (mappend `on` _filterRef) a b
+        _strokeOffset = chooseLast _strokeOffset,
+        _strokeDashArray = chooseLast _strokeDashArray,
+        _fontFamily = chooseLast _fontFamily,
+        _fontStyle = chooseLast _fontStyle,
+        _textAnchor = chooseLast _textAnchor,
+        _maskRef = chooseLast _maskRef,
+        _clipPathRef = chooseLast _clipPathRef,
+        _clipRule = chooseLast _clipRule,
+        _markerStart = chooseLast _markerStart,
+        _markerMid = chooseLast _markerMid,
+        _markerEnd = chooseLast _markerEnd,
+        _filterRef = chooseLast _filterRef
       }
     where
       opacityMappend Nothing Nothing = Nothing
       opacityMappend (Just v) Nothing = Just v
       opacityMappend Nothing (Just v) = Just v
       opacityMappend (Just v) (Just v2) = Just $ v * v2
+      chooseLast f = f b <|> f a
 
 instance Monoid DrawAttributes where
   mappend = (<>)
   mempty =
     DrawAttributes
-      { _strokeWidth = Last Nothing,
-        _strokeColor = Last Nothing,
+      { _strokeWidth = Nothing,
+        _strokeColor = Nothing,
         _strokeOpacity = Nothing,
-        _strokeLineCap = Last Nothing,
-        _strokeLineJoin = Last Nothing,
-        _strokeMiterLimit = Last Nothing,
-        _fillColor = Last Nothing,
+        _strokeLineCap = Nothing,
+        _strokeLineJoin = Nothing,
+        _strokeMiterLimit = Nothing,
+        _fillColor = Nothing,
         _groupOpacity = Nothing,
         _fillOpacity = Nothing,
-        _fontSize = Last Nothing,
-        _fontFamily = Last Nothing,
-        _fontStyle = Last Nothing,
+        _fontSize = Nothing,
+        _fontFamily = Nothing,
+        _fontStyle = Nothing,
         _transform = Nothing,
-        _fillRule = Last Nothing,
+        _fillRule = Nothing,
         _attrClass = mempty,
         _attrId = Nothing,
-        _strokeOffset = Last Nothing,
-        _strokeDashArray = Last Nothing,
-        _textAnchor = Last Nothing,
-        _maskRef = Last Nothing,
-        _clipPathRef = Last Nothing,
-        _clipRule = Last Nothing,
-        _markerStart = Last Nothing,
-        _markerMid = Last Nothing,
-        _markerEnd = Last Nothing,
-        _filterRef = Last Nothing
+        _strokeOffset = Nothing,
+        _strokeDashArray = Nothing,
+        _textAnchor = Nothing,
+        _maskRef = Nothing,
+        _clipPathRef = Nothing,
+        _clipRule = Nothing,
+        _markerStart = Nothing,
+        _markerMid = Nothing,
+        _markerEnd = Nothing,
+        _filterRef = Nothing
       }
 
 instance WithDefaultSvg DrawAttributes where
