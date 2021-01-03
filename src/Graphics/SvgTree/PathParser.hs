@@ -48,8 +48,12 @@ viewBoxParser = (,,,)
   where
     iParse = num <* skipSpace
 
-serializeViewBox :: (Double, Double, Double, Double) -> String
-serializeViewBox (a, b, c, d) = printf "%s %s %s %s" (ppD a) (ppD b) (ppD c) (ppD d)
+serializeViewBox :: Int -> (Double, Double, Double, Double) -> String
+serializeViewBox precision (a, b, c, d) = printf "%s %s %s %s"
+  (ppD precision a)
+  (ppD precision b)
+  (ppD precision c)
+  (ppD precision d)
 
 commaWsp :: Parser ()
 commaWsp = skipSpace *> option () (string "," $> ()) <* skipSpace
@@ -105,51 +109,51 @@ command =  (MoveTo OriginAbsolute <$ string "M" <*> pointList)
 unwordsS :: [ShowS] -> ShowS
 unwordsS = foldr (.) id . intersperse (showChar ' ')
 
-serializePoint :: RPoint -> ShowS
-serializePoint (V2 x y) = showString (ppD x) . showChar ',' . showString (ppD y)
+serializePoint :: Int -> RPoint -> ShowS
+serializePoint precision (V2 x y) = showString (ppD precision x) . showChar ',' . showString (ppD precision y)
 
-serializePoints :: [RPoint] -> ShowS
-serializePoints = unwordsS . map serializePoint
+serializePoints :: Int -> [RPoint] -> ShowS
+serializePoints precision = unwordsS . map (serializePoint precision)
 
-serializeCoords :: [Coord] -> ShowS
-serializeCoords = unwordsS . fmap (showString . ppD)
+serializeCoords :: Int -> [Coord] -> ShowS
+serializeCoords precision = unwordsS . fmap (showString . ppD precision)
 
-serializePointPair :: (RPoint, RPoint) -> ShowS
-serializePointPair (a, b) = serializePoint a . showChar ' ' . serializePoint b
+serializePointPair :: Int -> (RPoint, RPoint) -> ShowS
+serializePointPair precision (a, b) = serializePoint precision a . showChar ' ' . serializePoint precision b
 
-serializePointPairs :: [(RPoint, RPoint)] -> ShowS
-serializePointPairs = unwordsS . fmap serializePointPair
+serializePointPairs :: Int -> [(RPoint, RPoint)] -> ShowS
+serializePointPairs precision = unwordsS . fmap (serializePointPair precision)
 
-serializePointTriplet :: (RPoint, RPoint, RPoint) -> ShowS
-serializePointTriplet (a, b, c) =
-    serializePoint a . showChar ' ' . serializePoint b . showChar ' ' . serializePoint c
+serializePointTriplet :: Int -> (RPoint, RPoint, RPoint) -> ShowS
+serializePointTriplet precision (a, b, c) =
+    serializePoint precision a . showChar ' ' . serializePoint precision b . showChar ' ' . serializePoint precision c
 
-serializePointTriplets :: [(RPoint, RPoint, RPoint)] -> ShowS
-serializePointTriplets = unwordsS . fmap serializePointTriplet
+serializePointTriplets :: Int -> [(RPoint, RPoint, RPoint)] -> ShowS
+serializePointTriplets precision = unwordsS . fmap (serializePointTriplet precision)
 
-serializeCommands :: [PathCommand] -> ShowS
-serializeCommands = unwordsS . fmap serializeCommand
+serializeCommands :: Int -> [PathCommand] -> ShowS
+serializeCommands precision = unwordsS . fmap (serializeCommand precision)
 
-serializeCommand :: PathCommand -> ShowS
-serializeCommand p = case p of
-  MoveTo OriginAbsolute points -> showChar 'M' . serializePoints points
-  MoveTo OriginRelative points -> showChar 'm' . serializePoints points
-  LineTo OriginAbsolute points -> showChar 'L' . serializePoints points
-  LineTo OriginRelative points -> showChar 'l' . serializePoints points
+serializeCommand :: Int -> PathCommand -> ShowS
+serializeCommand precision p = case p of
+  MoveTo OriginAbsolute points -> showChar 'M' . serializePoints precision points
+  MoveTo OriginRelative points -> showChar 'm' . serializePoints precision points
+  LineTo OriginAbsolute points -> showChar 'L' . serializePoints precision points
+  LineTo OriginRelative points -> showChar 'l' . serializePoints precision points
 
-  HorizontalTo OriginRelative coords -> showChar 'h' . serializeCoords coords
-  HorizontalTo OriginAbsolute coords -> showChar 'H' . serializeCoords coords
-  VerticalTo OriginAbsolute coords   -> showChar 'V' . serializeCoords coords
-  VerticalTo OriginRelative coords   -> showChar 'v' . serializeCoords coords
+  HorizontalTo OriginRelative coords -> showChar 'h' . serializeCoords precision coords
+  HorizontalTo OriginAbsolute coords -> showChar 'H' . serializeCoords precision coords
+  VerticalTo OriginAbsolute coords   -> showChar 'V' . serializeCoords precision coords
+  VerticalTo OriginRelative coords   -> showChar 'v' . serializeCoords precision coords
 
-  CurveTo OriginAbsolute triplets -> showChar 'C' . serializePointTriplets triplets
-  CurveTo OriginRelative triplets -> showChar 'c' . serializePointTriplets triplets
-  SmoothCurveTo OriginAbsolute pointPairs -> showChar 'S' . serializePointPairs pointPairs
-  SmoothCurveTo OriginRelative pointPairs -> showChar 's' . serializePointPairs pointPairs
-  QuadraticBezier OriginAbsolute pointPairs -> showChar 'Q' . serializePointPairs pointPairs
-  QuadraticBezier OriginRelative pointPairs -> showChar 'q' . serializePointPairs pointPairs
-  SmoothQuadraticBezierCurveTo OriginAbsolute points -> showChar 'T' . serializePoints points
-  SmoothQuadraticBezierCurveTo OriginRelative points -> showChar 't' . serializePoints points
+  CurveTo OriginAbsolute triplets -> showChar 'C' . serializePointTriplets precision triplets
+  CurveTo OriginRelative triplets -> showChar 'c' . serializePointTriplets precision triplets
+  SmoothCurveTo OriginAbsolute pointPairs -> showChar 'S' . serializePointPairs precision pointPairs
+  SmoothCurveTo OriginRelative pointPairs -> showChar 's' . serializePointPairs precision pointPairs
+  QuadraticBezier OriginAbsolute pointPairs -> showChar 'Q' . serializePointPairs precision pointPairs
+  QuadraticBezier OriginRelative pointPairs -> showChar 'q' . serializePointPairs precision pointPairs
+  SmoothQuadraticBezierCurveTo OriginAbsolute points -> showChar 'T' . serializePoints precision points
+  SmoothQuadraticBezierCurveTo OriginRelative points -> showChar 't' . serializePoints precision points
   EllipticalArc OriginAbsolute args -> showChar 'A' . serializeArgs args
   EllipticalArc OriginRelative args -> showChar 'a' . serializeArgs args
   EndPath -> showChar 'Z'
@@ -157,7 +161,13 @@ serializeCommand p = case p of
     serializeArg (a, b, c, d, e, V2 x y) =
         showString $
         printf "%s %s %s %d %d %s,%s"
-          (ppD a) (ppD b) (ppD c) (fromEnum d) (fromEnum e) (ppD x) (ppD y)
+          (ppD precision a)
+          (ppD precision b)
+          (ppD precision c)
+          (fromEnum d)
+          (fromEnum e)
+          (ppD precision x)
+          (ppD precision y)
     serializeArgs = unwordsS . fmap serializeArg
 
 
@@ -248,15 +258,15 @@ gradientCommand =
                  <*> (point <* commaWsp)
                  <*> mayPoint
 
-serializeGradientCommand :: GradientPathCommand -> ShowS
-serializeGradientCommand p = case p of
+serializeGradientCommand :: Int -> GradientPathCommand -> ShowS
+serializeGradientCommand precision p = case p of
   GLine OriginAbsolute points -> showChar 'L' . smp points
   GLine OriginRelative points -> showChar 'l' . smp points
   GClose                      -> showChar 'Z'
 
-  GCurve OriginAbsolute a b c -> showChar 'C' . sp a . sp b . smp c
-  GCurve OriginRelative a b c -> showChar 'c' . sp a . sp b . smp c
+  GCurve OriginAbsolute a b c -> showChar 'C' . sp precision a . sp precision b . smp c
+  GCurve OriginRelative a b c -> showChar 'c' . sp precision a . sp precision b . smp c
   where
     sp = serializePoint
     smp Nothing   = id
-    smp (Just pp) = serializePoint pp
+    smp (Just pp) = serializePoint precision pp

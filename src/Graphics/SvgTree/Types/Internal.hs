@@ -549,36 +549,36 @@ data Transformation
 
 -- | Convert the Transformation to a string which can be
 -- directly used in a svg attributes.
-serializeTransformation :: Transformation -> String
-serializeTransformation t = case t of
+serializeTransformation :: Int -> Transformation -> String
+serializeTransformation precision t = case t of
   TransformUnknown -> ""
   TransformMatrix a b c d e f ->
     printf
       "matrix(%s, %s, %s, %s, %s, %s)"
-      (ppD a)
-      (ppD b)
-      (ppD c)
-      (ppD d)
-      (ppD e)
-      (ppD f)
-  Translate x y -> printf "translate(%s, %s)" (ppD x) (ppD y)
-  Scale x Nothing -> printf "scale(%s)" (ppD x)
-  Scale x (Just y) -> printf "scale(%s, %s)" (ppD x) (ppD y)
-  Rotate angle Nothing -> printf "rotate(%s)" (ppD angle)
+      (ppD precision a)
+      (ppD precision b)
+      (ppD precision c)
+      (ppD precision d)
+      (ppD precision e)
+      (ppD precision f)
+  Translate x y -> printf "translate(%s, %s)" (ppD precision x) (ppD precision y)
+  Scale x Nothing -> printf "scale(%s)" (ppD precision x)
+  Scale x (Just y) -> printf "scale(%s, %s)" (ppD precision x) (ppD precision y)
+  Rotate angle Nothing -> printf "rotate(%s)" (ppD precision angle)
   Rotate angle (Just (x, y)) ->
     printf
       "rotate(%s, %s, %s)"
-      (ppD angle)
-      (ppD x)
-      (ppD y)
-  SkewX x -> printf "skewX(%s)" (ppD x)
-  SkewY y -> printf "skewY(%s)" (ppD y)
+      (ppD precision angle)
+      (ppD precision x)
+      (ppD precision y)
+  SkewX x -> printf "skewX(%s)" (ppD precision x)
+  SkewY y -> printf "skewY(%s)" (ppD precision y)
 
 -- | Transform a list of transformations to a string for svg
 -- `transform` attributes.
-serializeTransformations :: [Transformation] -> String
-serializeTransformations =
-  unwords . fmap serializeTransformation
+serializeTransformations :: Int -> [Transformation] -> String
+serializeTransformations precision =
+  unwords . fmap (serializeTransformation precision)
 
 -- | Define an empty 'default' element for the SVG tree.
 -- It is used as base when parsing the element from XML.

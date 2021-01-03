@@ -55,9 +55,9 @@ parseSvg inp =
     Just xml -> unparse xml
 
 -- | Save a svg Document on a file on disk.
-saveXmlFile :: FilePath -> Document -> IO ()
-saveXmlFile filePath =
-  writeFile filePath . ppcTopElement prettyConfigPP . xmlOfDocument
+saveXmlFile :: Int -> FilePath -> Document -> IO ()
+saveXmlFile precision filePath =
+  writeFile filePath . ppcTopElement prettyConfigPP . xmlOfDocument precision
 
 cssDeclApplyer ::
   DrawAttributes ->

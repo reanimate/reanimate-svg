@@ -210,20 +210,23 @@ mapNumber f nu = case nu of
 
 -- | Encode the number to string which can be used in a
 -- CSS or a svg attributes.
-serializeNumber :: Number -> String
-serializeNumber n = case n of
-    Num c     -> ppD c
-    Px c      -> printf "%spx" (ppD c)
-    Em cc     -> printf "%sem" (ppD cc)
+serializeNumber :: Int -> Number -> String
+serializeNumber precision n = case n of
+    Num c     -> ppD precision c
+    Px c      -> printf "%spx" (ppD precision c)
+    Em cc     -> printf "%sem" (ppD precision cc)
     Percent p -> printf "%d%%" (floor $ 100 * p :: Int)
-    Pc p      -> printf "%spc" (ppD p)
-    Mm m      -> printf "%smm" (ppD m)
-    Cm c      -> printf "%scm" (ppD c)
-    Point p   -> printf "%spt" (ppD p)
-    Inches i  -> printf "%sin" (ppD i)
+    Pc p      -> printf "%spc" (ppD precision p)
+    Mm m      -> printf "%smm" (ppD precision m)
+    Cm c      -> printf "%scm" (ppD precision c)
+    Point p   -> printf "%spt" (ppD precision p)
+    Inches i  -> printf "%sin" (ppD precision i)
+
+hardcodedPrecision :: Int
+hardcodedPrecision = 6
 
 instance TextBuildable Number where
-   tserialize = TB.fromText . T.pack . serializeNumber
+   tserialize = TB.fromText . T.pack . serializeNumber hardcodedPrecision
 
 -- | Value of a CSS property.
 data CssElement

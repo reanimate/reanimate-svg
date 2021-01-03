@@ -11,15 +11,12 @@ import           Data.Double.Conversion.Text
 import qualified Data.Text                   as T
 #endif
 
-precision :: Int
-precision = 6
-
-ppD :: Double -> String
+ppD :: Int -> Double -> String
 #if defined(ASTERIUS) || defined(ghcjs_HOST_OS)
-ppD v = showFFloat (Just precision) v ""
+ppD precision v = showFFloat (Just precision) v ""
 #else
-ppD = T.unpack . T.dropWhileEnd (== '.') . T.dropWhileEnd (== '0') . toFixed precision
+ppD precision = T.unpack . T.dropWhileEnd (== '.') . T.dropWhileEnd (== '0') . toFixed precision
 #endif
 
-ppF :: Float -> String
-ppF = ppD . realToFrac
+ppF :: Int -> Float -> String
+ppF precision = ppD precision . realToFrac

@@ -39,6 +39,9 @@ import           Text.XML.Light.Proc          (elChildren, findAttrBy)
 
 import           Text.Printf                  (printf)
 
+hardcodedPrecision :: Int
+hardcodedPrecision = 6
+
 {-import Debug.Trace-}
 
 nodeName :: X.Element -> String
@@ -55,59 +58,59 @@ attributeFinder str =
 -- for various attributes.
 class ParseableAttribute a where
   aparse :: String -> Maybe a
-  aserialize :: a -> Maybe String
+  aserialize :: Int -> a -> Maybe String
 
 instance ParseableAttribute v => ParseableAttribute (Maybe v) where
   aparse = fmap Just . aparse
-  aserialize = (>>= aserialize)
+  aserialize precision = (>>= aserialize precision)
 
 instance ParseableAttribute String where
   aparse = Just
-  aserialize = Just
+  aserialize _ = Just
 
 instance ParseableAttribute Number where
   aparse = parseMayStartDot complexNumber
-  aserialize = Just . serializeNumber
+  aserialize precision = Just . serializeNumber precision
 
 instance ParseableAttribute [Number] where
   aparse = parse dashArray
-  aserialize = Just . serializeDashArray
+  aserialize precision = Just . serializeDashArray precision
 
 instance ParseableAttribute [Double] where
   aparse = parse numberList
-  aserialize = Just . serializeDashArray . map Num
+  aserialize precision = Just . serializeDashArray precision . map Num
 
 instance ParseableAttribute PixelRGBA8 where
   aparse = parse colorParser
-  aserialize = Just . colorSerializer
+  aserialize _ = Just . colorSerializer
 
 instance ParseableAttribute [PathCommand] where
   aparse = parse pathParser
-  aserialize v = Just $ serializeCommands v ""
+  aserialize precision v = Just $ serializeCommands precision v ""
 
 instance ParseableAttribute GradientPathCommand where
   aparse = parse gradientCommand
-  aserialize v = Just $ serializeGradientCommand v ""
+  aserialize precision v = Just $ serializeGradientCommand precision v ""
 
 instance ParseableAttribute [RPoint] where
   aparse = parse pointData
-  aserialize v = Just $ serializePoints v ""
+  aserialize precision v = Just $ serializePoints precision v ""
 
 instance ParseableAttribute Double where
   aparse = parseMayStartDot num
-  aserialize v = Just $ printf "%s" (ppD v)
+  aserialize precision v = Just $ printf "%s" (ppD precision v)
 
 instance ParseableAttribute Int where
   aparse = fmap (round :: Double -> Int) . aparse
-  aserialize v = Just $ printf "%d" v
+  aserialize _ v = Just $ printf "%d" v
 
 instance ParseableAttribute Texture where
   aparse = parse textureParser
-  aserialize = Just . textureSerializer
+  aserialize _ = Just . textureSerializer
 
 instance ParseableAttribute [Transformation] where
   aparse = parse $ many transformParser
-  aserialize = Just . serializeTransformations
+  aserialize precision = Just . serializeTransformations precision
 
 instance ParseableAttribute Alignment where
   aparse s = Just $ case s of
@@ -123,7 +126,7 @@ instance ParseableAttribute Alignment where
     "xMaxYMax" -> AlignxMaxYMax
     _          -> _aspectRatioAlign defaultSvg
 
-  aserialize v = Just $ case v of
+  aserialize _ v = Just $ case v of
     AlignNone     -> "none"
     AlignxMinYMin -> "xMinYMin"
     AlignxMidYMin -> "xMidYMin"
@@ -141,7 +144,7 @@ instance ParseableAttribute MeshGradientType where
     "bicubic"  -> GradientBicubic
     _          -> GradientBilinear
 
-  aserialize v = Just $ case v of
+  aserialize _ v = Just $ case v of
     GradientBilinear -> "bilinear"
     GradientBicubic  -> "bicubic"
 
@@ -151,15 +154,15 @@ instance ParseableAttribute MeetSlice where
     "slice" -> Just Slice
     _       -> Nothing
 
-  aserialize v = Just $ case v of
+  aserialize _ v = Just $ case v of
     Meet  -> "meet"
     Slice -> "slice"
 
 instance ParseableAttribute PreserveAspectRatio where
-  aserialize v = Just $ defer <> align <> meetSlice where
+  aserialize precision v = Just $ defer <> align <> meetSlice where
     defer = if _aspectRatioDefer v then "defer " else ""
-    align = fromMaybe "" . aserialize $ _aspectRatioAlign v
-    meetSlice = fromMaybe "" $ aserialize =<< _aspectRatioMeetSlice v
+    align = fromMaybe "" . aserialize precision $ _aspectRatioAlign v
+    meetSlice = fromMaybe "" $ aserialize precision =<< _aspectRatioMeetSlice v
 
   aparse s = case words s of
       [] -> Nothing
@@ -191,7 +194,7 @@ instance ParseableAttribute Cap where
     "square" -> Just CapSquare
     _        -> Nothing
 
-  aserialize c = Just $ case c of
+  aserialize _ c = Just $ case c of
     CapButt   -> "butt"
     CapRound  -> "round"
     CapSquare -> "square"
@@ -203,7 +206,7 @@ instance ParseableAttribute TextAnchor where
     "end"    -> Just TextAnchorEnd
     _        -> Nothing
 
-  aserialize t = Just $ case t of
+  aserialize _ t = Just $ case t of
     TextAnchorMiddle -> "middle"
     TextAnchorStart  -> "start"
     TextAnchorEnd    -> "end"
@@ -216,7 +219,7 @@ instance ParseableAttribute ElementRef where
       pa = (RefNone <$ string "none")
         <|> (Ref <$> urlRef)
 
-  aserialize c = Just $ case c of
+  aserialize _ c = Just $ case c of
     Ref r   -> "url(#" <> r <> ")"
     RefNone -> "none"
 
@@ -227,7 +230,7 @@ instance ParseableAttribute LineJoin where
     "bevel" -> Just JoinBevel
     _       -> Nothing
 
-  aserialize j = Just $ case j of
+  aserialize _ j = Just $ case j of
     JoinMiter -> "miter"
     JoinRound -> "round"
     JoinBevel -> "bevel"
@@ -238,7 +241,7 @@ instance ParseableAttribute CoordinateUnits where
     "objectBoundingBox" -> Just CoordBoundingBox
     _                   -> Just CoordBoundingBox
 
-  aserialize uni = Just $ case uni of
+  aserialize _ uni = Just $ case uni of
     CoordUserSpace   -> "userSpaceOnUse"
     CoordBoundingBox -> "objectBoundingBox"
 
@@ -249,7 +252,7 @@ instance ParseableAttribute Spread where
     "repeat"  -> Just SpreadRepeat
     _         -> Nothing
 
-  aserialize s = Just $ case s of
+  aserialize _ s = Just $ case s of
     SpreadPad     -> "pad"
     SpreadReflect -> "reflect"
     SpreadRepeat  -> "repeat"
@@ -260,7 +263,7 @@ instance ParseableAttribute FillRule where
     "evenodd" -> Just FillEvenOdd
     _         -> Nothing
 
-  aserialize f = Just $ case f of
+  aserialize _ f = Just $ case f of
     FillNonZero -> "nonzero"
     FillEvenOdd -> "evenodd"
 
@@ -270,7 +273,7 @@ instance ParseableAttribute TextAdjust where
     "spacingAndGlyphs" -> TextAdjustSpacingAndGlyphs
     _                  -> TextAdjustSpacing
 
-  aserialize a = Just $ case a of
+  aserialize _ a = Just $ case a of
     TextAdjustSpacing          -> "spacing"
     TextAdjustSpacingAndGlyphs -> "spacingAndGlyphs"
 
@@ -280,7 +283,7 @@ instance ParseableAttribute MarkerUnit where
     "userSpaceOnUse" -> Just MarkerUnitUserSpaceOnUse
     _                -> Nothing
 
-  aserialize u = Just $ case u of
+  aserialize _ u = Just $ case u of
     MarkerUnitStrokeWidth    -> "strokeWidth"
     MarkerUnitUserSpaceOnUse -> "userSpaceOnUse"
 
@@ -290,7 +293,7 @@ instance ParseableAttribute Overflow where
     "hidden"  -> Just OverflowHidden
     _         -> Nothing
 
-  aserialize u = Just $ case u of
+  aserialize _ u = Just $ case u of
     OverflowVisible -> "visible"
     OverflowHidden  -> "hidden"
 
@@ -300,20 +303,20 @@ instance ParseableAttribute MarkerOrientation where
     (_, Just f) -> Just $ OrientationAngle f
     _           -> Nothing
 
-  aserialize s = Just $ case s of
+  aserialize _ s = Just $ case s of
     OrientationAuto    -> "auto"
     OrientationAngle f -> show f
 
 instance ParseableAttribute (Double, Double, Double, Double) where
   aparse = parse viewBoxParser
-  aserialize = Just . serializeViewBox
+  aserialize precision = Just . serializeViewBox precision
 
 instance ParseableAttribute TextPathMethod where
   aparse s = case s of
     "align"   -> Just TextPathAlign
     "stretch" -> Just TextPathStretch
     _         -> Nothing
-  aserialize m = Just $ case m of
+  aserialize _ m = Just $ case m of
     TextPathAlign   -> "align"
     TextPathStretch -> "stretch"
 
@@ -323,7 +326,7 @@ instance ParseableAttribute TextPathSpacing where
     "exact" -> Just TextPathSpacingExact
     _       -> Nothing
 
-  aserialize s = Just $ case s of
+  aserialize _ s = Just $ case s of
     TextPathSpacingAuto  -> "auto"
     TextPathSpacingExact -> "exact"
 
@@ -337,7 +340,7 @@ instance ParseableAttribute CompositeOperator where
     "arithmetic" -> Just CompositeArithmetic
     _            -> Nothing
 
-  aserialize v = Just $ case v of
+  aserialize _ v = Just $ case v of
     CompositeOver       -> "over"
     CompositeIn         -> "in"
     CompositeOut        -> "out"
@@ -355,7 +358,7 @@ instance ParseableAttribute FilterSource where
     "StrokePaint"     -> StrokePaint
     _                 -> SourceRef s
 
-  aserialize v = Just $ case v of
+  aserialize _ v = Just $ case v of
     SourceGraphic   -> "SourceGraphic"
     SourceAlpha     -> "SourceAlpha"
     BackgroundImage -> "BackgroundImage"
@@ -373,7 +376,7 @@ instance ParseableAttribute FuncType where
     "gamma"    -> Just FGamma
     _          -> Nothing
 
-  aserialize v = Just $ case v of
+  aserialize _ v = Just $ case v of
     FIdentity -> "identity"
     FTable    -> "table"
     FDiscrete -> "discrete"
@@ -400,7 +403,7 @@ instance ParseableAttribute BlendMode where
     "luminosity"  -> Just Luminosity
     _             -> Nothing
 
-  aserialize v = Just $ case v of
+  aserialize _ v = Just $ case v of
     Normal     -> "normal"
     Multiply   -> "multiply"
     Screen     -> "screen"
@@ -427,7 +430,7 @@ instance ParseableAttribute ColorMatrixType where
     "luminanceToAlpha" -> Just LuminanceToAlpha
     _                  -> Nothing
 
-  aserialize v = Just $ case v of
+  aserialize _ v = Just $ case v of
     Matrix           -> "matrix"
     Saturate         -> "saturate"
     HueRotate        -> "hueRotate"
@@ -439,7 +442,7 @@ instance ParseableAttribute StitchTiles where
     "stitch"   -> Just Stitch
     _          -> Nothing
 
-  aserialize v = Just $ case v of
+  aserialize _ v = Just $ case v of
     NoStitch -> "noStitch"
     Stitch   -> "stitch"
 
@@ -449,7 +452,7 @@ instance ParseableAttribute TurbulenceType where
     "turbulence"   -> Just TurbulenceType
     _              -> Nothing
 
-  aserialize v = Just $ case v of
+  aserialize _ v = Just $ case v of
     FractalNoiseType -> "fractalNoise"
     TurbulenceType   -> "turbulence"
 
@@ -461,7 +464,7 @@ instance ParseableAttribute ChannelSelector where
     "A" -> Just ChannelA
     _   -> Nothing
 
-  aserialize v = Just $ case v of
+  aserialize _ v = Just $ case v of
     ChannelR -> "R"
     ChannelG -> "G"
     ChannelB -> "B"
@@ -478,7 +481,7 @@ instance ParseableAttribute OperatorType where
     "arithmetic" -> Just OperatorArithmetic
     _            -> Nothing
 
-  aserialize v = Just $ case v of
+  aserialize _ v = Just $ case v of
     OperatorOver       -> "over"
     OperatorIn         -> "in"
     OperatorOut        -> "out"
@@ -491,7 +494,7 @@ instance ParseableAttribute NumberOptionalNumber where
   aparse s = case s of
     _  -> Nothing                                        -- TODO
 
-  aserialize v = Just $ case v of
+  aserialize _ v = Just $ case v of
     Num1 a   -> show a
     Num2 a b -> show a ++ ", " ++ show b
 
@@ -501,7 +504,7 @@ instance ParseableAttribute Bool where
     "true"  -> Just True
     _       -> Nothing
 
-  aserialize v = Just $ case v of
+  aserialize _ v = Just $ case v of
     False -> "false"
     True  -> "true"
 
@@ -512,7 +515,7 @@ instance ParseableAttribute EdgeMode where
     "none"      -> Just EdgeNone
     _           -> Nothing
 
-  aserialize v = Just $ case v of
+  aserialize _ v = Just $ case v of
     EdgeDuplicate -> "duplicate"
     EdgeWrap      -> "wrap"
     EdgeNone      -> "none"
@@ -523,8 +526,8 @@ instance ParseableAttribute (Number, Maybe Number) where
     Just [x,y] -> Just (x, Just y)
     _          -> Nothing
 
-  aserialize (x, Nothing)  = aserialize [x]
-  aserialize (x, Just y) = aserialize [x, y]
+  aserialize precision (x, Nothing)  = aserialize precision [x]
+  aserialize precision (x, Just y) = aserialize precision [x, y]
 
 instance ParseableAttribute (Double, Maybe Double) where
   aparse s = case aparse s of
@@ -532,8 +535,8 @@ instance ParseableAttribute (Double, Maybe Double) where
     Just [x,y] -> Just (x, Just y)
     _          -> Nothing
 
-  aserialize (x, Nothing)  = aserialize [x]
-  aserialize (x, Just y) = aserialize [x, y]
+  aserialize precision (x, Nothing)  = aserialize precision [x]
+  aserialize precision (x, Just y) = aserialize precision [x, y]
 
 parse :: Parser a -> String -> Maybe a
 parse p str = case parseOnly p (T.pack str) of
@@ -616,7 +619,7 @@ opacitySetter :: String -> Lens' a (Maybe Float) -> SvgAttributeLens a
 opacitySetter attribute elLens =
     SvgAttributeLens attribute updater serializer
   where
-    serializer a = printf "%s" . ppF <$> a ^. elLens
+    serializer a = printf "%s" . ppF hardcodedPrecision <$> a ^. elLens
     updater el str = case parseMayStartDot num str of
         Nothing -> el
         Just v  -> el & elLens ?~ realToFrac v
@@ -644,7 +647,7 @@ parseIn attribute elLens =
         Just v  -> el & elLens .~ v
 
     serializer a
-      | v /= defaultVal = aserialize v
+      | v /= defaultVal = aserialize hardcodedPrecision v
       | otherwise = Nothing
       where
         v = a ^. elLens
@@ -786,9 +789,9 @@ drawAttributesList =
     commaSeparate =
         fmap (T.unpack . T.strip) . T.split (',' ==) . T.pack
 
-serializeDashArray :: [Number] -> String
-serializeDashArray =
-   intercalate ", " . fmap serializeNumber
+serializeDashArray :: Int -> [Number] -> String
+serializeDashArray p =
+   intercalate ", " . fmap (serializeNumber p)
 
 instance XMLUpdatable DrawAttributes where
   xmlTagName _ = "DRAWATTRIBUTES"
@@ -975,7 +978,7 @@ instance XMLUpdatable Tree where
        pathNode <- serializeTreeNode p
        let sub = [X.Elem . setChildren pathNode $ X.elContent textNode]
        return $ setChildren textNode sub
-    SvgNode doc -> Just $ xmlOfDocument doc
+    SvgNode doc -> Just $ xmlOfDocument hardcodedPrecision doc
 
 
 isNotNone :: Tree -> Bool
@@ -1280,11 +1283,11 @@ instance XMLUpdatable TextInfo where
     ]
     where
       dashNotEmpty []  = Nothing
-      dashNotEmpty lst = Just $ serializeDashArray lst
+      dashNotEmpty lst = Just $ serializeDashArray hardcodedPrecision lst
 
       rotateNotEmpty [] = Nothing
       rotateNotEmpty lst =
-          Just . unwords $ printf "%s" . ppD <$> lst
+          Just . unwords $ printf "%s" . ppD hardcodedPrecision <$> lst
 
 
 instance XMLUpdatable TextPath where
@@ -1584,8 +1587,8 @@ unparseDocument rootLocation e@(nodeName -> "svg") = Just Document
 unparseDocument _ _ = Nothing
 
 -- | Transform a SVG document to a XML node.
-xmlOfDocument :: Document -> X.Element
-xmlOfDocument doc =
+xmlOfDocument :: Int -> Document -> X.Element
+xmlOfDocument precision doc =
     X.node (X.unqual "svg") (attrs, descTag ++ children)
   where
     attr name = X.Attr (X.unqual name)
@@ -1593,7 +1596,7 @@ xmlOfDocument doc =
 
     docViewBox = case _documentViewBox doc of
         Nothing -> []
-        Just b  -> [attr "viewBox" $ serializeViewBox b]
+        Just b  -> [attr "viewBox" $ serializeViewBox precision b]
 
     descTag = case _documentDescription doc of
         ""  -> []
@@ -1604,10 +1607,10 @@ xmlOfDocument doc =
         [attr "xmlns" "http://www.w3.org/2000/svg"
         ,attr "xmlns:xlink" "http://www.w3.org/1999/xlink"
         ,attr "version" "1.1"] ++
-        catMaybes [attr "width" . serializeNumber <$> _documentWidth doc
-                  ,attr "height" . serializeNumber <$> _documentHeight doc
+        catMaybes [attr "width" . serializeNumber precision <$> _documentWidth doc
+                  ,attr "height" . serializeNumber precision <$> _documentHeight doc
                   ] ++
-        catMaybes [attr "preserveAspectRatio" <$>  aserialize (_documentAspectRatio doc)
+        catMaybes [attr "preserveAspectRatio" <$>  aserialize precision (_documentAspectRatio doc)
                   | _documentAspectRatio doc /= defaultSvg ]
 
 xmlOfTree :: Tree -> Maybe X.Element
