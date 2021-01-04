@@ -126,4 +126,4 @@ lowerHashValues [] = []
 -- Parse and print SVG with reanimate-svg library.
 cycleSvg :: String -> String
 cycleSvg =
-  maybe "Failed to parse" ppDocument . parseSvgFile "input" . T.pack
+  maybe "Failed to parse" (ppDocument 6) . parseSvgFile "input" . T.pack
