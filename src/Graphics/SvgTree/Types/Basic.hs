@@ -21,7 +21,7 @@ type RPoint = V2 Coord
 type Point = (Number, Number)
 
 -- | Tell if a path command is absolute (in the current
--- user coordiante) or relative to the previous poitn.
+-- user coordiante) or relative to the previous point.
 data Origin
   = OriginAbsolute -- ^ Next point in absolute coordinate
   | OriginRelative -- ^ Next point relative to the previous
@@ -87,7 +87,7 @@ data Texture
   | FillNone              -- ^ Equivalent to the `none` value.
   deriving (Eq, Show, Generic)
 
--- | Describe the possile filling algorithms.
+-- | Describe the possible filling algorithms.
 -- Map the values of the `fill-rule` attributes.
 data FillRule
     = FillEvenOdd -- ^ Correspond to the `evenodd` value.
