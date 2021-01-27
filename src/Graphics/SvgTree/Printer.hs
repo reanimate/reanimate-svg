@@ -10,9 +10,9 @@ import Graphics.SvgTree.Types hiding (Element)
 import Graphics.SvgTree.XmlParser
 import Text.XML.Light hiding (showAttr)
 
-ppDocument :: Document -> String
-ppDocument doc =
-  ppElementS_ (_documentElements doc) (xmlOfDocument doc) ""
+ppDocument :: Int -> Document -> String
+ppDocument precision doc =
+  ppElementS_ (_documentElements doc) (xmlOfDocument precision doc) ""
 
 ppTree :: Tree -> String
 ppTree t = ppTreeS t ""
