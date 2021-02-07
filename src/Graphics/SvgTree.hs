@@ -54,7 +54,7 @@ parseSvg inp =
     Nothing -> error "Invalid XML"
     Just xml -> unparse xml
 
--- | Save a svg Document on a file on disk.
+-- | Save a svg Document to a file on disk.
 saveXmlFile :: FilePath -> Document -> IO ()
 saveXmlFile filePath =
   writeFile filePath . ppcTopElement prettyConfigPP . xmlOfDocument

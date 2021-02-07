@@ -12,8 +12,8 @@ appNode [] e           = [[e]]
 appNode (curr:above) e = (e:curr) : above
 
 -- | Map a tree while propagating context information.
--- The function passed in parameter receive a list
--- representing the the path used to go arrive to the
+-- The function passed in parameter receives a list
+-- representing the path used to go arrive to the
 -- current node.
 zipTree :: ([[Tree]] -> Tree) -> Tree -> Tree
 zipTree f = dig [] where
