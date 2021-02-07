@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-orphans -O0 #-}
 
 module Graphics.SvgTree.Types.Hashable where
@@ -196,7 +195,7 @@ instance WithDefaultSvg Tree where
   defaultSvg = Tree NoNode
 
 unpack :: Tree -> TreeBranch
-unpack t = (_treeBranch t)
+unpack = _treeBranch
 
 pattern Tree :: TreeBranch -> Tree
 pattern Tree branch <-

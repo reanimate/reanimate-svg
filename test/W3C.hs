@@ -67,7 +67,7 @@ sortTestCases = do
   forM_ goodFiles $ \file -> when (takeExtension file == ".svg") $ do
     -- putStrLn $ "Processing: " ++ ("test/good" </> file)
     passed <- checkCycled ("test/good" </> file)
-    when (not passed) $ do
+    unless passed $ do
       putStrLn $ "Marking bad: " ++ file
       renameFile ("test/good" </> file) ("test/bad" </> file)
   forM_ badFiles $ \file -> when (takeExtension file == ".svg") $ do

@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE OverloadedStrings #-}
--- | Define the types used to describes CSS elements
+-- | Defines the types used to describes CSS elements
 module Graphics.SvgTree.CssTypes
   ( CssSelector( .. )
   , CssSelectorRule
@@ -41,7 +41,7 @@ class TextBuildable a where
     -- | Serialize an element to a text builder.
     tserialize :: a -> TB.Builder
 
--- | Describe an element of a CSS selector. Multiple
+-- | Describes an element of a CSS selector. Multiple
 -- elements can be combined in a CssSelector type.
 data CssDescriptor
   = OfClass T.Text    -- ^ .IDENT
@@ -64,10 +64,10 @@ instance TextBuildable CssDescriptor where
       ft = TB.fromText
       si = TB.singleton
 
--- | Define complex selector.
+-- | Defines complex selector.
 data CssSelector
-  = Nearby          -- ^ Correspond to the `+` CSS selector.
-  | DirectChildren  -- ^ Correspond to the `>` CSS selectro.
+  = Nearby          -- ^ Corresponds to the `+` CSS selector.
+  | DirectChildren  -- ^ Corresponds to the `>` CSS selectro.
   | AllOf [CssDescriptor] -- ^ Grouping construct, all the elements
                           -- of the list must be matched.
   deriving (Eq, Show)
@@ -81,13 +81,13 @@ instance TextBuildable CssSelector where
       si = TB.singleton
 
 -- | A CssSelectorRule is a list of all the elements
--- that must be meet in a depth first search fashion.
+-- that must be met in a depth first search fashion.
 type CssSelectorRule = [CssSelector]
 
--- | Represent a CSS selector and the different declarations
+-- | Represents a CSS selector and the different declarations
 -- to apply to the matched elemens.
 data CssRule = CssRule
-    { -- | At the first level represent a list of elements
+    { -- | At the first level represents a list of elements
       -- to be matched. If any match is made, you can apply
       -- the declarations. At the second level
       cssRuleSelector :: ![CssSelectorRule]
@@ -122,7 +122,7 @@ class CssMatcheable a where
   -- | Return a value of a given attribute if present
   cssAttribOf :: a -> T.Text -> Maybe T.Text
 
--- | Represent a zipper in depth at the first list
+-- | Represents a zipper in depth at the first list
 -- level, and the previous nodes at in the second
 -- list level.
 type CssContext a = [[a]]
@@ -152,7 +152,7 @@ isMatching = go where
     | otherwise = go upper selectors
   go (_:upper) selector = go upper selector
 
--- | Given CSS rules, find all the declaration to apply to the
+-- | Given CSS rules, find all the declarations to apply to the
 -- element in a given context.
 findMatchingDeclarations :: CssMatcheable a
                          => [CssRule] -> CssContext a -> [CssDeclaration]
@@ -162,7 +162,7 @@ findMatchingDeclarations rules context =
                     , selector <- cssRuleSelector rule
                     , isMatching context $ reverse selector ]
 
--- | Represent the content to apply to some
+-- | Represents the content to apply to some
 -- CSS matched rules.
 data CssDeclaration = CssDeclaration
     { -- | Property name to change (like font-family or color).
@@ -181,7 +181,7 @@ instance TextBuildable CssDeclaration where
       si = TB.singleton
 
 
--- | Encode complex number possibly dependant to the current
+-- | Encode complex number possibly depending on the current
 -- render size.
 data Number
   = Num Double       -- ^ Simple coordinate in current user coordinate.
@@ -253,9 +253,9 @@ instance TextBuildable CssElement where
       ft = TB.fromText
       si = TB.singleton
 
--- | This function replace all device dependant units to user
--- units given it's DPI configuration.
--- Preserve percentage and "em" notation.
+-- | This function replaces all device dependant units with user
+-- units given its DPI configuration.
+-- Preserves percentage and "em" notation.
 toUserUnit :: Dpi -> Number -> Number
 toUserUnit dpi = go where
   go nu = case nu of
