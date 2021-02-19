@@ -1,5 +1,13 @@
 -*-change-log-*-
 
+v0.12.2.2
+
+ * Update dependencies.
+
+v0.12.0.0
+
+ * Improve filter-element support.
+
 v0.11.0.0
 
  * Drop support for GHC 7.
