@@ -25,7 +25,6 @@ import           Control.Lens.Unsound
 import           Data.Attoparsec.Text         (Parser, parseOnly, string)
 import           Data.List                    (foldl', intercalate)
 import           Data.Maybe                   (catMaybes, fromMaybe)
-import           Data.Monoid
 import qualified Data.Text                    as T
 import           Graphics.SvgTree.ColorParser
 import           Graphics.SvgTree.CssParser   (complexNumber, dashArray, num,
@@ -61,10 +60,6 @@ class ParseableAttribute a where
 instance ParseableAttribute v => ParseableAttribute (Maybe v) where
   aparse = fmap Just . aparse
   aserialize = (>>= aserialize)
-
-instance ParseableAttribute v => ParseableAttribute (Last v) where
-  aparse = fmap Last . aparse
-  aserialize = aserialize . getLast
 
 instance ParseableAttribute String where
   aparse = Just
@@ -522,23 +517,23 @@ instance ParseableAttribute EdgeMode where
     EdgeWrap      -> "wrap"
     EdgeNone      -> "none"
 
-instance ParseableAttribute (Number, Last Number) where
+instance ParseableAttribute (Number, Maybe Number) where
   aparse s = case aparse s of
-    Just [x]   -> Just (x, Last Nothing)
-    Just [x,y] -> Just (x, Last (Just y))
+    Just [x]   -> Just (x, Nothing)
+    Just [x,y] -> Just (x, Just y)
     _          -> Nothing
 
-  aserialize (x, Last Nothing)  = aserialize [x]
-  aserialize (x, Last (Just y)) = aserialize [x, y]
+  aserialize (x, Nothing)  = aserialize [x]
+  aserialize (x, Just y) = aserialize [x, y]
 
-instance ParseableAttribute (Double, Last Double) where
+instance ParseableAttribute (Double, Maybe Double) where
   aparse s = case aparse s of
-    Just [x]   -> Just (x, Last Nothing)
-    Just [x,y] -> Just (x, Last (Just y))
+    Just [x]   -> Just (x, Nothing)
+    Just [x,y] -> Just (x, Just y)
     _          -> Nothing
 
-  aserialize (x, Last Nothing)  = aserialize [x]
-  aserialize (x, Last (Just y)) = aserialize [x, y]
+  aserialize (x, Nothing)  = aserialize [x]
+  aserialize (x, Just y) = aserialize [x, y]
 
 parse :: Parser a -> String -> Maybe a
 parse p str = case parseOnly p (T.pack str) of
@@ -655,16 +650,16 @@ parseIn attribute elLens =
         v = a ^. elLens
         defaultVal = defaultSvg ^. elLens
 
-parserLastSetter :: String -> Lens' a (Last e) -> (String -> Maybe e) -> Serializer e
+parserMaybeSetter :: String -> Lens' a (Maybe e) -> (String -> Maybe e) -> Serializer e
                  -> SvgAttributeLens a
-parserLastSetter attribute elLens parser serialize =
+parserMaybeSetter attribute elLens parser serialize =
     SvgAttributeLens attribute updater serializer
   where
     updater el str = case parser str of
         Nothing -> el
-        Just v  -> el & elLens .~ Last (Just v)
+        Just v  -> el & elLens ?~ v
 
-    serializer a = getLast (a ^. elLens) >>= serialize
+    serializer a = (a ^. elLens) >>= serialize
 
 classSetter :: SvgAttributeLens DrawAttributes
 classSetter = SvgAttributeLens "class" updater serializer
@@ -677,10 +672,10 @@ classSetter = SvgAttributeLens "class" updater serializer
       lst -> Just . T.unpack $ T.intercalate " " lst
 
 cssUniqueNumber :: ASetter el el
-                   a (Last Number)
+                   a (Maybe Number)
                 -> CssUpdater el
 cssUniqueNumber setter attr ((CssNumber n:_):_) =
-    attr & setter .~ Last (Just n)
+    attr & setter ?~ n
 cssUniqueNumber _ attr _ = attr
 
 cssUniqueFloat :: (Fractional n)
@@ -690,10 +685,10 @@ cssUniqueFloat setter attr ((CssNumber (Num n):_):_) =
     attr & setter ?~ realToFrac n
 cssUniqueFloat _ attr _ = attr
 
-cssUniqueMayFloat :: ASetter el el a (Last Double)
+cssUniqueMayFloat :: ASetter el el a (Maybe Double)
                -> CssUpdater el
 cssUniqueMayFloat setter attr ((CssNumber (Num n):_):_) =
-    attr & setter .~ Last (Just n)
+    attr & setter ?~ n
 cssUniqueMayFloat _ attr _ = attr
 
 cssIdentAttr :: ParseableAttribute a => Lens' el a -> CssUpdater el
@@ -705,7 +700,7 @@ cssIdentAttr _ attr _ = attr
 fontFamilyParser :: CssUpdater DrawAttributes
 fontFamilyParser attr (lst:_) = attr & fontFamily .~ fontNames
   where
-    fontNames = Last . Just $ T.unpack <$> extractString lst
+    fontNames = Just $ T.unpack <$> extractString lst
 
     extractString []                 = []
     extractString (CssIdent n:rest)  = n : extractString rest
@@ -715,13 +710,13 @@ fontFamilyParser attr _ = attr
 
 
 cssUniqueTexture :: ASetter el el
-                    a (Last Texture)
+                    a (Maybe Texture)
                  -> CssUpdater el
 cssUniqueTexture setter attr css = case css of
-  ((CssIdent "none":_):_) -> attr & setter .~ Last (Just FillNone)
-  ((CssColor c:_):_) -> attr & setter .~ Last (Just $ ColorRef c)
+  ((CssIdent "none":_):_) -> attr & setter ?~ FillNone
+  ((CssColor c:_):_) -> attr & setter ?~ ColorRef c
   ((CssFunction "url" [CssReference c]:_):_) ->
-        attr & setter .~ Last (Just . TextureRef $ T.unpack c)
+        attr & setter ?~ TextureRef (T.unpack c)
   _ -> attr
 
 cssUniqueColor :: ASetter el el a PixelRGBA8 -> CssUpdater el
@@ -729,11 +724,11 @@ cssUniqueColor setter attr css = case css of
   ((CssColor c:_):_) -> attr & setter .~ c
   _                  -> attr
 
-cssElementRefSetter :: Lens' el (Last ElementRef) -> CssUpdater el
+cssElementRefSetter :: Lens' el (Maybe ElementRef) -> CssUpdater el
 cssElementRefSetter setter attr ((CssFunction "url" [CssReference c]:_):_) =
-    attr & setter .~ Last (Just . Ref $ T.unpack c)
+    attr & setter ?~ Ref (T.unpack c)
 cssElementRefSetter setter attr ((CssIdent "none":_):_) =
-    attr & setter .~ Last (Just RefNone)
+    attr & setter ?~ RefNone
 cssElementRefSetter _ attr _ = attr
 
 cssMayStringSetter :: ASetter el el a (Maybe String) -> CssUpdater el
@@ -746,11 +741,11 @@ cssMayStringSetter _ attr _ = attr
 cssNullSetter :: CssUpdater a
 cssNullSetter attr _ = attr
 
-cssDashArray :: ASetter el el a (Last [Number]) -> CssUpdater el
+cssDashArray :: ASetter el el a (Maybe [Number]) -> CssUpdater el
 cssDashArray setter attr (lst:_) =
   case [n | CssNumber n <- lst ] of
     [] -> attr
-    v  -> attr & setter .~ Last (Just v)
+    v  -> attr & setter ?~ v
 cssDashArray _ attr _ = attr
 
 
@@ -769,7 +764,7 @@ drawAttributesList =
   ,(opacitySetter "fill-opacity" fillOpacity, cssUniqueFloat fillOpacity)
   ,(opacitySetter "stroke-opacity" strokeOpacity, cssUniqueFloat strokeOpacity)
   ,("font-size" `parseIn` fontSize, cssUniqueNumber fontSize)
-  ,(parserLastSetter "font-family" fontFamily (Just . commaSeparate)
+  ,(parserMaybeSetter "font-family" fontFamily (Just . commaSeparate)
       (Just . intercalate ", "), fontFamilyParser)
 
   ,("fill-rule" `parseIn` fillRule, cssIdentAttr fillRule)

@@ -2,13 +2,12 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TemplateHaskell #-}
 
--- | This module define all the types used in the definition
+-- | This module defines all the types used in the definition
 -- of a svg scene.
 --
 -- Most of the types are lensified.
@@ -455,9 +454,9 @@ module Graphics.SvgTree.Types.Internal
 where
 
 import Codec.Picture (PixelRGBA8 (..))
+import Control.Applicative ((<|>))
 import Control.Lens.TH (makeClassy, makeLenses)
 import Data.Function (on)
-import Data.Monoid (Last (..))
 import qualified Data.Text as T
 import GHC.Generics (Generic)
 import Graphics.SvgTree.CssTypes
@@ -489,7 +488,7 @@ data PathCommand
     QuadraticBezier !Origin ![(RPoint, RPoint)]
   | -- | Quadratic bezier, 'T' or 't' command
     SmoothQuadraticBezierCurveTo !Origin ![RPoint]
-  | -- | Eliptical arc, 'A' or 'a' command.
+  | -- | Elliptical arc, 'A' or 'a' command.
     EllipticalArc !Origin ![(Coord, Coord, Coord, Bool, Bool, RPoint)]
   | -- | Close the path, 'Z' or 'z' svg path command.
     EndPath
@@ -534,7 +533,7 @@ data Transformation
       !Coord
   | -- | Translation along a vector
     Translate !Double !Double
-  | -- | Scaling on both axis or on X axis and Y axis.
+  | -- | Scaling on both axes or on X axis and Y axis.
     Scale !Double !(Maybe Double)
   | -- | Rotation around `(0, 0)` or around an optional
     -- point.
@@ -543,7 +542,7 @@ data Transformation
     SkewX !Double
   | -- | Skew transformation along the Y axis.
     SkewY !Double
-  | -- | Unkown transformation, like identity.
+  | -- | Unknown transformation, like identity.
     TransformUnknown
   deriving (Eq, Show, Generic)
 
@@ -620,7 +619,7 @@ data TextAnchor
     TextAnchorEnd
   deriving (Eq, Show, Generic)
 
--- | Correspond to the possible values of the
+-- | Corresponds to the possible values of
 -- the attributes which are either `none` or
 -- `url(#elem)`
 data ElementRef
@@ -641,110 +640,107 @@ data FilterSource
   deriving (Eq, Show, Generic)
 
 data FilterAttributes = FilterAttributes
-  { _filterHeight :: !(Last Number),
+  { _filterHeight :: !(Maybe Number),
     _filterResult :: !(Maybe String),
-    _filterWidth :: !(Last Number),
-    _filterX :: !(Last Number),
-    _filterY :: !(Last Number)
+    _filterWidth :: !(Maybe Number),
+    _filterX :: !(Maybe Number),
+    _filterY :: !(Maybe Number)
   }
   deriving (Eq, Show, Generic)
 
 instance WithDefaultSvg FilterAttributes where
   defaultSvg =
     FilterAttributes
-      { _filterHeight = Last Nothing,
+      { _filterHeight = Nothing,
         _filterResult = Nothing,
-        _filterWidth = Last Nothing,
-        _filterX = Last Nothing,
-        _filterY = Last Nothing
+        _filterWidth = Nothing,
+        _filterX = Nothing,
+        _filterY = Nothing
       }
 
--- | This type define how to draw any primitives,
+-- | This type defines how to draw any primitives,
 -- which color to use, how to stroke the primitives
 -- and the potential transformations to use.
 --
 -- All these attributes are propagated to the children.
 data DrawAttributes = DrawAttributes
-  { -- | Attribute corresponding to the `stroke-width`
-    -- SVG attribute.
-    _strokeWidth :: !(Last Number),
-    -- | Correspond to the `stroke` attribute.
-    _strokeColor :: !(Last Texture),
+  { -- | Corresponds to the `stroke-width` SVG attribute.
+    _strokeWidth :: !(Maybe Number),
+    -- | Corresponds to the `stroke` attribute.
+    _strokeColor :: !(Maybe Texture),
     -- | Define the `stroke-opacity` attribute, the transparency
     -- for the "border".
     _strokeOpacity :: !(Maybe Float),
-    -- | Correspond to the `stroke-linecap` SVG
-    -- attribute
-    _strokeLineCap :: !(Last Cap),
-    -- | Correspond to the `stroke-linejoin` SVG
-    -- attribute
-    _strokeLineJoin :: !(Last LineJoin),
-    -- | Define the distance of the miter join, correspond
+    -- | Corresponds to the `stroke-linecap` SVG attribute.
+    _strokeLineCap :: !(Maybe Cap),
+    -- | Corresponds to the `stroke-linejoin` attribute.
+    _strokeLineJoin :: !(Maybe LineJoin),
+    -- | Defines the distance of the miter join, corresponds
     -- to the `stroke-miterlimit` attritbue.
-    _strokeMiterLimit :: !(Last Double),
-    -- | Define the filling color of the elements. Corresponding
+    _strokeMiterLimit :: !(Maybe Double),
+    -- | Define the fill color of the elements. Corresponds
     -- to the `fill` attribute.
-    _fillColor :: !(Last Texture),
+    _fillColor :: !(Maybe Texture),
     -- | Define the `fill-opacity` attribute, the transparency
     -- for the "content".
     _fillOpacity :: !(Maybe Float),
-    -- | Define the global or group opacity attribute.
+    -- | Defines the global or group opacity attribute.
     _groupOpacity :: !(Maybe Float),
     -- | Content of the `transform` attribute
     _transform :: !(Maybe [Transformation]),
-    -- | Define the `fill-rule` used during the rendering.
-    _fillRule :: !(Last FillRule),
-    -- | Define the `mask` attribute.
-    _maskRef :: !(Last ElementRef),
-    -- | Define the `clip-path` attribute.
-    _clipPathRef :: !(Last ElementRef),
-    -- | Define the `clip-rule` attribute.
-    _clipRule :: !(Last FillRule),
+    -- | Defines the `fill-rule` used during the rendering.
+    _fillRule :: !(Maybe FillRule),
+    -- | Defines the `mask` attribute.
+    _maskRef :: !(Maybe ElementRef),
+    -- | Defines the `clip-path` attribute.
+    _clipPathRef :: !(Maybe ElementRef),
+    -- | Defines the `clip-rule` attribute.
+    _clipRule :: !(Maybe FillRule),
     -- | Map to the `class` attribute. Used for the CSS
     -- rewriting.
     _attrClass :: ![T.Text],
     -- | Map to the `id` attribute. Used for the CSS
     -- rewriting.
     _attrId :: !(Maybe String),
-    -- | Define the start distance of the dashing pattern.
-    -- Correspond to the `stroke-dashoffset` attribute.
-    _strokeOffset :: !(Last Number),
-    -- | Define the dashing pattern for the lines. Correspond
+    -- | Defines the start distance of the dashing pattern.
+    -- Corresponds to the `stroke-dashoffset` attribute.
+    _strokeOffset :: !(Maybe Number),
+    -- | Defines the dashing pattern for the lines. Corresponds
     -- to the `stroke-dasharray` attribute.
-    _strokeDashArray :: !(Last [Number]),
-    -- | Current size of the text, correspond to the
+    _strokeDashArray :: !(Maybe [Number]),
+    -- | Current size of the text, corresponds to the
     -- `font-size` SVG attribute.
-    _fontSize :: !(Last Number),
-    -- | Define the possible fonts to be used for text rendering.
-    -- Map to the `font-family` attribute.
-    _fontFamily :: !(Last [String]),
-    -- | Map to the `font-style` attribute.
-    _fontStyle :: !(Last FontStyle),
-    -- | Define how to interpret the text position, correspond
+    _fontSize :: !(Maybe Number),
+    -- | Defines the possible fonts to be used for text rendering.
+    -- Maps to the `font-family` attribute.
+    _fontFamily :: !(Maybe [String]),
+    -- | Maps to the `font-style` attribute.
+    _fontStyle :: !(Maybe FontStyle),
+    -- | Defines how to interpret the text position, corresponds
     -- to the `text-anchor` attribute.
-    _textAnchor :: !(Last TextAnchor),
-    -- | Define the marker used for the start of the line.
-    -- Correspond to the `marker-start` attribute.
-    _markerStart :: !(Last ElementRef),
-    -- | Define the marker used for every point of the
-    -- polyline/path Correspond to the `marker-mid`
+    _textAnchor :: !(Maybe TextAnchor),
+    -- | Defines the marker used for the start of the line.
+    -- Corresponds to the `marker-start` attribute.
+    _markerStart :: !(Maybe ElementRef),
+    -- | Defines the marker used for every point of the
+    -- polyline/path. Corresponds to the `marker-mid`
     -- attribute.
-    _markerMid :: !(Last ElementRef),
-    -- | Define the marker used for the end of the line.
-    -- Correspond to the `marker-end` attribute.
-    _markerEnd :: !(Last ElementRef),
-    _filterRef :: !(Last ElementRef)
+    _markerMid :: !(Maybe ElementRef),
+    -- | Defines the marker used for the end of the line.
+    -- Corresponds to the `marker-end` attribute.
+    _markerEnd :: !(Maybe ElementRef),
+    _filterRef :: !(Maybe ElementRef)
   }
   deriving (Eq, Show, Generic)
 
 makeClassy ''DrawAttributes
 
--- | This primitive describe an unclosed suite of
+-- | This primitive describes an unclosed suite of
 -- segments. Correspond to the `<polyline>` tag.
 data PolyLine = PolyLine
   { _polyLineDrawAttributes :: DrawAttributes,
     -- | Geometry definition of the polyline.
-    -- correspond to the `points` attribute
+    -- Corresponds to the `points` attribute
     _polyLinePoints :: [RPoint]
   }
   deriving (Eq, Show, Generic)
@@ -752,13 +748,13 @@ data PolyLine = PolyLine
 instance WithDefaultSvg PolyLine where
   defaultSvg = PolyLine mempty mempty
 
--- | Primitive decriving polygon composed
--- of segements. Correspond to the `<polygon>`
+-- | Primitive decribing polygon composed
+-- of segements. Corresponds to the `<polygon>`
 -- tag
 data Polygon = Polygon
   { _polygonDrawAttributes :: DrawAttributes,
-    -- | Points of the polygon. Correspond to
-    -- the `points` attributes.
+    -- | Points of the polygon. Corresponds to
+    -- the `points` attribute.
     _polygonPoints :: [RPoint]
   }
   deriving (Eq, Show, Generic)
@@ -766,14 +762,14 @@ data Polygon = Polygon
 instance WithDefaultSvg Polygon where
   defaultSvg = Polygon mempty mempty
 
--- | Define a simple line. Correspond to the
+-- | Defines a simple line. Corresponds to the
 -- `<line>` tag.
 data Line = Line
   { _lineDrawAttributes :: DrawAttributes,
-    -- | First point of the the line, correspond
+    -- | First point of the line, corresponds
     -- to the `x1` and `y1` attributes.
     _linePoint1 :: !Point,
-    -- | Second point of the the line, correspond
+    -- | Second point of the line, corresponds
     -- to the `x2` and `y2` attributes.
     _linePoint2 :: !Point
   }
@@ -789,21 +785,21 @@ instance WithDefaultSvg Line where
     where
       zeroPoint = (Num 0, Num 0)
 
--- | Define a rectangle. Correspond to
+-- | Defines a rectangle. Corresponds to
 -- `<rectangle>` svg tag.
 data Rectangle = Rectangle
   { _rectangleDrawAttributes :: DrawAttributes,
-    -- | Upper left corner of the rectangle, correspond
+    -- | Upper left corner of the rectangle, corresponds
     -- to the attributes `x` and `y`.
     _rectUpperLeftCorner :: !Point,
-    -- | Rectangle width, correspond, strangely, to
+    -- | Rectangle width, corresponds to
     -- the `width` attribute.
     _rectWidth :: !(Maybe Number),
-    -- | Rectangle height, correspond, amazingly, to
+    -- | Rectangle height, corresponds to
     -- the `height` attribute.
     _rectHeight :: !(Maybe Number),
-    -- | Define the rounded corner radius radius
-    -- of the rectangle. Correspond to the `rx` and
+    -- | Defines the rounded corner radius
+    -- of the rectangle. Corresponds to the `rx` and
     -- `ry` attributes.
     _rectCornerRadius :: !(Maybe Number, Maybe Number)
   }
@@ -822,8 +818,8 @@ instance WithDefaultSvg Rectangle where
 -- | Type mapping the `<path>` svg tag.
 data Path = Path
   { _pathDrawAttributes :: DrawAttributes,
-    -- | Definition of the path, correspond to the
-    -- `d` attributes.
+    -- | Definition of the path, corresponds to the
+    -- `d` attribute.
     _pathDefinition :: [PathCommand]
   }
   deriving (Eq, Show, Generic)
@@ -831,7 +827,7 @@ data Path = Path
 instance WithDefaultSvg Path where
   defaultSvg = Path mempty mempty
 
--- | Define a SVG group, corresponding `<g>` tag.
+-- | Defines a SVG group, corresponds to `<g>` tag.
 data Group = Group
   { _groupDrawAttributes :: DrawAttributes,
     -- | Content of the group, corresponding to all the tags
@@ -853,7 +849,7 @@ instance WithDefaultSvg Group where
         _groupAspectRatio = defaultSvg
       }
 
--- | Define the `<filter>` tag.
+-- | Defines the `<filter>` tag.
 data Filter = Filter
   { _filterDrawAttributes :: DrawAttributes,
     _filterSelfAttributes :: !FilterAttributes,
@@ -869,13 +865,13 @@ instance WithDefaultSvg Filter where
         _filterChildren = []
       }
 
--- | Define a `<circle>`.
+-- | Defines a `<circle>`.
 data Circle = Circle
   { _circleDrawAttributes :: DrawAttributes,
-    -- | Define the center of the circle, describe
-    -- the `cx` and `cy` attributes.
+    -- | Defines the center of the circle.
+    -- Corresponds to the `cx` and `cy` attributes.
     _circleCenter :: !Point,
-    -- | Radius of the circle, equivalent to the `r`
+    -- | Radius of the circle, corresponds to the `r`
     -- attribute.
     _circleRadius :: !Number
   }
@@ -889,16 +885,16 @@ instance WithDefaultSvg Circle where
         _circleRadius = Num 0
       }
 
--- | Define an `<ellipse>`
+-- | Defines an `<ellipse>`
 data Ellipse = Ellipse
   { _ellipseDrawAttributes :: DrawAttributes,
-    -- | Center of the ellipse, map to the `cx`
+    -- | Center of the ellipse, corresponds to the `cx`
     -- and `cy` attributes.
     _ellipseCenter :: !Point,
-    -- | Radius along the X axis, map the
+    -- | Radius along the X axis, corresponds to the
     -- `rx` attribute.
     _ellipseXRadius :: !Number,
-    -- | Radius along the Y axis, map the
+    -- | Radius along the Y axis, corresponds to the
     -- `ry` attribute.
     _ellipseYRadius :: !Number
   }
@@ -913,13 +909,13 @@ instance WithDefaultSvg Ellipse where
         _ellipseYRadius = Num 0
       }
 
--- | Define a color stop for the gradients. Represent
+-- | Defines a color stop for the gradients. Represents
 -- the `<stop>` SVG tag.
 data GradientStop = GradientStop
-  { -- | Gradient offset between 0 and 1, correspond
+  { -- | Gradient offset between 0 and 1, corresponds
     -- to the `offset` attribute.
     _gradientOffset :: !Float,
-    -- | Color of the gradient stop. Correspond
+    -- | Color of the gradient stop. Corresponds
     -- to the `stop-color` attribute.
     _gradientColor :: !PixelRGBA8,
     -- | Path command used in mesh patch
@@ -938,10 +934,10 @@ instance WithDefaultSvg GradientStop where
         _gradientOpacity = Nothing
       }
 
--- | Define `<meshpatch>` SVG tag
-data MeshGradientPatch = MeshGradientPatch
+-- | Defines `<meshpatch>` SVG tag
+newtype MeshGradientPatch = MeshGradientPatch
   { -- | List of stop, from 2 to 4 in a patch
-    _meshGradientPatchStops :: ![GradientStop]
+    _meshGradientPatchStops :: [GradientStop]
   }
   deriving (Eq, Show, Generic)
 
@@ -949,16 +945,16 @@ instance WithDefaultSvg MeshGradientPatch where
   defaultSvg = MeshGradientPatch []
 
 -- | Define a `<meshrow>` tag.
-data MeshGradientRow = MeshGradientRow
+newtype MeshGradientRow = MeshGradientRow
   { -- | List of patch in a row
-    _meshGradientRowPatches :: ![MeshGradientPatch]
+    _meshGradientRowPatches :: [MeshGradientPatch]
   }
   deriving (Eq, Show, Generic)
 
 instance WithDefaultSvg MeshGradientRow where
   defaultSvg = MeshGradientRow []
 
--- | Define a `<meshgradient>` tag.
+-- | Defines a `<meshgradient>` tag.
 data MeshGradient = MeshGradient
   { _meshGradientDrawAttributes :: DrawAttributes,
     -- | Original x coordinate of the mesh gradient
@@ -971,7 +967,7 @@ data MeshGradient = MeshGradient
     _meshGradientUnits :: !CoordinateUnits,
     -- | Optional transform
     _meshGradientTransform :: ![Transformation],
-    -- | List of patch rows in the the mesh.
+    -- | List of patch rows in the mesh.
     _meshGradientRows :: ![MeshGradientRow]
   }
   deriving (Eq, Show, Generic)
@@ -988,7 +984,7 @@ instance WithDefaultSvg MeshGradient where
         _meshGradientRows = mempty
       }
 
--- | Define an `<image>` tag.
+-- | Defines an `<image>` tag.
 data Image = Image
   { _imageDrawAttributes :: DrawAttributes,
     -- | Position of the image referenced by its
@@ -1016,23 +1012,23 @@ instance WithDefaultSvg Image where
         _imageAspectRatio = defaultSvg
       }
 
--- | Define an `<use>` for a named content.
+-- | Defines an `<use>` for a named content.
 -- Every named content can be reused in the
 -- document using this element.
 data Use = Use
   { _useDrawAttributes :: DrawAttributes,
     -- | Position where to draw the "used" element.
-    -- Correspond to the `x` and `y` attributes.
+    -- Corresponds to the `x` and `y` attributes.
     _useBase :: Point,
-    -- | Referenced name, correspond to `xlink:href`
+    -- | Referenced name, corresponds to `xlink:href`
     -- attribute.
     _useName :: String,
-    -- | Define the width of the region where
-    -- to place the element. Map to the `width`
+    -- | Defines the width of the region where
+    -- to place the element. Corresponds to the `width`
     -- attribute.
     _useWidth :: Maybe Number,
-    -- | Define the height of the region where
-    -- to place the element. Map to the `height`
+    -- | Defines the height of the region where
+    -- to place the element. Corresponds to the `height`
     -- attribute.
     _useHeight :: Maybe Number
   }
@@ -1048,7 +1044,7 @@ instance WithDefaultSvg Use where
         _useHeight = Nothing
       }
 
--- | Define position information associated to
+-- | Defines position information associated to
 -- `<text>` or `<tspan>` svg tag.
 data TextInfo = TextInfo
   { -- | `x` attribute.
@@ -1076,7 +1072,7 @@ instance Semigroup TextInfo where
         (dx1 <> dx2)
         (dy1 <> dy2)
         (r1 <> r2)
-        (getLast $ Last l1 <> Last l2)
+        (l2 <|> l1)
 
 instance Monoid TextInfo where
   mempty = TextInfo [] [] [] [] [] Nothing
@@ -1085,19 +1081,19 @@ instance Monoid TextInfo where
 instance WithDefaultSvg TextInfo where
   defaultSvg = mempty
 
--- | Define the content of a `<tspan>` tag.
+-- | Defines the content of a `<tspan>` tag.
 data TextSpanContent
   = -- | Raw text
     SpanText !T.Text
   | -- | Equivalent to a `<tref>`
     SpanTextRef !String
-  | -- | Define a `<tspan>`
+  | -- | Defines a `<tspan>`
     SpanSub !TextSpan
   deriving (Eq, Show, Generic)
 
--- | Define a `<tspan>` tag.
+-- | Defines a `<tspan>` tag.
 data TextSpan = TextSpan
-  { -- | Placing information for the text.
+  { -- | Placement information for the text.
     _spanInfo :: !TextInfo,
     -- | Drawing attributes for the text span.
     _spanDrawAttributes :: !DrawAttributes,
@@ -1117,31 +1113,31 @@ instance WithDefaultSvg TextSpan where
 -- | Describe the content of the `method` attribute on
 -- text path.
 data TextPathMethod
-  = -- | Map to the `align` value.
+  = -- | Corresponds to the `align` value.
     TextPathAlign
-  | -- | Map to the `stretch` value.
+  | -- | Corresponds to the `stretch` value.
     TextPathStretch
   deriving (Eq, Show, Generic)
 
--- | Describe the content of the `spacing` text path
+-- | Describes the content of the `spacing` text path
 -- attribute.
 data TextPathSpacing
-  = -- | Map to the `exact` value.
+  = -- | Corresponds to the `exact` value.
     TextPathSpacingExact
-  | -- | Map to the `auto` value.
+  | -- | Corresponds to the `auto` value.
     TextPathSpacingAuto
   deriving (Eq, Show, Generic)
 
--- | Describe the `<textpath>` SVG tag.
+-- | Describes the `<textpath>` SVG tag.
 data TextPath = TextPath
-  { -- | Define the beginning offset on the path,
+  { -- | Defines the beginning offset on the path,
     -- the `startOffset` attribute.
     _textPathStartOffset :: !Number,
-    -- | Define the `xlink:href` attribute.
+    -- | Defines the `xlink:href` attribute.
     _textPathName :: !String,
-    -- | Correspond to the `method` attribute.
+    -- | Corresponds to the `method` attribute.
     _textPathMethod :: !TextPathMethod,
-    -- | Correspond to the `spacing` attribute.
+    -- | Corresponds to the `spacing` attribute.
     _textPathSpacing :: !TextPathSpacing
   }
   deriving (Eq, Show, Generic)
@@ -1155,7 +1151,7 @@ instance WithDefaultSvg TextPath where
         _textPathSpacing = TextPathSpacingExact
       }
 
--- | Define the possible values of the `lengthAdjust`
+-- | Defines the possible values of the `lengthAdjust`
 -- attribute.
 data TextAdjust
   = -- | Value `spacing`
@@ -1164,9 +1160,9 @@ data TextAdjust
     TextAdjustSpacingAndGlyphs
   deriving (Eq, Show, Generic)
 
--- | Define the global `<text>` SVG tag.
+-- | Defines the global `<text>` SVG tag.
 data Text = Text
-  { -- | Define the `lengthAdjust` attribute.
+  { -- | Defines the `lengthAdjust` attribute.
     _textAdjust :: !TextAdjust,
     -- | Root of the text content.
     _textRoot :: !TextSpan
@@ -1267,7 +1263,7 @@ instance WithDefaultSvg FilterElement where
 data SpecularLighting = SpecularLighting
   { _specLightingDrawAttributes :: DrawAttributes,
     _specLightingFilterAttr :: !FilterAttributes,
-    _specLightingIn :: !(Last FilterSource),
+    _specLightingIn :: !(Maybe FilterSource),
     _specLightingSurfaceScale :: Double,
     _specLightingSpecularConst :: Double,
     _specLightingSpecularExp :: Double,
@@ -1280,7 +1276,7 @@ instance WithDefaultSvg SpecularLighting where
     SpecularLighting
     { _specLightingDrawAttributes = defaultSvg,
       _specLightingFilterAttr = defaultSvg,
-      _specLightingIn = Last Nothing,
+      _specLightingIn = Nothing,
       _specLightingSurfaceScale = 1,
       _specLightingSpecularConst = 1,
       _specLightingSpecularExp = 1,
@@ -1290,7 +1286,7 @@ instance WithDefaultSvg SpecularLighting where
 data ConvolveMatrix = ConvolveMatrix
   { _convolveMatrixDrawAttributes :: DrawAttributes,
     _convolveMatrixFilterAttr :: !FilterAttributes,
-    _convolveMatrixIn :: !(Last FilterSource),
+    _convolveMatrixIn :: !(Maybe FilterSource),
     _convolveMatrixOrder :: NumberOptionalNumber,
     _convolveMatrixKernelMatrix :: [Double],
     _convolveMatrixDivisor :: Double,
@@ -1308,7 +1304,7 @@ instance WithDefaultSvg ConvolveMatrix where
     ConvolveMatrix
     { _convolveMatrixDrawAttributes = defaultSvg,
       _convolveMatrixFilterAttr = defaultSvg,
-      _convolveMatrixIn = Last Nothing,
+      _convolveMatrixIn = Nothing,
       _convolveMatrixOrder = Num1 3,
       _convolveMatrixKernelMatrix = [],
       _convolveMatrixDivisor = 1,
@@ -1323,7 +1319,7 @@ instance WithDefaultSvg ConvolveMatrix where
 data DiffuseLighting = DiffuseLighting
   { _diffuseLightingDrawAttributes :: DrawAttributes,
     _diffuseLightingFilterAttr :: !FilterAttributes,
-    _diffuseLightingIn :: !(Last FilterSource),
+    _diffuseLightingIn :: !(Maybe FilterSource),
     _diffuseLightingSurfaceScale :: Double,
     _diffuseLightingDiffuseConst :: Double,
     _diffuseLightingKernelUnitLength :: NumberOptionalNumber
@@ -1335,7 +1331,7 @@ instance WithDefaultSvg DiffuseLighting where
     DiffuseLighting
     { _diffuseLightingDrawAttributes = defaultSvg,
       _diffuseLightingFilterAttr = defaultSvg,
-      _diffuseLightingIn = Last Nothing,
+      _diffuseLightingIn = Nothing,
       _diffuseLightingSurfaceScale = 1,
       _diffuseLightingDiffuseConst = 1,
       _diffuseLightingKernelUnitLength = Num1 0
@@ -1344,7 +1340,7 @@ instance WithDefaultSvg DiffuseLighting where
 data Morphology = Morphology
   { _morphologyDrawAttributes :: DrawAttributes,
     _morphologyFilterAttr :: !FilterAttributes,
-    _morphologyIn :: !(Last FilterSource),
+    _morphologyIn :: !(Maybe FilterSource),
     _morphologyOperator :: OperatorType,
     _morphologyRadius :: NumberOptionalNumber
   }
@@ -1356,7 +1352,7 @@ instance WithDefaultSvg Morphology where
     Morphology
     { _morphologyDrawAttributes = defaultSvg,
       _morphologyFilterAttr = defaultSvg,
-      _morphologyIn = Last Nothing,
+      _morphologyIn = Nothing,
       _morphologyOperator = OperatorOver,
       _morphologyRadius = Num1 0
     }
@@ -1443,9 +1439,9 @@ data ChannelSelector
 data DisplacementMap = DisplacementMap
   { _displacementMapDrawAttributes :: !DrawAttributes,
     _displacementMapFilterAttr :: !FilterAttributes,
-    _displacementMapIn :: !(Last FilterSource),
-    _displacementMapIn2 :: !(Last FilterSource),
-    _displacementMapScale :: !(Last Double),
+    _displacementMapIn :: !(Maybe FilterSource),
+    _displacementMapIn2 :: !(Maybe FilterSource),
+    _displacementMapScale :: !(Maybe Double),
     _displacementMapXChannelSelector :: ChannelSelector,
     _displacementMapYChannelSelector :: ChannelSelector
   }
@@ -1456,9 +1452,9 @@ instance WithDefaultSvg DisplacementMap where
     DisplacementMap
       { _displacementMapDrawAttributes = defaultSvg,
         _displacementMapFilterAttr = defaultSvg,
-        _displacementMapIn = Last Nothing,
-        _displacementMapIn2 = Last Nothing,
-        _displacementMapScale = Last Nothing,
+        _displacementMapIn = Nothing,
+        _displacementMapIn2 = Nothing,
+        _displacementMapScale = Nothing,
         _displacementMapXChannelSelector = ChannelA,
         _displacementMapYChannelSelector = ChannelA
       }
@@ -1485,8 +1481,8 @@ data BlendMode
 data Blend = Blend
   { _blendDrawAttributes :: !DrawAttributes,
     _blendFilterAttr :: !FilterAttributes,
-    _blendIn :: !(Last FilterSource),
-    _blendIn2 :: !(Last FilterSource),
+    _blendIn :: !(Maybe FilterSource),
+    _blendIn2 :: !(Maybe FilterSource),
     _blendMode :: !BlendMode
   }
   deriving (Eq, Show, Generic)
@@ -1496,8 +1492,8 @@ instance WithDefaultSvg Blend where
     Blend
     { _blendDrawAttributes = defaultSvg,
       _blendFilterAttr = defaultSvg,
-      _blendIn = Last Nothing,
-      _blendIn2 = Last Nothing,
+      _blendIn = Nothing,
+      _blendIn2 = Nothing,
       _blendMode = Normal
     }
 
@@ -1521,7 +1517,7 @@ instance WithDefaultSvg Flood where
 data Offset = Offset
   { _offsetDrawAttributes :: !DrawAttributes,
     _offsetFilterAttr :: !FilterAttributes,
-    _offsetIn :: !(Last FilterSource),
+    _offsetIn :: !(Maybe FilterSource),
     _offsetDX :: !Number,
     _offsetDY :: !Number
   }
@@ -1532,7 +1528,7 @@ instance WithDefaultSvg Offset where
     Offset
     { _offsetDrawAttributes = defaultSvg,
       _offsetFilterAttr = defaultSvg,
-      _offsetIn = Last Nothing,
+      _offsetIn = Nothing,
       _offsetDX = Num 0,
       _offsetDY = Num 0
     }
@@ -1540,7 +1536,7 @@ instance WithDefaultSvg Offset where
 data Tile = Tile
   { _tileDrawAttributes :: !DrawAttributes,
     _tileFilterAttr :: !FilterAttributes,
-    _tileIn :: !(Last FilterSource)
+    _tileIn :: !(Maybe FilterSource)
   }
   deriving (Eq, Show, Generic)
 
@@ -1549,7 +1545,7 @@ instance WithDefaultSvg Tile where
     Tile
     { _tileDrawAttributes = defaultSvg,
       _tileFilterAttr = defaultSvg,
-      _tileIn = Last Nothing
+      _tileIn = Nothing
     }
 
 data Merge = Merge
@@ -1570,7 +1566,7 @@ instance WithDefaultSvg Merge where
 data MergeNode = MergeNode
   { _mergeNodeDrawAttributes :: !DrawAttributes,
     --Does not have filter attributes!
-    _mergeNodeIn :: !(Last FilterSource)
+    _mergeNodeIn :: !(Maybe FilterSource)
   }
   deriving (Eq, Show, Generic)
 
@@ -1578,14 +1574,14 @@ instance WithDefaultSvg MergeNode where
   defaultSvg =
     MergeNode
     { _mergeNodeDrawAttributes = defaultSvg,
-      _mergeNodeIn = Last Nothing
+      _mergeNodeIn = Nothing
     }
 
 data ComponentTransfer = ComponentTransfer
   { _compTransferDrawAttributes :: !DrawAttributes,
     _compTransferFilterAttr :: !FilterAttributes,
     _compTransferChildren :: ![FilterElement],
-    _compTransferIn :: !(Last FilterSource)
+    _compTransferIn :: !(Maybe FilterSource)
   }
   deriving (Eq, Show, Generic)
 
@@ -1595,7 +1591,7 @@ instance WithDefaultSvg ComponentTransfer where
     { _compTransferDrawAttributes = defaultSvg,
       _compTransferFilterAttr = defaultSvg,
       _compTransferChildren = [],
-      _compTransferIn = Last Nothing
+      _compTransferIn = Nothing
     }
 
 data FuncType
@@ -1717,7 +1713,7 @@ data ColorMatrixType
 data ColorMatrix = ColorMatrix
   { _colorMatrixDrawAttributes :: !DrawAttributes,
     _colorMatrixFilterAttr :: !FilterAttributes,
-    _colorMatrixIn :: !(Last FilterSource),
+    _colorMatrixIn :: !(Maybe FilterSource),
     _colorMatrixType :: !ColorMatrixType,
     _colorMatrixValues :: !String
   }
@@ -1728,7 +1724,7 @@ instance WithDefaultSvg ColorMatrix where
     ColorMatrix
       { _colorMatrixDrawAttributes = defaultSvg,
         _colorMatrixFilterAttr = defaultSvg,
-        _colorMatrixIn = Last Nothing,
+        _colorMatrixIn = Nothing,
         _colorMatrixType = Matrix,
         _colorMatrixValues = ""
       }
@@ -1745,8 +1741,8 @@ data CompositeOperator
 data Composite = Composite
   { _compositeDrawAttributes :: DrawAttributes,
     _compositeFilterAttr :: !FilterAttributes,
-    _compositeIn :: Last FilterSource,
-    _compositeIn2 :: Last FilterSource,
+    _compositeIn :: Maybe FilterSource,
+    _compositeIn2 :: Maybe FilterSource,
     _compositeOperator :: CompositeOperator,
     _compositeK1 :: Number,
     _compositeK2 :: Number,
@@ -1760,8 +1756,8 @@ instance WithDefaultSvg Composite where
     Composite
       { _compositeDrawAttributes = defaultSvg,
         _compositeFilterAttr = defaultSvg,
-        _compositeIn = Last Nothing,
-        _compositeIn2 = Last Nothing,
+        _compositeIn = Nothing,
+        _compositeIn2 = Nothing,
         _compositeOperator = CompositeOver,
         _compositeK1 = Num 0,
         _compositeK2 = Num 0,
@@ -1772,7 +1768,7 @@ instance WithDefaultSvg Composite where
 data Turbulence = Turbulence
   { _turbulenceDrawAttributes :: !DrawAttributes,
     _turbulenceFilterAttr :: !FilterAttributes,
-    _turbulenceBaseFrequency :: !(Double, Last Double), -- Not negative
+    _turbulenceBaseFrequency :: !(Double, Maybe Double), -- Not negative
     _turbulenceNumOctaves :: Int, -- Not negative
     _turbulenceSeed :: Double,
     _turbulenceStitchTiles :: StitchTiles,
@@ -1795,7 +1791,7 @@ instance WithDefaultSvg Turbulence where
     Turbulence
       { _turbulenceDrawAttributes = defaultSvg,
         _turbulenceFilterAttr = defaultSvg,
-        _turbulenceBaseFrequency = (0, Last Nothing),
+        _turbulenceBaseFrequency = (0, Nothing),
         _turbulenceNumOctaves = 1,
         _turbulenceSeed = 0,
         _turbulenceStitchTiles = NoStitch,
@@ -1811,9 +1807,9 @@ data EdgeMode
 data GaussianBlur = GaussianBlur
   { _gaussianBlurDrawAttributes :: DrawAttributes,
     _gaussianBlurFilterAttr :: !FilterAttributes,
-    _gaussianBlurIn :: Last FilterSource,
+    _gaussianBlurIn :: Maybe FilterSource,
     _gaussianBlurStdDeviationX :: Number,
-    _gaussianBlurStdDeviationY :: Last Number,
+    _gaussianBlurStdDeviationY :: Maybe Number,
     _gaussianBlurEdgeMode :: EdgeMode
   }
   deriving (Eq, Show, Generic)
@@ -1823,13 +1819,13 @@ instance WithDefaultSvg GaussianBlur where
     GaussianBlur
       { _gaussianBlurDrawAttributes = defaultSvg,
         _gaussianBlurFilterAttr = defaultSvg,
-        _gaussianBlurIn = Last Nothing,
+        _gaussianBlurIn = Nothing,
         _gaussianBlurStdDeviationX = Num 0,
-        _gaussianBlurStdDeviationY = Last Nothing,
+        _gaussianBlurStdDeviationY = Nothing,
         _gaussianBlurEdgeMode = EdgeDuplicate
       }
 
--- | Define the orientation, associated to the
+-- | Defines the orientation, associated to the
 -- `orient` attribute on the Marker
 data MarkerOrientation
   = -- | Auto value
@@ -1847,7 +1843,7 @@ data MarkerUnit
     MarkerUnitUserSpaceOnUse
   deriving (Eq, Show, Generic)
 
--- | Define the content of the `markerUnits` attribute
+-- | Defines the content of the `markerUnits` attribute
 -- on the Marker.
 data Overflow
   = -- | Value `visible`
@@ -1856,21 +1852,21 @@ data Overflow
     OverflowHidden
   deriving (Eq, Show, Generic)
 
--- | Define the `<marker>` tag.
+-- | Defines the `<marker>` tag.
 data Marker = Marker
   { _markerDrawAttributes :: DrawAttributes,
-    -- | Define the reference point of the marker.
-    -- correspond to the `refX` and `refY` attributes.
+    -- | Defines the reference point of the marker.
+    -- corresponds to the `refX` and `refY` attributes.
     _markerRefPoint :: !(Number, Number),
-    -- | Define the width of the marker. Correspond to
+    -- | Defines the width of the marker. Corresponds to
     -- the `markerWidth` attribute.
     _markerWidth :: !(Maybe Number),
-    -- | Define the height of the marker. Correspond to
+    -- | Defines the height of the marker. Corresponds to
     -- the `markerHeight` attribute.
     _markerHeight :: !(Maybe Number),
-    -- | Correspond to the `orient` attribute.
+    -- | Corresponds to the `orient` attribute.
     _markerOrient :: !(Maybe MarkerOrientation),
-    -- | Map the `markerUnits` attribute.
+    -- | Corresponds to the `markerUnits` attribute.
     _markerUnits :: !(Maybe MarkerUnit),
     -- | Optional viewbox
     _markerViewBox :: !(Maybe (Double, Double, Double, Double)),
@@ -1927,7 +1923,7 @@ nameOfTree v =
     ClipPathNode _ -> "clipPath"
     SvgNode {} -> "svg"
 
--- | Define the possible values for the `spreadMethod`
+-- | Defines the possible values for the `spreadMethod`
 -- values used for the gradient definitions.
 data Spread
   = -- | `reapeat` value
@@ -1938,10 +1934,10 @@ data Spread
     SpreadReflect
   deriving (Eq, Show, Generic)
 
--- | Define a `<linearGradient>` tag.
+-- | Defines a `<linearGradient>` tag.
 data LinearGradient = LinearGradient
   { _linearGradientDrawAttributes :: DrawAttributes,
-    -- | Define coordinate system of the gradient,
+    -- | Defines coordinate system of the gradient,
     -- associated to the `gradientUnits` attribute.
     _linearGradientUnits :: CoordinateUnits,
     -- | Point defining the beginning of the line gradient.
@@ -1975,10 +1971,10 @@ instance WithDefaultSvg LinearGradient where
         _linearGradientStops = []
       }
 
--- | Define a `<radialGradient>` tag.
+-- | Defines a `<radialGradient>` tag.
 data RadialGradient = RadialGradient
   { _radialGradientDrawAttributes :: DrawAttributes,
-    -- | Define coordinate system of the gradient,
+    -- | Defines coordinate system of the gradient,
     -- associated to the `gradientUnits` attribute.
     _radialGradientUnits :: CoordinateUnits,
     -- | Center of the radial gradient. Associated to
@@ -1993,7 +1989,7 @@ data RadialGradient = RadialGradient
     -- | Y coordinate of the focus point of the radial
     -- gradient. Associated to the `fy` attribute.
     _radialGradientFocusY :: Maybe Number,
-    -- | Define how to handle the values outside
+    -- | Defines how to handle the values outside
     -- the gradient start and stop. Associated to the
     -- `spreadMethod` attribute.
     _radialGradientSpread :: Spread,
@@ -2020,18 +2016,18 @@ instance WithDefaultSvg RadialGradient where
         _radialGradientStops = []
       }
 
--- | Define a SVG `<mask>` tag.
+-- | Defines a SVG `<mask>` tag.
 data Mask = Mask
   { _maskDrawAttributes :: DrawAttributes,
-    -- | Correspond to the `maskContentUnits` attributes.
+    -- | Corresponds to the `maskContentUnits` attributes.
     _maskContentUnits :: CoordinateUnits,
-    -- | Mapping to the `maskUnits` attribute.
+    -- | Corresponds to the `maskUnits` attribute.
     _maskUnits :: CoordinateUnits,
-    -- | Map to the `x` and `y` attributes.
+    -- | Corresponds to the `x` and `y` attributes.
     _maskPosition :: Point,
-    -- | Map to the `width` attribute
+    -- | Corresponds to the `width` attribute
     _maskWidth :: Number,
-    -- | Map to the `height` attribute.
+    -- | Corresponds to the `height` attribute.
     _maskHeight :: Number,
     -- | Children of the `<mask>` tag.
     _maskContent :: [Tree]
@@ -2050,12 +2046,12 @@ instance WithDefaultSvg Mask where
         _maskContent = []
       }
 
--- | Define a `<clipPath>` tag.
+-- | Defines a `<clipPath>` tag.
 data ClipPath = ClipPath
   { _clipPathDrawAttributes :: DrawAttributes,
-    -- | Maps to the `clipPathUnits` attribute
+    -- | Corresponds to the `clipPathUnits` attribute
     _clipPathUnits :: CoordinateUnits,
-    -- | Maps to the content of the tree
+    -- | Corresponds to the content of the tree
     _clipPathContent :: [Tree]
   }
   deriving (Eq, Show, Generic)
@@ -2068,7 +2064,7 @@ instance WithDefaultSvg ClipPath where
         _clipPathContent = mempty
       }
 
--- | Define a `<pattern>` tag.
+-- | Defines a `<pattern>` tag.
 data Pattern = Pattern
   { _patternDrawAttributes :: DrawAttributes,
     -- | Possible `viewBox`.
@@ -2087,13 +2083,13 @@ data Pattern = Pattern
     _patternHref :: !String,
     -- | Elements used in the pattern.
     _patternElements :: ![Tree],
-    -- | Define the cordinate system to use for
-    -- the pattern. Mapped to the `patternUnits`
+    -- | Defines the cordinate system to use for
+    -- the pattern. Corresponds to the `patternUnits`
     -- attribute.
     _patternUnit :: !CoordinateUnits,
-    -- | Value of the "preserveAspectRatio" attribute
+    -- | Value of the `preserveAspectRatio` attribute
     _patternAspectRatio :: !PreserveAspectRatio,
-    -- | Value of "patternTransform" attribute
+    -- | Value of `patternTransform` attribute
     _patternTransform :: !(Maybe [Transformation])
   }
   deriving (Eq, Show, Generic)
@@ -2126,7 +2122,7 @@ data Element
   | ElementClipPath ClipPath
   deriving (Eq, Show, Generic)
 
--- | Represent a full svg document with style,
+-- | Represents a full svg document with style,
 -- geometry and named elements.
 data Document = Document
   { _documentViewBox :: Maybe (Double, Double, Double, Double),
@@ -2161,11 +2157,10 @@ documentSize
     } = (floor w, floor h)
 documentSize
   dpi
-  doc@( Document
-          { _documentWidth = Just w,
-            _documentHeight = Just h
-          }
-        ) =
+  doc@Document
+      { _documentWidth = Just w,
+        _documentHeight = Just h
+      } =
     documentSize dpi $
       doc
         { _documentWidth = Just $ toUserUnit dpi w,
@@ -2183,69 +2178,70 @@ mayMerge a Nothing = a
 instance Semigroup DrawAttributes where
   (<>) a b =
     DrawAttributes
-      { _strokeWidth = (mappend `on` _strokeWidth) a b,
-        _strokeColor = (mappend `on` _strokeColor) a b,
-        _strokeLineCap = (mappend `on` _strokeLineCap) a b,
+      { _strokeWidth = chooseLast _strokeWidth,
+        _strokeColor = chooseLast _strokeColor,
+        _strokeLineCap = chooseLast _strokeLineCap,
         _strokeOpacity = (opacityMappend `on` _strokeOpacity) a b,
-        _strokeLineJoin = (mappend `on` _strokeLineJoin) a b,
-        _strokeMiterLimit = (mappend `on` _strokeMiterLimit) a b,
-        _fillColor = (mappend `on` _fillColor) a b,
+        _strokeLineJoin = chooseLast _strokeLineJoin,
+        _strokeMiterLimit = chooseLast _strokeMiterLimit,
+        _fillColor = chooseLast _fillColor,
         _fillOpacity = (opacityMappend `on` _fillOpacity) a b,
-        _fontSize = (mappend `on` _fontSize) a b,
+        _fontSize = chooseLast _fontSize,
         _transform = (mayMerge `on` _transform) a b,
-        _fillRule = (mappend `on` _fillRule) a b,
+        _fillRule = chooseLast _fillRule,
         _attrClass = _attrClass b,
         _attrId = _attrId b,
         _groupOpacity = _groupOpacity b,
-        _strokeOffset = (mappend `on` _strokeOffset) a b,
-        _strokeDashArray = (mappend `on` _strokeDashArray) a b,
-        _fontFamily = (mappend `on` _fontFamily) a b,
-        _fontStyle = (mappend `on` _fontStyle) a b,
-        _textAnchor = (mappend `on` _textAnchor) a b,
-        _maskRef = (mappend `on` _maskRef) a b,
-        _clipPathRef = (mappend `on` _clipPathRef) a b,
-        _clipRule = (mappend `on` _clipRule) a b,
-        _markerStart = (mappend `on` _markerStart) a b,
-        _markerMid = (mappend `on` _markerMid) a b,
-        _markerEnd = (mappend `on` _markerEnd) a b,
-        _filterRef = (mappend `on` _filterRef) a b
+        _strokeOffset = chooseLast _strokeOffset,
+        _strokeDashArray = chooseLast _strokeDashArray,
+        _fontFamily = chooseLast _fontFamily,
+        _fontStyle = chooseLast _fontStyle,
+        _textAnchor = chooseLast _textAnchor,
+        _maskRef = chooseLast _maskRef,
+        _clipPathRef = chooseLast _clipPathRef,
+        _clipRule = chooseLast _clipRule,
+        _markerStart = chooseLast _markerStart,
+        _markerMid = chooseLast _markerMid,
+        _markerEnd = chooseLast _markerEnd,
+        _filterRef = chooseLast _filterRef
       }
     where
       opacityMappend Nothing Nothing = Nothing
       opacityMappend (Just v) Nothing = Just v
       opacityMappend Nothing (Just v) = Just v
       opacityMappend (Just v) (Just v2) = Just $ v * v2
+      chooseLast f = f b <|> f a
 
 instance Monoid DrawAttributes where
   mappend = (<>)
   mempty =
     DrawAttributes
-      { _strokeWidth = Last Nothing,
-        _strokeColor = Last Nothing,
+      { _strokeWidth = Nothing,
+        _strokeColor = Nothing,
         _strokeOpacity = Nothing,
-        _strokeLineCap = Last Nothing,
-        _strokeLineJoin = Last Nothing,
-        _strokeMiterLimit = Last Nothing,
-        _fillColor = Last Nothing,
+        _strokeLineCap = Nothing,
+        _strokeLineJoin = Nothing,
+        _strokeMiterLimit = Nothing,
+        _fillColor = Nothing,
         _groupOpacity = Nothing,
         _fillOpacity = Nothing,
-        _fontSize = Last Nothing,
-        _fontFamily = Last Nothing,
-        _fontStyle = Last Nothing,
+        _fontSize = Nothing,
+        _fontFamily = Nothing,
+        _fontStyle = Nothing,
         _transform = Nothing,
-        _fillRule = Last Nothing,
+        _fillRule = Nothing,
         _attrClass = mempty,
         _attrId = Nothing,
-        _strokeOffset = Last Nothing,
-        _strokeDashArray = Last Nothing,
-        _textAnchor = Last Nothing,
-        _maskRef = Last Nothing,
-        _clipPathRef = Last Nothing,
-        _clipRule = Last Nothing,
-        _markerStart = Last Nothing,
-        _markerMid = Last Nothing,
-        _markerEnd = Last Nothing,
-        _filterRef = Last Nothing
+        _strokeOffset = Nothing,
+        _strokeDashArray = Nothing,
+        _textAnchor = Nothing,
+        _maskRef = Nothing,
+        _clipPathRef = Nothing,
+        _clipRule = Nothing,
+        _markerStart = Nothing,
+        _markerMid = Nothing,
+        _markerEnd = Nothing,
+        _filterRef = Nothing
       }
 
 instance WithDefaultSvg DrawAttributes where

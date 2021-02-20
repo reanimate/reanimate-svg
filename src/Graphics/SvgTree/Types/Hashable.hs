@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-orphans -O0 #-}
 
 module Graphics.SvgTree.Types.Hashable where
@@ -10,12 +9,10 @@ module Graphics.SvgTree.Types.Hashable where
 import Codec.Picture (PixelRGBA8 (..))
 import Control.Lens
 import Data.Hashable
-import Data.Monoid
 import GHC.Generics (Generic)
 import Graphics.SvgTree.Types.Internal
 
 -- Orphan instances :(
-instance Hashable a => Hashable (Last a)
 
 deriving instance Generic PixelRGBA8
 
@@ -198,7 +195,7 @@ instance WithDefaultSvg Tree where
   defaultSvg = Tree NoNode
 
 unpack :: Tree -> TreeBranch
-unpack t = (_treeBranch t)
+unpack = _treeBranch
 
 pattern Tree :: TreeBranch -> Tree
 pattern Tree branch <-

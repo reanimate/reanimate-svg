@@ -6,6 +6,14 @@ v0.13.0.0
  * Vastly improved support for filter effects thanks to José Edil Guimarães De Medeiros.
  * Better unicode support.
 
+v0.12.2.2
+
+ * Update dependencies.
+
+v0.12.0.0
+
+ * Improve filter-element support.
+
 v0.11.0.0
 
  * Drop support for GHC 7.
