@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE OverloadedStrings #-}
--- | Defines the types used to describes CSS elements
+-- | Defines the types used to describes CSS elements.
 module Graphics.SvgTree.CssTypes
   ( CssSelector( .. )
   , CssSelectorRule
@@ -33,7 +33,7 @@ import           Codec.Picture          (PixelRGBA8 (..))
 import           Graphics.SvgTree.Misc
 
 -- | Alias describing a "dot per inch" information
--- used for size calculation (see toUserUnit).
+-- used for size calculation (see 'toUserUnit').
 type Dpi = Int
 
 -- | Helper typeclass for serialization to Text.
@@ -42,14 +42,15 @@ class TextBuildable a where
     tserialize :: a -> TB.Builder
 
 -- | Describes an element of a CSS selector. Multiple
--- elements can be combined in a CssSelector type.
+-- elements can be combined in a 'CssSelector' type.
 data CssDescriptor
-  = OfClass T.Text    -- ^ .IDENT
-  | OfName  T.Text    -- ^ IDENT
-  | OfId    T.Text    -- ^ #IDENT
-  | OfPseudoClass T.Text     -- ^ `:IDENT` (ignore function syntax)
-  | AnyElem                  -- ^ '*'
-  | WithAttrib T.Text T.Text -- ^ ``
+  = OfClass T.Text    -- ^ Selector element @./identifier/@.
+  | OfName  T.Text    -- ^ Selector element @/identifier/@.
+  | OfId    T.Text    -- ^ Selector element @#/identifier/@.
+  | OfPseudoClass T.Text     -- ^ Selector element @:/identifier/@ (ignore
+                             -- function syntax).
+  | AnyElem                  -- ^ Selector element @*@.
+  | WithAttrib T.Text T.Text -- ^ Selector element @[/identifier/=/value/]@.
   deriving (Eq, Show)
 
 instance TextBuildable CssDescriptor where
@@ -57,7 +58,7 @@ instance TextBuildable CssDescriptor where
       OfClass c       -> si '.' <> ft c
       OfName  n       -> ft n
       OfId    i       -> si '#' <> ft i
-      OfPseudoClass c -> si '#' <> ft c
+      OfPseudoClass c -> si ':' <> ft c
       AnyElem         -> si '*'
       WithAttrib a b  -> mconcat [si '[', ft a, si '=', ft b, si ']']
      where
@@ -66,8 +67,8 @@ instance TextBuildable CssDescriptor where
 
 -- | Defines complex selector.
 data CssSelector
-  = Nearby          -- ^ Corresponds to the `+` CSS selector.
-  | DirectChildren  -- ^ Corresponds to the `>` CSS selectro.
+  = Nearby          -- ^ Corresponds to the @+@ CSS selector.
+  | DirectChildren  -- ^ Corresponds to the @>@ CSS selector.
   | AllOf [CssDescriptor] -- ^ Grouping construct, all the elements
                           -- of the list must be matched.
   deriving (Eq, Show)
@@ -80,7 +81,7 @@ instance TextBuildable CssSelector where
     where
       si = TB.singleton
 
--- | A CssSelectorRule is a list of all the elements
+-- | A 'CssSelectorRule' is a list of all the elements
 -- that must be met in a depth first search fashion.
 type CssSelectorRule = [CssSelector]
 
@@ -89,7 +90,7 @@ type CssSelectorRule = [CssSelector]
 data CssRule = CssRule
     { -- | At the first level represents a list of elements
       -- to be matched. If any match is made, you can apply
-      -- the declarations. At the second level
+      -- the declarations at the second level.
       cssRuleSelector :: ![CssSelectorRule]
       -- | Declarations to apply to the matched element.
     , cssDeclarations :: ![CssDeclaration]
@@ -111,15 +112,15 @@ instance TextBuildable CssRule where
           intersperse (ft ",\n") $ fmap tselector selectors
 
 -- | Interface for elements to be matched against
--- some CssRule.
+-- some 'CssRule'.
 class CssMatcheable a where
   -- | For an element, tell its optional ID attribute.
   cssIdOf     :: a -> Maybe T.Text
-  -- | For an element, return all of it's class attributes.
+  -- | For an element, return all of its class attributes.
   cssClassOf  :: a -> [T.Text]
-  -- | Return the name of the tagname of the element
+  -- | Return the name of the tagname of the element.
   cssNameOf   :: a -> T.Text
-  -- | Return a value of a given attribute if present
+  -- | Return a value of a given attribute if present.
   cssAttribOf :: a -> T.Text -> Maybe T.Text
 
 -- | Represents a zipper in depth at the first list
@@ -165,9 +166,9 @@ findMatchingDeclarations rules context =
 -- | Represents the content to apply to some
 -- CSS matched rules.
 data CssDeclaration = CssDeclaration
-    { -- | Property name to change (like font-family or color).
+    { -- | Property name to change (like @font-family@ or @color@).
       _cssDeclarationProperty :: T.Text
-      -- | List of values
+      -- | List of values.
     , _cssDecarationlValues   :: [[CssElement]]
     }
     deriving (Eq, Show)
@@ -185,17 +186,17 @@ instance TextBuildable CssDeclaration where
 -- render size.
 data Number
   = Num Double       -- ^ Simple coordinate in current user coordinate.
-  | Px Double        -- ^ With suffix "px"
+  | Px Double        -- ^ Number in pixels, relative to the viewing device.
   | Em Double        -- ^ Number relative to the current font size.
   | Percent Double   -- ^ Number relative to the current viewport size.
-  | Pc Double
+  | Pc Double        -- ^ Number in picas, relative to DPI.
   | Mm Double        -- ^ Number in millimeters, relative to DPI.
   | Cm Double        -- ^ Number in centimeters, relative to DPI.
   | Point Double     -- ^ Number in points, relative to DPI.
   | Inches Double    -- ^ Number in inches, relative to DPI.
   deriving (Eq, Show, Generic, Hashable)
 
--- | Helper function to modify inner value of a number
+-- | Helper function to modify inner value of a number.
 mapNumber :: (Double -> Double) -> Number -> Number
 mapNumber f nu = case nu of
   Num n     -> Num $ f n
@@ -208,8 +209,8 @@ mapNumber f nu = case nu of
   Point n   -> Point $ f n
   Inches n  -> Inches $ f n
 
--- | Encode the number to string which can be used in a
--- CSS or a svg attributes.
+-- | Encode the number to string which can be used in
+-- CSS or SVG attributes.
 serializeNumber :: Number -> String
 serializeNumber n = case n of
     Num c     -> ppD c
