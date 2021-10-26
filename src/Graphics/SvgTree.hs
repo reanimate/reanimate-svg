@@ -1,5 +1,5 @@
 -- | Module providing basic input/output for the SVG document,
--- for document building, please refer to Graphics.Svg.Types.
+-- for document building, please refer to "Graphics.SvgTree.Types".
 module Graphics.SvgTree
   ( -- * Saving/Loading functions
     loadSvgFile,
@@ -32,13 +32,13 @@ import Graphics.SvgTree.XmlParser
 import Text.XML.Light.Input (parseXMLDoc)
 import Text.XML.Light.Output (ppcTopElement, prettyConfigPP)
 
--- | Try to load an svg file on disc and parse it as
--- a SVG Document.
+-- | Try to load an SVG file on disc and parse it as
+-- an SVG 'Document'.
 loadSvgFile :: FilePath -> IO (Maybe Document)
 loadSvgFile filename =
   parseSvgFile filename <$> T.readFile filename
 
--- | Parse an in-memory SVG file
+-- | Parse an in-memory SVG file.
 parseSvgFile ::
   -- | Source path/URL of the document, used
   -- to resolve relative links.
@@ -54,7 +54,7 @@ parseSvg inp =
     Nothing -> error "Invalid XML"
     Just xml -> unparse xml
 
--- | Save a svg Document to a file on disk.
+-- | Save an SVG 'Document' to a file on disk.
 saveXmlFile :: FilePath -> Document -> IO ()
 saveXmlFile filePath =
   writeFile filePath . ppcTopElement prettyConfigPP . xmlOfDocument
@@ -73,10 +73,10 @@ cssDeclApplyer value (CssDeclaration txt elems) =
         | (n, u) <- drawAttributesList
       ]
 
--- | Rewrite a SVG Tree using some CSS rules.
+-- | Rewrite a SVG 'Tree' using some CSS rules.
 --
 -- This action will propagate the definition of the
--- css directly in each matched element.
+-- CSS directly in each matched element.
 cssApply :: [CssRule] -> Tree -> Tree
 cssApply rules = zipTree go
   where
@@ -89,9 +89,9 @@ cssApply rules = zipTree go
         attr = view drawAttributes t
         attr' = foldl' cssDeclApplyer attr matchingDeclarations
 
--- For every 'use' tag, try to resolve the geometry associated
--- with it and place it in the scene Tree. It is important to
--- resolve the 'use' tag before applying the CSS rules, as some
+-- For every @\<use\>@ SVG tag, try to resolve the geometry associated
+-- with it and place it in the scene 'Tree'. It is important to
+-- resolve the @\<use\>@ tag before applying the CSS rules, as some
 -- rules may apply some elements matching the children of "use".
 -- resolveUses :: Document -> Document
 -- resolveUses doc =

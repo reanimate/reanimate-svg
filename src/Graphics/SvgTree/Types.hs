@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternSynonyms    #-}
 -- | This module define all the types used in the definition
--- of a svg scene.
+-- of an SVG scene.
 --
 -- Most of the types are lensified.
 module Graphics.SvgTree.Types

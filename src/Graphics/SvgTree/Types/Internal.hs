@@ -8,7 +8,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 -- | This module defines all the types used in the definition
--- of a svg scene.
+-- of an SVG scene.
 --
 -- Most of the types are lensified.
 module Graphics.SvgTree.Types.Internal
@@ -472,35 +472,35 @@ import Text.Printf (printf)
 
 -- | Path command definition.
 data PathCommand
-  = -- | 'M' or 'm' command
+  = -- | Equivalent to the \'M\' or \'m\' SVG path commands.
     MoveTo !Origin ![RPoint]
-  | -- | Line to, 'L' or 'l' Svg path command.
+  | -- | Line to, equivalent to the \'L\' or \'l\' SVG path commands.
     LineTo !Origin ![RPoint]
-  | -- | Equivalent to the 'H' or 'h' svg path command.
+  | -- | Equivalent to the \'H\' or \'h\' SVG path commands.
     HorizontalTo !Origin ![Coord]
-  | -- | Equivalent to the 'V' or 'v' svg path command.
+  | -- | Equivalent to the \'V\' or \'v\' SVG path commands.
     VerticalTo !Origin ![Coord]
-  | -- | Cubic bezier, 'C' or 'c' command
+  | -- | Cubic bezier, equivalent to the \'C\' or \'c\' SVG path commands.
     CurveTo !Origin ![(RPoint, RPoint, RPoint)]
-  | -- | Smooth cubic bezier, equivalent to 'S' or 's' command
+  | -- | Smooth cubic bezier, equivalent to the \'S\' or \'s\' SVG path commands.
     SmoothCurveTo !Origin ![(RPoint, RPoint)]
-  | -- | Quadratic bezier, 'Q' or 'q' command
+  | -- | Quadratic bezier, equivalent to the \'Q\' or \'q\' SVG path commands.
     QuadraticBezier !Origin ![(RPoint, RPoint)]
-  | -- | Quadratic bezier, 'T' or 't' command
+  | -- | Quadratic bezier, equivalent to the \'T\' or \'t\' SVG path commands.
     SmoothQuadraticBezierCurveTo !Origin ![RPoint]
-  | -- | Elliptical arc, 'A' or 'a' command.
+  | -- | Elliptical arc, equivalent to the \'A\' or \'a\' SVG path commands.
     EllipticalArc !Origin ![(Coord, Coord, Coord, Bool, Bool, RPoint)]
-  | -- | Close the path, 'Z' or 'z' svg path command.
+  | -- | Close the path, equivalent to the \'Z\' or \'z\' SVG path commands.
     EndPath
   deriving (Eq, Show, Generic)
 
--- | Description of path used in meshgradient tag
+-- | Description of path used in the @\<meshgradient\>@ SVG tag.
 data GradientPathCommand
-  = -- | Line to, 'L' or 'l' Svg path command.
+  = -- | Line to, equivalent to the \'L\' or \'l\' SVG path commands.
     GLine !Origin !(Maybe RPoint)
-  | -- | Cubic bezier, 'C' or 'c' command
+  | -- | Cubic bezier, equivalent to the \'C\' or \'c\' SVG path commands.
     GCurve !Origin !RPoint !RPoint !(Maybe RPoint)
-  | -- | 'Z' command
+  | -- | Equivalent to the \'Z\' or \'z\' SVG path commands.
     GClose
   deriving (Eq, Show, Generic)
 
@@ -520,8 +520,8 @@ instance WithDefaultSvg PreserveAspectRatio where
         _aspectRatioMeetSlice = Nothing
       }
 
--- | Describe the content of the `transformation` attribute.
--- see `_transform` and `transform`.
+-- | Describe the content of the @transformation@ SVG attribute.
+-- See '_transform' and 'transform'.
 data Transformation
   = -- | Directly encode the translation matrix.
     TransformMatrix
@@ -531,11 +531,11 @@ data Transformation
       !Coord
       !Coord
       !Coord
-  | -- | Translation along a vector
+  | -- | Translation along a vector.
     Translate !Double !Double
   | -- | Scaling on both axes or on X axis and Y axis.
     Scale !Double !(Maybe Double)
-  | -- | Rotation around `(0, 0)` or around an optional
+  | -- | Rotation around @(0, 0)@ or around an optional
     -- point.
     Rotate !Double !(Maybe (Double, Double))
   | -- | Skew transformation along the X axis.
@@ -547,7 +547,7 @@ data Transformation
   deriving (Eq, Show, Generic)
 
 -- | Convert the Transformation to a string which can be
--- directly used in a svg attributes.
+-- directly used in SVG attributes.
 serializeTransformation :: Transformation -> String
 serializeTransformation t = case t of
   TransformUnknown -> ""
@@ -573,13 +573,13 @@ serializeTransformation t = case t of
   SkewX x -> printf "skewX(%s)" (ppD x)
   SkewY y -> printf "skewY(%s)" (ppD y)
 
--- | Transform a list of transformations to a string for svg
--- `transform` attributes.
+-- | Transform a list of transformations to a string for the
+-- @transform@ SVG attribute.
 serializeTransformations :: [Transformation] -> String
 serializeTransformations =
   unwords . fmap serializeTransformation
 
--- | Define an empty 'default' element for the SVG tree.
+-- | Define an empty \'default\' element for the SVG tree.
 -- It is used as base when parsing the element from XML.
 class WithDefaultSvg a where
   -- | The default element.
@@ -596,36 +596,36 @@ data FontStyle
 -- | Tell where to anchor the text, where the position
 -- given is realative to the text.
 data TextAnchor
-  = -- | The text with left aligned, or start at the postion
+  = -- | The text with left aligned, or start at the postion.
     -- If the point is the '*' then the text will be printed
     -- this way:
     --
     -- >  *THE_TEXT_TO_PRINT
     --
-    -- Equivalent to the `start` value.
+    -- Equivalent to the @start@ SVG value.
     TextAnchorStart
   | -- | The text is middle aligned, so the text will be at
     -- the left and right of the position:
     --
     -- >   THE_TEXT*TO_PRINT
     --
-    -- Equivalent to the `middle` value.
+    -- Equivalent to the @middle@ SVG value.
     TextAnchorMiddle
   | -- | The text is right aligned.
     --
     -- >   THE_TEXT_TO_PRINT*
     --
-    -- Equivalent to the `end` value.
+    -- Equivalent to the @end@ SVG value.
     TextAnchorEnd
   deriving (Eq, Show, Generic)
 
 -- | Corresponds to the possible values of
--- the attributes which are either `none` or
--- `url(#elem)`
+-- SVG attributes which are either @none@ or
+-- @url(\<string\>)@.
 data ElementRef
-  = -- | Value for `none`
+  = -- | @none@ SVG value.
     RefNone
-  | -- | Equivalent to `url()` attribute.
+  | -- | @url(\<string\>)@ SVG value.
     Ref String
   deriving (Eq, Show, Generic)
 
@@ -664,70 +664,70 @@ instance WithDefaultSvg FilterAttributes where
 --
 -- All these attributes are propagated to the children.
 data DrawAttributes = DrawAttributes
-  { -- | Corresponds to the `stroke-width` SVG attribute.
+  { -- | Corresponds to the @stroke-width@ SVG attribute.
     _strokeWidth :: !(Maybe Number),
-    -- | Corresponds to the `stroke` attribute.
+    -- | Corresponds to the @stroke@ SVG attribute.
     _strokeColor :: !(Maybe Texture),
-    -- | Define the `stroke-opacity` attribute, the transparency
+    -- | Define the @stroke-opacity@ SVG attribute, the transparency
     -- for the "border".
     _strokeOpacity :: !(Maybe Float),
-    -- | Corresponds to the `stroke-linecap` SVG attribute.
+    -- | Corresponds to the @stroke-linecap@ SVG attribute.
     _strokeLineCap :: !(Maybe Cap),
-    -- | Corresponds to the `stroke-linejoin` attribute.
+    -- | Corresponds to the @stroke-linejoin@ SVG attribute.
     _strokeLineJoin :: !(Maybe LineJoin),
     -- | Defines the distance of the miter join, corresponds
-    -- to the `stroke-miterlimit` attritbue.
+    -- to the @stroke-miterlimit@ attritbue.
     _strokeMiterLimit :: !(Maybe Double),
     -- | Define the fill color of the elements. Corresponds
-    -- to the `fill` attribute.
+    -- to the @fill@ SVG attribute.
     _fillColor :: !(Maybe Texture),
-    -- | Define the `fill-opacity` attribute, the transparency
+    -- | Define the @fill-opacity@ SVG attribute, the transparency
     -- for the "content".
     _fillOpacity :: !(Maybe Float),
     -- | Defines the global or group opacity attribute.
     _groupOpacity :: !(Maybe Float),
-    -- | Content of the `transform` attribute
+    -- | Content of the @transform@ SVG attribute.
     _transform :: !(Maybe [Transformation]),
-    -- | Defines the `fill-rule` used during the rendering.
+    -- | Defines the @fill-rule@ used during the rendering.
     _fillRule :: !(Maybe FillRule),
-    -- | Defines the `mask` attribute.
+    -- | Defines the @mask@ SVG attribute.
     _maskRef :: !(Maybe ElementRef),
-    -- | Defines the `clip-path` attribute.
+    -- | Defines the @clip-path@ SVG attribute.
     _clipPathRef :: !(Maybe ElementRef),
-    -- | Defines the `clip-rule` attribute.
+    -- | Defines the @clip-rule@ SVG attribute.
     _clipRule :: !(Maybe FillRule),
-    -- | Map to the `class` attribute. Used for the CSS
+    -- | Map to the @class@ SVG attribute. Used for the CSS
     -- rewriting.
     _attrClass :: ![T.Text],
-    -- | Map to the `id` attribute. Used for the CSS
+    -- | Map to the @id@ SVG attribute. Used for the CSS
     -- rewriting.
     _attrId :: !(Maybe String),
     -- | Defines the start distance of the dashing pattern.
-    -- Corresponds to the `stroke-dashoffset` attribute.
+    -- Corresponds to the @stroke-dashoffset@ SVG attribute.
     _strokeOffset :: !(Maybe Number),
     -- | Defines the dashing pattern for the lines. Corresponds
-    -- to the `stroke-dasharray` attribute.
+    -- to the @stroke-dasharray@ SVG attribute.
     _strokeDashArray :: !(Maybe [Number]),
     -- | Current size of the text, corresponds to the
-    -- `font-size` SVG attribute.
+    -- @font-size@ SVG attribute.
     _fontSize :: !(Maybe Number),
     -- | Defines the possible fonts to be used for text rendering.
-    -- Maps to the `font-family` attribute.
+    -- Maps to the @font-family@ SVG attribute.
     _fontFamily :: !(Maybe [String]),
-    -- | Maps to the `font-style` attribute.
+    -- | Maps to the @font-style@ SVG attribute.
     _fontStyle :: !(Maybe FontStyle),
     -- | Defines how to interpret the text position, corresponds
-    -- to the `text-anchor` attribute.
+    -- to the @text-anchor@ SVG attribute.
     _textAnchor :: !(Maybe TextAnchor),
     -- | Defines the marker used for the start of the line.
-    -- Corresponds to the `marker-start` attribute.
+    -- Corresponds to the @marker-start@ SVG attribute.
     _markerStart :: !(Maybe ElementRef),
     -- | Defines the marker used for every point of the
-    -- polyline/path. Corresponds to the `marker-mid`
+    -- polyline/path. Corresponds to the @marker-mid@
     -- attribute.
     _markerMid :: !(Maybe ElementRef),
     -- | Defines the marker used for the end of the line.
-    -- Corresponds to the `marker-end` attribute.
+    -- Corresponds to the @marker-end@ SVG attribute.
     _markerEnd :: !(Maybe ElementRef),
     _filterRef :: !(Maybe ElementRef)
   }
@@ -736,11 +736,11 @@ data DrawAttributes = DrawAttributes
 makeClassy ''DrawAttributes
 
 -- | This primitive describes an unclosed suite of
--- segments. Correspond to the `<polyline>` tag.
+-- segments. Correspond to the @\<polyline\>@ SVG tag.
 data PolyLine = PolyLine
   { _polyLineDrawAttributes :: DrawAttributes,
     -- | Geometry definition of the polyline.
-    -- Corresponds to the `points` attribute
+    -- Corresponds to the @points@ SVG attribute.
     _polyLinePoints :: [RPoint]
   }
   deriving (Eq, Show, Generic)
@@ -749,12 +749,12 @@ instance WithDefaultSvg PolyLine where
   defaultSvg = PolyLine mempty mempty
 
 -- | Primitive decribing polygon composed
--- of segements. Corresponds to the `<polygon>`
--- tag
+-- of segements. Corresponds to the @\<polygon\>@ SVG
+-- tag.
 data Polygon = Polygon
   { _polygonDrawAttributes :: DrawAttributes,
     -- | Points of the polygon. Corresponds to
-    -- the `points` attribute.
+    -- the @points@ SVG attribute.
     _polygonPoints :: [RPoint]
   }
   deriving (Eq, Show, Generic)
@@ -763,14 +763,14 @@ instance WithDefaultSvg Polygon where
   defaultSvg = Polygon mempty mempty
 
 -- | Defines a simple line. Corresponds to the
--- `<line>` tag.
+-- @\<line\>@ SVG tag.
 data Line = Line
   { _lineDrawAttributes :: DrawAttributes,
     -- | First point of the line, corresponds
-    -- to the `x1` and `y1` attributes.
+    -- to the @x1@ and @y1@ SVG attributes.
     _linePoint1 :: !Point,
     -- | Second point of the line, corresponds
-    -- to the `x2` and `y2` attributes.
+    -- to the @x2@ and @y2@ SVG attributes.
     _linePoint2 :: !Point
   }
   deriving (Eq, Show, Generic)
@@ -786,21 +786,21 @@ instance WithDefaultSvg Line where
       zeroPoint = (Num 0, Num 0)
 
 -- | Defines a rectangle. Corresponds to
--- `<rectangle>` svg tag.
+-- @\<rectangle\>@ SVG tag.
 data Rectangle = Rectangle
   { _rectangleDrawAttributes :: DrawAttributes,
     -- | Upper left corner of the rectangle, corresponds
-    -- to the attributes `x` and `y`.
+    -- to the @x@ and @y@ SVG attributes.
     _rectUpperLeftCorner :: !Point,
     -- | Rectangle width, corresponds to
-    -- the `width` attribute.
+    -- the @width@ SVG attribute.
     _rectWidth :: !(Maybe Number),
     -- | Rectangle height, corresponds to
-    -- the `height` attribute.
+    -- the @height@ SVG attribute.
     _rectHeight :: !(Maybe Number),
     -- | Defines the rounded corner radius
-    -- of the rectangle. Corresponds to the `rx` and
-    -- `ry` attributes.
+    -- of the rectangle. Corresponds to the @rx@ and
+    -- @ry@ SVG attributes.
     _rectCornerRadius :: !(Maybe Number, Maybe Number)
   }
   deriving (Eq, Show, Generic)
@@ -815,11 +815,11 @@ instance WithDefaultSvg Rectangle where
         _rectCornerRadius = (Nothing, Nothing)
       }
 
--- | Type mapping the `<path>` svg tag.
+-- | Type mapping the @\<path\>@ SVG tag.
 data Path = Path
   { _pathDrawAttributes :: DrawAttributes,
     -- | Definition of the path, corresponds to the
-    -- `d` attribute.
+    -- @d@ SVG attribute.
     _pathDefinition :: [PathCommand]
   }
   deriving (Eq, Show, Generic)
@@ -827,15 +827,15 @@ data Path = Path
 instance WithDefaultSvg Path where
   defaultSvg = Path mempty mempty
 
--- | Defines a SVG group, corresponds to `<g>` tag.
+-- | Defines a SVG group, corresponds to @\<g\>@ SVG tag.
 data Group = Group
   { _groupDrawAttributes :: DrawAttributes,
     -- | Content of the group, corresponding to all the tags
-    -- inside the `<g>` tag.
+    -- inside the @\<g\>@ SVG tag.
     _groupChildren :: ![Tree],
-    -- | Mapped to the attribute `viewBox`
+    -- | Mapped to the attribute @viewBox@.
     _groupViewBox :: !(Maybe (Double, Double, Double, Double)),
-    -- | used for symbols only
+    -- | Used for symbols only.
     _groupAspectRatio :: !PreserveAspectRatio
   }
   deriving (Eq, Show, Generic)
@@ -849,7 +849,7 @@ instance WithDefaultSvg Group where
         _groupAspectRatio = defaultSvg
       }
 
--- | Defines the `<filter>` tag.
+-- | Defines the @\<filter\>@ SVG tag.
 data Filter = Filter
   { _filterDrawAttributes :: DrawAttributes,
     _filterSelfAttributes :: !FilterAttributes,
@@ -865,13 +865,13 @@ instance WithDefaultSvg Filter where
         _filterChildren = []
       }
 
--- | Defines a `<circle>`.
+-- | Defines a @\<circle\>@.
 data Circle = Circle
   { _circleDrawAttributes :: DrawAttributes,
     -- | Defines the center of the circle.
-    -- Corresponds to the `cx` and `cy` attributes.
+    -- Corresponds to the @cx@ and @cy@ SVG attributes.
     _circleCenter :: !Point,
-    -- | Radius of the circle, corresponds to the `r`
+    -- | Radius of the circle, corresponds to the @r@ SVG
     -- attribute.
     _circleRadius :: !Number
   }
@@ -885,17 +885,17 @@ instance WithDefaultSvg Circle where
         _circleRadius = Num 0
       }
 
--- | Defines an `<ellipse>`
+-- | Defines an @\<ellipse\>@
 data Ellipse = Ellipse
   { _ellipseDrawAttributes :: DrawAttributes,
-    -- | Center of the ellipse, corresponds to the `cx`
-    -- and `cy` attributes.
+    -- | Center of the ellipse, corresponds to the @cx@
+    -- and @cy@ SVG attributes.
     _ellipseCenter :: !Point,
     -- | Radius along the X axis, corresponds to the
-    -- `rx` attribute.
+    -- @rx@ SVG attribute.
     _ellipseXRadius :: !Number,
     -- | Radius along the Y axis, corresponds to the
-    -- `ry` attribute.
+    -- @ry@ SVG attribute.
     _ellipseYRadius :: !Number
   }
   deriving (Eq, Show, Generic)
@@ -910,17 +910,17 @@ instance WithDefaultSvg Ellipse where
       }
 
 -- | Defines a color stop for the gradients. Represents
--- the `<stop>` SVG tag.
+-- the @\<stop\>@ SVG tag.
 data GradientStop = GradientStop
   { -- | Gradient offset between 0 and 1, corresponds
-    -- to the `offset` attribute.
+    -- to the @offset@ SVG attribute.
     _gradientOffset :: !Float,
     -- | Color of the gradient stop. Corresponds
-    -- to the `stop-color` attribute.
+    -- to the @stop-color@ SVG attribute.
     _gradientColor :: !PixelRGBA8,
-    -- | Path command used in mesh patch
+    -- | Path command used in mesh patch.
     _gradientPath :: !(Maybe GradientPathCommand),
-    -- | Stop color opacity
+    -- | Stop color opacity.
     _gradientOpacity :: !(Maybe Float)
   }
   deriving (Eq, Show, Generic)
@@ -934,9 +934,9 @@ instance WithDefaultSvg GradientStop where
         _gradientOpacity = Nothing
       }
 
--- | Defines `<meshpatch>` SVG tag
+-- | Defines @\<meshpatch\>@ SVG tag.
 newtype MeshGradientPatch = MeshGradientPatch
-  { -- | List of stop, from 2 to 4 in a patch
+  { -- | List of stop, from 2 to 4 in a patch.
     _meshGradientPatchStops :: [GradientStop]
   }
   deriving (Eq, Show, Generic)
@@ -944,9 +944,9 @@ newtype MeshGradientPatch = MeshGradientPatch
 instance WithDefaultSvg MeshGradientPatch where
   defaultSvg = MeshGradientPatch []
 
--- | Define a `<meshrow>` tag.
+-- | Define a @\<meshrow\>@ SVG tag.
 newtype MeshGradientRow = MeshGradientRow
-  { -- | List of patch in a row
+  { -- | List of patch in a row.
     _meshGradientRowPatches :: [MeshGradientPatch]
   }
   deriving (Eq, Show, Generic)
@@ -954,18 +954,18 @@ newtype MeshGradientRow = MeshGradientRow
 instance WithDefaultSvg MeshGradientRow where
   defaultSvg = MeshGradientRow []
 
--- | Defines a `<meshgradient>` tag.
+-- | Defines a @\<meshgradient\>@ SVG tag.
 data MeshGradient = MeshGradient
   { _meshGradientDrawAttributes :: DrawAttributes,
-    -- | Original x coordinate of the mesh gradient
+    -- | Original x coordinate of the mesh gradient.
     _meshGradientX :: !Number,
-    -- | Original y coordinate of the mesh gradient
+    -- | Original y coordinate of the mesh gradient.
     _meshGradientY :: !Number,
-    -- | Type of color interpolation to use
+    -- | Type of color interpolation to use.
     _meshGradientType :: !MeshGradientType,
-    -- | Coordiante system to use
+    -- | Coordiante system to use.
     _meshGradientUnits :: !CoordinateUnits,
-    -- | Optional transform
+    -- | Optional transform.
     _meshGradientTransform :: ![Transformation],
     -- | List of patch rows in the mesh.
     _meshGradientRows :: ![MeshGradientRow]
@@ -984,19 +984,19 @@ instance WithDefaultSvg MeshGradient where
         _meshGradientRows = mempty
       }
 
--- | Defines an `<image>` tag.
+-- | Defines an @\<image\>@ SVG tag.
 data Image = Image
   { _imageDrawAttributes :: DrawAttributes,
     -- | Position of the image referenced by its
     -- upper left corner.
     _imageCornerUpperLeft :: !Point,
-    -- | Image width
+    -- | Image width.
     _imageWidth :: !Number,
-    -- | Image Height
+    -- | Image Height.
     _imageHeight :: !Number,
     -- | Image href, pointing to the real image.
     _imageHref :: !String,
-    -- | preserveAspectRatio attribute
+    -- | preserveAspectRatio attribute.
     _imageAspectRatio :: !PreserveAspectRatio
   }
   deriving (Eq, Show, Generic)
@@ -1012,23 +1012,23 @@ instance WithDefaultSvg Image where
         _imageAspectRatio = defaultSvg
       }
 
--- | Defines an `<use>` for a named content.
+-- | Defines an @\<use\>@ for a named content.
 -- Every named content can be reused in the
 -- document using this element.
 data Use = Use
   { _useDrawAttributes :: DrawAttributes,
     -- | Position where to draw the "used" element.
-    -- Corresponds to the `x` and `y` attributes.
+    -- Corresponds to the @x@ and @y@ SVG attributes.
     _useBase :: Point,
-    -- | Referenced name, corresponds to `xlink:href`
-    -- attribute.
+    -- | Referenced name, corresponds to @xlink:href@
+    -- SVG attribute.
     _useName :: String,
     -- | Defines the width of the region where
-    -- to place the element. Corresponds to the `width`
+    -- to place the element. Corresponds to the @width@ SVG
     -- attribute.
     _useWidth :: Maybe Number,
     -- | Defines the height of the region where
-    -- to place the element. Corresponds to the `height`
+    -- to place the element. Corresponds to the @height@ SVG
     -- attribute.
     _useHeight :: Maybe Number
   }
@@ -1045,19 +1045,19 @@ instance WithDefaultSvg Use where
       }
 
 -- | Defines position information associated to
--- `<text>` or `<tspan>` svg tag.
+-- @\<text\>@ or @\<tspan\>@ SVG tag.
 data TextInfo = TextInfo
-  { -- | `x` attribute.
+  { -- | @x@ SVG attribute.
     _textInfoX :: ![Number],
-    -- | `y` attribute.
+    -- | @y@ SVG attribute.
     _textInfoY :: ![Number],
-    -- | `dx` attribute.
+    -- | @dx@ SVG attribute.
     _textInfoDX :: ![Number],
-    -- | `dy` attribute.
+    -- | @dy@ SVG attribute.
     _textInfoDY :: ![Number],
-    -- | `rotate` attribute.
+    -- | @rotate@ SVG attribute.
     _textInfoRotate :: ![Double],
-    -- | `textLength` attribute.
+    -- | @textLength@ SVG attribute.
     _textInfoLength :: !(Maybe Number)
   }
   deriving (Eq, Show, Generic)
@@ -1081,17 +1081,17 @@ instance Monoid TextInfo where
 instance WithDefaultSvg TextInfo where
   defaultSvg = mempty
 
--- | Defines the content of a `<tspan>` tag.
+-- | Defines the content of a @\<tspan\>@ SVG tag.
 data TextSpanContent
-  = -- | Raw text
+  = -- | Raw text.
     SpanText !T.Text
-  | -- | Equivalent to a `<tref>`
+  | -- | Equivalent to a @\<tref\>@ SVG tag.
     SpanTextRef !String
-  | -- | Defines a `<tspan>`
+  | -- | Defines a @\<tspan\>@ SVG tag.
     SpanSub !TextSpan
   deriving (Eq, Show, Generic)
 
--- | Defines a `<tspan>` tag.
+-- | Defines a @\<tspan\>@ SVG tag.
 data TextSpan = TextSpan
   { -- | Placement information for the text.
     _spanInfo :: !TextInfo,
@@ -1110,34 +1110,34 @@ instance WithDefaultSvg TextSpan where
         _spanContent = mempty
       }
 
--- | Describe the content of the `method` attribute on
+-- | Describe the content of the @method@ SVG attribute on
 -- text path.
 data TextPathMethod
-  = -- | Corresponds to the `align` value.
+  = -- | Corresponds to the @align@ SVG value.
     TextPathAlign
-  | -- | Corresponds to the `stretch` value.
+  | -- | Corresponds to the @stretch@ SVG value.
     TextPathStretch
   deriving (Eq, Show, Generic)
 
--- | Describes the content of the `spacing` text path
+-- | Describes the content of the @spacing@ text path
 -- attribute.
 data TextPathSpacing
-  = -- | Corresponds to the `exact` value.
+  = -- | Corresponds to the @exact@ SVG value.
     TextPathSpacingExact
-  | -- | Corresponds to the `auto` value.
+  | -- | Corresponds to the @auto@ SVG value.
     TextPathSpacingAuto
   deriving (Eq, Show, Generic)
 
--- | Describes the `<textpath>` SVG tag.
+-- | Describes the @\<textpath\>@ SVG tag.
 data TextPath = TextPath
   { -- | Defines the beginning offset on the path,
-    -- the `startOffset` attribute.
+    -- the @startOffset@ SVG attribute.
     _textPathStartOffset :: !Number,
-    -- | Defines the `xlink:href` attribute.
+    -- | Defines the @xlink:href@ SVG attribute.
     _textPathName :: !String,
-    -- | Corresponds to the `method` attribute.
+    -- | Corresponds to the @method@ SVG attribute.
     _textPathMethod :: !TextPathMethod,
-    -- | Corresponds to the `spacing` attribute.
+    -- | Corresponds to the @spacing@ SVG attribute.
     _textPathSpacing :: !TextPathSpacing
   }
   deriving (Eq, Show, Generic)
@@ -1151,18 +1151,18 @@ instance WithDefaultSvg TextPath where
         _textPathSpacing = TextPathSpacingExact
       }
 
--- | Defines the possible values of the `lengthAdjust`
+-- | Defines the possible values of the @lengthAdjust@
 -- attribute.
 data TextAdjust
-  = -- | Value `spacing`
+  = -- | @spacing@ SVG value.
     TextAdjustSpacing
-  | -- | Value `spacingAndGlyphs`
+  | -- | @spacingAndGlyphs@ SVG value.
     TextAdjustSpacingAndGlyphs
   deriving (Eq, Show, Generic)
 
--- | Defines the global `<text>` SVG tag.
+-- | Defines the global @\<text\>@ SVG tag.
 data Text = Text
-  { -- | Defines the `lengthAdjust` attribute.
+  { -- | Defines the @lengthAdjust@ SVG attribute.
     _textAdjust :: !TextAdjust,
     -- | Root of the text content.
     _textRoot :: !TextSpan
@@ -1192,7 +1192,7 @@ instance WithDefaultSvg Text where
       }
 
 -- | Main type for the scene description, reorient to
--- specific type describing each tag.
+-- specific type describing each SVG tag.
 data Tree = CachedTree
   { _treeBranch :: TreeBranch,
     _treeHash :: Int
@@ -1826,53 +1826,53 @@ instance WithDefaultSvg GaussianBlur where
       }
 
 -- | Defines the orientation, associated to the
--- `orient` attribute on the Marker
+-- @orient@ SVG attribute on the 'Marker'.
 data MarkerOrientation
-  = -- | Auto value
+  = -- | Auto value.
     OrientationAuto
   | -- | Specific angle.
     OrientationAngle Coord
   deriving (Eq, Show, Generic)
 
--- | Define the content of the `markerUnits` attribute
--- on the Marker.
+-- | Define the content of the @markerUnits@ SVG attribute
+-- on the 'Marker'.
 data MarkerUnit
-  = -- | Value `strokeWidth`
+  = -- | @strokeWidth@ SVG value.
     MarkerUnitStrokeWidth
-  | -- | Value `userSpaceOnUse`
+  | -- | @userSpaceOnUse@ SVG value.
     MarkerUnitUserSpaceOnUse
   deriving (Eq, Show, Generic)
 
--- | Defines the content of the `markerUnits` attribute
--- on the Marker.
+-- | Defines the content of the @markerUnits@ SVG attribute
+-- on the 'Marker'.
 data Overflow
-  = -- | Value `visible`
+  = -- | @visible@ SVG value.
     OverflowVisible
-  | -- | Value `hidden`
+  | -- | @hidden@ SVG value.
     OverflowHidden
   deriving (Eq, Show, Generic)
 
--- | Defines the `<marker>` tag.
+-- | Defines the @\<marker\>@ SVG tag.
 data Marker = Marker
   { _markerDrawAttributes :: DrawAttributes,
     -- | Defines the reference point of the marker.
-    -- corresponds to the `refX` and `refY` attributes.
+    -- Corresponds to the @refX@ and @refY@ SVG attributes.
     _markerRefPoint :: !(Number, Number),
     -- | Defines the width of the marker. Corresponds to
-    -- the `markerWidth` attribute.
+    -- the @markerWidth@ SVG attribute.
     _markerWidth :: !(Maybe Number),
     -- | Defines the height of the marker. Corresponds to
-    -- the `markerHeight` attribute.
+    -- the @markerHeight@ SVG attribute.
     _markerHeight :: !(Maybe Number),
-    -- | Corresponds to the `orient` attribute.
+    -- | Corresponds to the @orient@ SVG attribute.
     _markerOrient :: !(Maybe MarkerOrientation),
-    -- | Corresponds to the `markerUnits` attribute.
+    -- | Corresponds to the @markerUnits@ SVG attribute.
     _markerUnits :: !(Maybe MarkerUnit),
-    -- | Optional viewbox
+    -- | Optional viewbox.
     _markerViewBox :: !(Maybe (Double, Double, Double, Double)),
     -- | Elements defining the marker.
     _markerOverflow :: !(Maybe Overflow),
-    -- | preserveAspectRatio attribute
+    -- | @preserveAspectRatio@ SVG attribute.
     _markerAspectRatio :: !PreserveAspectRatio,
     -- | Elements defining the marker.
     _markerElements :: [Tree]
@@ -1894,8 +1894,8 @@ instance WithDefaultSvg Marker where
         _markerAspectRatio = defaultSvg
       }
 
--- | For every element of a svg tree, associate
--- it's SVG tag name.
+-- | For every element of a SVG tree, associate
+-- its SVG tag name.
 nameOfTree :: Tree -> T.Text
 nameOfTree v =
   case _treeBranch v of
@@ -1923,35 +1923,35 @@ nameOfTree v =
     ClipPathNode _ -> "clipPath"
     SvgNode {} -> "svg"
 
--- | Defines the possible values for the `spreadMethod`
+-- | Defines the possible values for the @spreadMethod@
 -- values used for the gradient definitions.
 data Spread
-  = -- | `reapeat` value
+  = -- | @reapeat@ SVG value.
     SpreadRepeat
-  | -- | `pad` value
+  | -- | @pad@ SVG value.
     SpreadPad
-  | -- | `reflect value`
+  | -- | @reflect@ SVG value.
     SpreadReflect
   deriving (Eq, Show, Generic)
 
--- | Defines a `<linearGradient>` tag.
+-- | Defines a @\<linearGradient\>@ SVG tag.
 data LinearGradient = LinearGradient
   { _linearGradientDrawAttributes :: DrawAttributes,
     -- | Defines coordinate system of the gradient,
-    -- associated to the `gradientUnits` attribute.
+    -- associated to the @gradientUnits@ SVG attribute.
     _linearGradientUnits :: CoordinateUnits,
     -- | Point defining the beginning of the line gradient.
-    -- Associated to the `x1` and `y1` attribute.
+    -- Associated to the @x1@ and @y1@ SVG attributes.
     _linearGradientStart :: Point,
     -- | Point defining the end of the line gradient.
-    -- Associated to the `x2` and `y2` attribute.
+    -- Associated to the @x2@ and @y2@ SVG attributes.
     _linearGradientStop :: Point,
     -- | Define how to handle the values outside
     -- the gradient start and stop. Associated to the
-    -- `spreadMethod` attribute.
+    -- @spreadMethod@ SVG attribute.
     _linearGradientSpread :: Spread,
     -- | Define the transformation to apply to the
-    -- gradient points. Associated to the `gradientTransform`
+    -- gradient points. Associated to the @gradientTransform@ SVG
     -- attribute.
     _linearGradientTransform :: [Transformation],
     -- | List of color stops of the linear gradient.
@@ -1971,30 +1971,30 @@ instance WithDefaultSvg LinearGradient where
         _linearGradientStops = []
       }
 
--- | Defines a `<radialGradient>` tag.
+-- | Defines a @\<radialGradient\>@ SVG tag.
 data RadialGradient = RadialGradient
   { _radialGradientDrawAttributes :: DrawAttributes,
     -- | Defines coordinate system of the gradient,
-    -- associated to the `gradientUnits` attribute.
+    -- associated to the @gradientUnits@ SVG attribute.
     _radialGradientUnits :: CoordinateUnits,
     -- | Center of the radial gradient. Associated to
-    -- the `cx` and `cy` attributes.
+    -- the @cx@ and @cy@ SVG attributes.
     _radialGradientCenter :: Point,
     -- | Radius of the radial gradient. Associated to
-    -- the `r` attribute.
+    -- the @r@ SVG attribute.
     _radialGradientRadius :: Number,
     -- | X coordinate of the focus point of the radial
-    -- gradient. Associated to the `fx` attribute.
+    -- gradient. Associated to the @fx@ SVG attribute.
     _radialGradientFocusX :: Maybe Number,
     -- | Y coordinate of the focus point of the radial
-    -- gradient. Associated to the `fy` attribute.
+    -- gradient. Associated to the @fy@ SVG attribute.
     _radialGradientFocusY :: Maybe Number,
     -- | Defines how to handle the values outside
     -- the gradient start and stop. Associated to the
-    -- `spreadMethod` attribute.
+    -- @spreadMethod@ SVG attribute.
     _radialGradientSpread :: Spread,
     -- | Define the transformation to apply to the
-    -- gradient points. Associated to the `gradientTransform`
+    -- gradient points. Associated to the @gradientTransform@ SVG
     -- attribute.
     _radialGradientTransform :: [Transformation],
     -- | List of color stops of the radial gradient.
@@ -2016,20 +2016,20 @@ instance WithDefaultSvg RadialGradient where
         _radialGradientStops = []
       }
 
--- | Defines a SVG `<mask>` tag.
+-- | Defines a @\<mask\>@ SVG tag.
 data Mask = Mask
   { _maskDrawAttributes :: DrawAttributes,
-    -- | Corresponds to the `maskContentUnits` attributes.
+    -- | Corresponds to the @maskContentUnits@ SVG attribute.
     _maskContentUnits :: CoordinateUnits,
-    -- | Corresponds to the `maskUnits` attribute.
+    -- | Corresponds to the @maskUnits@ SVG attribute.
     _maskUnits :: CoordinateUnits,
-    -- | Corresponds to the `x` and `y` attributes.
+    -- | Corresponds to the @x@ and @y@ SVG attributes.
     _maskPosition :: Point,
-    -- | Corresponds to the `width` attribute
+    -- | Corresponds to the @width@ SVG attribute
     _maskWidth :: Number,
-    -- | Corresponds to the `height` attribute.
+    -- | Corresponds to the @height@ SVG attribute.
     _maskHeight :: Number,
-    -- | Children of the `<mask>` tag.
+    -- | Children of the @\<mask\>@ SVG tag.
     _maskContent :: [Tree]
   }
   deriving (Eq, Show, Generic)
@@ -2046,12 +2046,12 @@ instance WithDefaultSvg Mask where
         _maskContent = []
       }
 
--- | Defines a `<clipPath>` tag.
+-- | Defines a @\<clipPath\>@ SVG tag.
 data ClipPath = ClipPath
   { _clipPathDrawAttributes :: DrawAttributes,
-    -- | Corresponds to the `clipPathUnits` attribute
+    -- | Corresponds to the @clipPathUnits@ SVG attribute.
     _clipPathUnits :: CoordinateUnits,
-    -- | Corresponds to the content of the tree
+    -- | Corresponds to the content of the tree.
     _clipPathContent :: [Tree]
   }
   deriving (Eq, Show, Generic)
@@ -2064,32 +2064,32 @@ instance WithDefaultSvg ClipPath where
         _clipPathContent = mempty
       }
 
--- | Defines a `<pattern>` tag.
+-- | Defines a @\<pattern\>@ SVG tag.
 data Pattern = Pattern
   { _patternDrawAttributes :: DrawAttributes,
-    -- | Possible `viewBox`.
+    -- | Possible @viewBox@.
     _patternViewBox :: !(Maybe (Double, Double, Double, Double)),
     -- | Width of the pattern tile, mapped to the
-    -- `width` attribute
+    -- @width@ SVG attribute.
     _patternWidth :: !Number,
     -- | Height of the pattern tile, mapped to the
-    -- `height` attribute
+    -- @height@ SVG attribute.
     _patternHeight :: !Number,
-    -- | Pattern tile base, mapped to the `x` and
-    -- `y` attributes.
+    -- | Pattern tile base, mapped to the @x@ and
+    -- @y@ SVG attributes.
     _patternPos :: !Point,
     -- | Patterns can be chained, so this is a potential
-    -- reference to another pattern
+    -- reference to another pattern.
     _patternHref :: !String,
     -- | Elements used in the pattern.
     _patternElements :: ![Tree],
     -- | Defines the cordinate system to use for
-    -- the pattern. Corresponds to the `patternUnits`
+    -- the pattern. Corresponds to the @patternUnits@ SVG
     -- attribute.
     _patternUnit :: !CoordinateUnits,
-    -- | Value of the `preserveAspectRatio` attribute
+    -- | Value of the @preserveAspectRatio@ SVG attribute.
     _patternAspectRatio :: !PreserveAspectRatio,
-    -- | Value of `patternTransform` attribute
+    -- | Value of @patternTransform@ SVG attribute.
     _patternTransform :: !(Maybe [Transformation])
   }
   deriving (Eq, Show, Generic)
@@ -2122,7 +2122,7 @@ data Element
   | ElementClipPath ClipPath
   deriving (Eq, Show, Generic)
 
--- | Represents a full svg document with style,
+-- | Represents a full SVG document with style,
 -- geometry and named elements.
 data Document = Document
   { _documentViewBox :: Maybe (Double, Double, Double, Double),
