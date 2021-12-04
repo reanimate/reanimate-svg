@@ -3,12 +3,12 @@ name:                reanimate-svg
 version:             0.13.0.1
 synopsis:            SVG file loader and serializer
 description:
-  reanimate-svg provides types representing a SVG document,
-  and allows to load and save it.
+  `reanimate-svg` provides types representing a SVG document,
+  and allows you to load and save it.
   .
-  The types definition are aimed at rendering,
-  so they are rather comple. For simpler SVG document building,
-  look after `lucid-svg`.
+  The types defined are aimed at rendering,
+  so they are rather complex. For simpler SVG document building,
+  see the `lucid-svg` package.
 
 
 license:             BSD-3-Clause
