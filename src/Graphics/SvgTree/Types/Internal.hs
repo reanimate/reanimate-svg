@@ -827,15 +827,17 @@ data Path = Path
 instance WithDefaultSvg Path where
   defaultSvg = Path mempty mempty
 
--- | Defines a SVG group, corresponds to @\<g\>@ SVG tag.
+-- | Defines a SVG group, corresponds to the structural container SVG tags
+-- (other than @\<svg\>@), namely @\<g\>@, @\<defs\>@ and @\<symbol\>@.
 data Group = Group
   { _groupDrawAttributes :: DrawAttributes,
     -- | Content of the group, corresponding to all the tags
-    -- inside the @\<g\>@ SVG tag.
+    -- inside the structural container SVG tag.
     _groupChildren :: ![Tree],
-    -- | Mapped to the attribute @viewBox@.
+    -- | Mapped to the attribute @viewBox@. Used for @\<symbol\>@ tags only.
     _groupViewBox :: !(Maybe (Double, Double, Double, Double)),
-    -- | Used for symbols only.
+    -- | Mapped to the attribute @preserveAspectRatio@. Used for @\<symbol\>@
+    -- tags only.
     _groupAspectRatio :: !PreserveAspectRatio
   }
   deriving (Eq, Show, Generic)
