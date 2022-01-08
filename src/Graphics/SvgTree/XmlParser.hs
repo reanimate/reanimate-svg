@@ -932,7 +932,7 @@ instance XMLUpdatable MeshGradient where
 instance XMLUpdatable LinearGradient where
   xmlTagName _ = "linearGradient"
   serializeTreeNode node =
-     updateWithAccessor _linearGradientStops node $ genericSerializeNode node
+     updateWithAccessor _linearGradientStops node $ genericSerializeWithDrawAttr node
 
   attributes =
     ["gradientTransform" `parseIn` linearGradientTransform
@@ -1238,7 +1238,7 @@ instance XMLUpdatable Turbulence where
 instance XMLUpdatable RadialGradient where
   xmlTagName _ = "radialGradient"
   serializeTreeNode node =
-     updateWithAccessor _radialGradientStops node $ genericSerializeNode node
+     updateWithAccessor _radialGradientStops node $ genericSerializeWithDrawAttr node
   attributes =
     ["gradientTransform" `parseIn` radialGradientTransform
     ,"gradientUnits" `parseIn` radialGradientUnits
