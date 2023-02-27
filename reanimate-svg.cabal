@@ -28,7 +28,7 @@ Source-Repository head
 
 library
   hs-source-dirs: src
-  ghc-options: -Wall
+  ghc-options: -Wall -fsimpl-tick-factor=300
   default-language: Haskell2010
   exposed-modules: Graphics.SvgTree
                  , Graphics.SvgTree.CssTypes
