@@ -208,6 +208,30 @@ instance ParseableAttribute TextAnchor where
     TextAnchorStart  -> "start"
     TextAnchorEnd    -> "end"
 
+instance ParseableAttribute DominantBaseline where
+  aparse s = case s of
+    "auto" -> Just DominantBaselineAuto
+    "text-bottom" -> Just DominantBaselineTextBottom
+    "alphabetic" -> Just DominantBaselineAlphabetic
+    "ideographic" -> Just DominantBaselineIdeographic
+    "middle" -> Just DominantBaselineMiddle
+    "central" -> Just DominantBaselineCentral
+    "mathematical" -> Just DominantBaselineMathematical
+    "hanging" -> Just DominantBaselineHanging
+    "text-top " -> Just DominantBaselineTextTop
+    _        -> Nothing
+
+  aserialize t = Just $ case t of
+    DominantBaselineAuto -> "auto"
+    DominantBaselineTextBottom -> "text-bottom"
+    DominantBaselineAlphabetic -> "alphabetic"
+    DominantBaselineIdeographic -> "ideographic"
+    DominantBaselineMiddle -> "middle"
+    DominantBaselineCentral -> "central"
+    DominantBaselineMathematical -> "mathematical"
+    DominantBaselineHanging -> "hanging"
+    DominantBaselineTextTop -> "text-top "
+
 instance ParseableAttribute ElementRef where
   aparse s = case parseOnly pa $ T.pack s of
      Left _  -> Nothing
@@ -776,6 +800,7 @@ drawAttributesList =
       cssUniqueNumber strokeOffset)
   ,("stroke-dasharray" `parseIn` strokeDashArray, cssDashArray strokeDashArray)
   ,("text-anchor" `parseIn` textAnchor, cssIdentAttr textAnchor)
+  ,("dominant-baseline" `parseIn` dominantBaseline, cssIdentAttr dominantBaseline)
   ,("clip-path" `parseIn` clipPathRef, cssElementRefSetter clipPathRef)
   ,("marker-end" `parseIn` markerEnd, cssElementRefSetter markerEnd)
   ,("marker-start" `parseIn` markerStart, cssElementRefSetter markerStart)
