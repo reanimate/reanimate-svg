@@ -356,6 +356,7 @@ module Graphics.SvgTree.Types
     , textAdjust
     , textRoot
     , TextAnchor( .. )
+    , DominantBaseline( .. )
     , textAt
 
       -- ** Text path

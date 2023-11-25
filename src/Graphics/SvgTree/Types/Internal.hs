@@ -338,6 +338,7 @@ module Graphics.SvgTree.Types.Internal
     textAdjust,
     textRoot,
     TextAnchor (..),
+    DominantBaseline (..),
     textAt,
 
     -- ** Text path
@@ -619,6 +620,18 @@ data TextAnchor
     TextAnchorEnd
   deriving (Eq, Show, Generic)
 
+data DominantBaseline
+  = DominantBaselineAuto
+  | DominantBaselineTextBottom
+  | DominantBaselineAlphabetic
+  | DominantBaselineIdeographic
+  | DominantBaselineMiddle
+  | DominantBaselineCentral
+  | DominantBaselineMathematical
+  | DominantBaselineHanging
+  | DominantBaselineTextTop
+  deriving (Eq, Show, Generic)
+
 -- | Corresponds to the possible values of
 -- SVG attributes which are either @none@ or
 -- @url(\<string\>)@.
@@ -719,6 +732,8 @@ data DrawAttributes = DrawAttributes
     -- | Defines how to interpret the text position, corresponds
     -- to the @text-anchor@ SVG attribute.
     _textAnchor :: !(Maybe TextAnchor),
+    -- | Corresponds to the @dominant-baseline@ SVG attribute.
+    _dominantBaseline :: !(Maybe DominantBaseline),
     -- | Defines the marker used for the start of the line.
     -- Corresponds to the @marker-start@ SVG attribute.
     _markerStart :: !(Maybe ElementRef),
@@ -2199,6 +2214,7 @@ instance Semigroup DrawAttributes where
         _fontFamily = chooseLast _fontFamily,
         _fontStyle = chooseLast _fontStyle,
         _textAnchor = chooseLast _textAnchor,
+        _dominantBaseline = chooseLast _dominantBaseline,
         _maskRef = chooseLast _maskRef,
         _clipPathRef = chooseLast _clipPathRef,
         _clipRule = chooseLast _clipRule,
@@ -2237,6 +2253,7 @@ instance Monoid DrawAttributes where
         _strokeOffset = Nothing,
         _strokeDashArray = Nothing,
         _textAnchor = Nothing,
+        _dominantBaseline = Nothing,
         _maskRef = Nothing,
         _clipPathRef = Nothing,
         _clipRule = Nothing,

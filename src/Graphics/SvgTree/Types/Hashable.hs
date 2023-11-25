@@ -185,6 +185,8 @@ deriving instance Hashable FontStyle
 
 deriving instance Hashable TextAnchor
 
+deriving instance Hashable DominantBaseline
+
 instance Hashable Tree where
   hashWithSalt s = hashWithSalt s . _treeHash
 
