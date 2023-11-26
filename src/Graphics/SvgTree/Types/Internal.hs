@@ -446,6 +446,11 @@ module Graphics.SvgTree.Types.Internal
     aspectRatioAlign,
     aspectRatioMeetSlice,
 
+    -- * Style
+    Style(..),
+    styleType,
+    styleContent,
+
     -- * MISC functions
     nameOfTree,
     toUserUnit,
@@ -1193,6 +1198,19 @@ instance WithDefaultSvg Text where
         _textAdjust = TextAdjustSpacing
       }
 
+data Style = Style
+  { _styleType :: !String,
+    _styleContent :: !String
+  }
+  deriving (Eq, Show, Generic)
+
+instance WithDefaultSvg Style where
+  defaultSvg =
+    Style
+      { _styleType = "",
+        _styleContent = []
+      }
+
 -- | Main type for the scene description, reorient to
 -- specific type describing each SVG tag.
 data Tree = CachedTree
@@ -1228,6 +1246,7 @@ data TreeBranch
   | MaskNode !Mask
   | ClipPathNode !ClipPath
   | SvgNode !Document
+  | StyleNode !Style
   deriving (Eq, Show, Generic)
 
 instance WithDefaultSvg TreeBranch where
@@ -1924,6 +1943,7 @@ nameOfTree v =
     MaskNode _ -> "mask"
     ClipPathNode _ -> "clipPath"
     SvgNode {} -> "svg"
+    StyleNode {} -> "style"
 
 -- | Defines the possible values for the @spreadMethod@
 -- values used for the gradient definitions.
@@ -2302,5 +2322,6 @@ makeLenses ''SpecularLighting
 makeLenses ''DropShadow
 makeLenses ''DiffuseLighting
 makeLenses ''ConvolveMatrix
+makeLenses ''Style
 
 makeClassy ''FilterAttributes

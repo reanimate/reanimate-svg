@@ -30,6 +30,8 @@ deriving instance Hashable Mask
 
 deriving instance Hashable CoordinateUnits
 
+deriving instance Hashable Style
+
 deriving instance Hashable TreeBranch
 
 deriving instance Hashable Group
@@ -272,6 +274,9 @@ pattern MaskTree n = Tree (MaskNode n)
 
 pattern ClipPathTree :: ClipPath -> Tree
 pattern ClipPathTree n = Tree (ClipPathNode n)
+
+pattern StyleTree :: Style -> Tree
+pattern StyleTree n = Tree (StyleNode n)
 
 pattern SvgTree :: Document -> Tree
 pattern SvgTree n = Tree (SvgNode n)
