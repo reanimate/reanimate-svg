@@ -24,7 +24,7 @@ import           Control.Lens                 hiding (children, element,
 import           Control.Lens.Unsound
 import           Data.Attoparsec.Text         (Parser, parseOnly, string)
 import           Data.List                    (foldl', intercalate)
-import           Data.Maybe                   (catMaybes, fromMaybe)
+import           Data.Maybe                   (catMaybes, fromMaybe, listToMaybe)
 import qualified Data.Text                    as T
 import           Graphics.SvgTree.ColorParser
 import           Graphics.SvgTree.CssParser   (complexNumber, dashArray, num,
@@ -976,6 +976,7 @@ instance XMLUpdatable Tree where
        let sub = [X.Elem . setChildren pathNode $ X.elContent textNode]
        return $ setChildren textNode sub
     SvgNode doc -> Just $ xmlOfDocument doc
+    StyleNode s -> serializeTreeNode s
 
 
 isNotNone :: Tree -> Bool
@@ -1335,6 +1336,21 @@ instance XMLUpdatable Marker where
     ,"preserveAspectRatio" `parseIn` markerAspectRatio
     ]
 
+instance XMLUpdatable Style where
+  xmlTagName _ = "style"
+  serializeTreeNode node =
+    flip setChildren [
+      X.Text X.CData
+        { X.cdVerbatim = X.CDataText
+        , X.cdData = _styleContent node
+        , X.cdLine = Nothing
+        }
+      ]
+      <$> genericSerializeNode node
+  attributes =
+    ["type" `parseIn` styleType
+    ]
+
 serializeText :: Text -> Maybe X.Element
 serializeText topText = namedNode where
   namedNode = fmap (\x -> x { X.elName = X.unqual "text" }) topNode
@@ -1521,7 +1537,15 @@ unparse e@(nodeName -> "mask") =
   MaskTree $ xmlUnparseWithDrawAttr e & maskContent .~ map unparse (elChildren e)
 unparse e@(nodeName -> "clipPath") =
   ClipPathTree $ xmlUnparseWithDrawAttr e & clipPathContent .~ map unparse (elChildren e)
-unparse (nodeName -> "style") = None -- XXX: Create a style node?
+unparse e@(nodeName -> "style") =
+  StyleTree $ xmlUnparse e & maybe id (styleContent .~) content
+  where
+    content = do
+      c <- listToMaybe $ X.elContent e
+      d <- case c of
+        X.Text t -> Just t
+        _ -> Nothing
+      pure $ X.cdData d
 unparse e@(nodeName -> "defs") =
   DefinitionTree $ xmlUnparseWithDrawAttr e & groupChildren .~ map unparse (elChildren e)
 unparse e@(nodeName -> "filter") =

@@ -474,6 +474,12 @@ module Graphics.SvgTree.Types
     , aspectRatioAlign
     , aspectRatioMeetSlice
 
+      -- * Style
+    , Style( .. )
+    , pattern StyleTree
+    , styleType
+    , styleContent
+
       -- * MISC functions
     , zipTree
     , foldTree
